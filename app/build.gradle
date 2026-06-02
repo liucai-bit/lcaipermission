@@ -32,7 +32,7 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+                artifact("$buildDir/outputs/aar/app-release.aar")
                 groupId = 'com.github.liucai-bit'
                 artifactId = 'lcaipermission' // 这里是你依赖时的名字
                 version = '' // 这里建议留空，让 JitPack 通过 Tag 自动注入版本
