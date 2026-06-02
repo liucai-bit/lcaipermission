@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name="com.liucai.core.base.LcaiBaseApplication"
         android:allowBackup="false"
         android:supportsRtl="true">
         <activity android:name=".view.LcaiPermissionActivity"

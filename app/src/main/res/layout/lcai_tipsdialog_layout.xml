@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/lcai_tips_dialog_bg"
+        android:orientation="vertical"
+        android:layout_marginHorizontal="50dp"
+        android:padding="10dp"
+        android:background="@drawable/lcai_tips_dialog_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/lcai_tips_dialog_title"
+            android:text="LcaiTipsDialog"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textColor="@color/text_1c1c1c"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/lcai_tips_dialog_content"
+            android:layout_marginTop="10dp"
+            android:text="LcaiTipsDialogContent"
+            android:textColor="@color/text_1c1c1c"
+            android:textSize="14sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/lcai_tips_dialog_cancel"
+                android:layout_weight="1"
+                android:text="取消"
+                android:gravity="center"
+                android:textColor="@color/text_999999"
+                android:textSize="14sp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:id="@+id/lcai_tips_dialog_confirm"
+                android:layout_weight="1"
+                android:text="确定"
+                android:gravity="center"
+                android:textColor="@color/text_409fff"
+                android:textSize="14sp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+</LinearLayout>

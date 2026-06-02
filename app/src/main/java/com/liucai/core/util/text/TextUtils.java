@@ -1,4 +1,4 @@
-package com.liucai.permission.util.text;
+package com.liucai.core.util.text;
 
 import java.util.List;
 

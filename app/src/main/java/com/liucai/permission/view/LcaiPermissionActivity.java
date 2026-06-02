@@ -7,9 +7,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
-import com.liucai.permission.base.LcaiBasePermissionActivity;
-import com.liucai.permission.util.LcaiPermissionResult;
-import com.liucai.permission.util.LcaiPermissionString;
+import com.liucai.core.base.LcaiBasePermissionActivity;
+import com.liucai.permission.core.LcaiPermissionResult;
+import com.liucai.permission.core.LcaiPermissionString;
 
 /**
  * @author HUAWEI

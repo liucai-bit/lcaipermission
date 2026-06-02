@@ -1,8 +1,11 @@
-package com.liucai.permission.util;
+package com.liucai.permission.bulider;
 
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+
+import com.liucai.permission.core.LcaiPermissionRequest;
+import com.liucai.permission.core.LcaiReqPermissionResult;
 
 import java.util.ArrayList;
 import java.util.List;

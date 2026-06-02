@@ -1,4 +1,4 @@
-package com.liucai.permission.util.log;
+package com.liucai.core.util.log;
 
 import android.util.Log;
 

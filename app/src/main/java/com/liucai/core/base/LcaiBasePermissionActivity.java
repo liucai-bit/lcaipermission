@@ -1,4 +1,4 @@
-package com.liucai.permission.base;
+package com.liucai.core.base;
 
 import android.app.Activity;
 import android.graphics.Color;

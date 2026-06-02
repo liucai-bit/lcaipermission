@@ -1,4 +1,4 @@
-package com.liucai.permission.util;
+package com.liucai.permission.core;
 
 import androidx.annotation.NonNull;
 

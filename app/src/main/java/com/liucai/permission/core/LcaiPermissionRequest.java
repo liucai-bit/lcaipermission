@@ -1,4 +1,4 @@
-package com.liucai.permission.util;
+package com.liucai.permission.core;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -10,8 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.PermissionChecker;
 
-import com.liucai.permission.util.log.LcaiLogUtils;
-import com.liucai.permission.util.text.TextUtils;
+import com.liucai.core.util.log.LcaiLogUtils;
+import com.liucai.core.util.text.TextUtils;
+import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.view.LcaiPermissionActivity;
 
 import java.util.ArrayList;
