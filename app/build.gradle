@@ -1,0 +1,63 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+android {
+    namespace 'com.liucai.permission'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName "1.0.1"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    android.libraryVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName "lcpermission.aar"
+            if (variant.buildType.name.equals('debug')) {
+                outputFileName = "lcpermission-${variant.buildType.name}-v-${android.defaultConfig.versionName}.aar"
+            }
+            if (variant.buildType.name.equals('release')) {
+                outputFileName = "lcpermission-${variant.buildType.name}-v-${android.defaultConfig.versionName}.aar"
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+                groupId = 'com.gitee.liu_like'
+                artifactId = 'lcaipermission' // 这里是你依赖时的名字
+                version = '' // 这里建议留空，让 JitPack 通过 Tag 自动注入版本
+            }
+        }
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
