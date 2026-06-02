@@ -35,7 +35,7 @@ afterEvaluate {
                 artifact("$buildDir/outputs/aar/${project.name}-release.aar")
                 groupId = 'com.github.liucai-bit'
                 artifactId = 'lcaipermission' // 这里是你依赖时的名字
-                version = '' // 这里建议留空，让 JitPack 通过 Tag 自动注入版本
+                version = project.findProperty('version') ?: '1.0.0-SNAPSHOT'
             }
         }
     }
