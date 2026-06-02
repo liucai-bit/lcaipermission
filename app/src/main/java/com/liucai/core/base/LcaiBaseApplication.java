@@ -2,8 +2,8 @@ package com.liucai.core.base;
 
 import android.app.Application;
 
+import com.liucai.core.exception.LcaiException;
 import com.liucai.permission.BuildConfig;
-import com.liucai.permission.lcexception.LcaiException;
 
 /**
  * @author HUAWEI
