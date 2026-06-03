@@ -34,7 +34,7 @@ public abstract class LcaiBaseActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.bundle = savedInstanceState;
+        this.bundle = getIntent().getExtras();
         view = LayoutInflater.from(this).inflate(getLayout(), null);
         setContentView(view);
         initData();
