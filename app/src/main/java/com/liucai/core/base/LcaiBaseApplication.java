@@ -6,7 +6,7 @@ import com.liucai.core.exception.LcaiException;
 import com.liucai.permission.BuildConfig;
 
 /**
- * @author HUAWEI
+ * @author LIUCAI
  * @program lctipsdialog
  * @description
  * @Date 2026/6/1

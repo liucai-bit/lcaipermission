@@ -3,7 +3,7 @@ package com.liucai.permission.core;
 import android.Manifest;
 
 /**
- * @author HUAWEI
+ * @author LIUCAI
  * @program lcpermission
  * @description
  * @Date 2026/5/26
@@ -11,8 +11,6 @@ import android.Manifest;
 public interface LcaiPermissionString {
 
     String PERMISSION_KEY = "LCAI_PERMISSION_KEY";
-
-    String REQUEST_PERMISSION_CODE = "LCAI_REQUEST_PERMISSION_CODE";
 
     /**
      * 读取权限

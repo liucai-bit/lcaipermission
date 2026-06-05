@@ -24,7 +24,7 @@ import com.liucai.tipsdialog.module.SegDisplayModule;
 
 
 /**
- * @author HUAWEI
+ * @author LIUCAI
  * @program lctipsdialog
  * @description
  * @Date 2026/5/27

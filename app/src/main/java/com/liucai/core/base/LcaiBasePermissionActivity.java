@@ -7,15 +7,16 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
- * @author HUAWEI
+ * @author LIUCAI
  * @program lcpermission
  * @description
  * @Date 2026/5/26
  */
 
-public abstract class LcaiBasePermissionActivity extends Activity {
+public abstract class LcaiBasePermissionActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

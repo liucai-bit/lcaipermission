@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author HUAWEI
+ * @author LIUCAI
  * @program lcpermission
  * @description
  * @Date 2026/5/26
@@ -43,7 +43,7 @@ public class LcaiPermissionRequest {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {//如果是6.0以下，不申请
             LcaiLogUtils.i("SDK_INT<23");
             if (bulider.result != null) {
-                bulider.result.OnReqPermissionPass();
+                bulider.result.onReqPermissionPass();
             }
         }
 
@@ -65,7 +65,7 @@ public class LcaiPermissionRequest {
         if (stringList != null && stringList.size() > 0) {
             if (bulider.checkPermission) {
                 if (bulider.result != null) {
-                    bulider.result.OnReqPermissionNoPass();
+                    bulider.result.onReqPermissionNoPass();
                 }
                 return;
             }
@@ -73,43 +73,13 @@ public class LcaiPermissionRequest {
             Intent intent = new Intent();
             Bundle bundle = new Bundle();
             bundle.putStringArray(LcaiPermissionString.PERMISSION_KEY, stringList.toArray(new String[stringList.size()]));
-            if (bulider.req_code == 0) {
-                bulider.req_code = LcaiPermissionActivity.REQUEST_PERMISSION_CODE;
-            }
-            bundle.putInt(LcaiPermissionString.REQUEST_PERMISSION_CODE, bulider.req_code);
             intent.putExtras(bundle);
             intent.setClass(bulider.mActivity, LcaiPermissionActivity.class);
-            LcaiPermissionActivity.setResult(new LcaiPermissionResult() {
-                @Override
-                public void onLcaiPermissionResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-                    boolean hasPermissionDismiss = false;//有权限没有通过
-                    if (requestCode == bulider.req_code) {
-                        for (int i = 0; i < grantResults.length; i++) {
-                            if (grantResults[i] == -1) {
-                                hasPermissionDismiss = true;
-                            }
-                        }
-                        if (hasPermissionDismiss) {
-                            if (bulider.system) {
-//                                showSystemPermissionsSettingDialog(bulider.mActivity);//跳转到系统设置权限页面，或者直接关闭页面，不让他继续访问
-                            } else {
-                                if (bulider.result != null) {
-                                    bulider.result.OnReqPermissionNoPass();
-                                }
-                            }
-                        } else {
-                            if (bulider.result != null) {
-                                bulider.result.OnReqPermissionPass();
-                            }
-                        }
-                    }
-                }
-            });
             bulider.mActivity.startActivity(intent);
 
         } else {
             if (bulider.result != null) {
-                bulider.result.OnReqPermissionPass();
+                bulider.result.onReqPermissionPass();
             }
         }
     }

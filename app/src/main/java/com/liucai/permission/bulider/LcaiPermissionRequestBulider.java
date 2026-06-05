@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author HUAWEI
+ * @author LIUCAI
  * @program lcpermission
  * @description
  * @Date 2026/5/26
@@ -27,11 +27,6 @@ public class LcaiPermissionRequestBulider {
      * 检查权限
      */
     public boolean checkPermission;
-
-    /**
-     * 权限申请码
-     */
-    public int req_code;
 
     /**
      * 是否显示自定义索权弹窗
@@ -151,16 +146,6 @@ public class LcaiPermissionRequestBulider {
      */
     public LcaiPermissionRequestBulider check(boolean checkPermission) {
         this.checkPermission = checkPermission;
-        return this;
-    }
-
-    /**
-     * 设置申请码
-     * @param req_code
-     * @return
-     */
-    public LcaiPermissionRequestBulider addReqCode(int req_code) {
-        this.req_code = req_code;
         return this;
     }
 
@@ -382,10 +367,6 @@ public class LcaiPermissionRequestBulider {
     public LcaiPermissionRequestBulider addResult(LcaiReqPermissionResult result) {
         this.result = result;
         return this;
-    }
-
-    public LcaiPermissionRequest bulid() {
-        return new LcaiPermissionRequest(this);
     }
 
 

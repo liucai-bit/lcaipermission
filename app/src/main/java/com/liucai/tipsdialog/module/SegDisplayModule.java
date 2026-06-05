@@ -1,7 +1,7 @@
 package com.liucai.tipsdialog.module;
 
 /**
- * @author HUAWEI
+ * @author LIUCAI
  * @program jgxt
  * @description
  * @Date 2026/5/12
