@@ -31,6 +31,11 @@ com.liucai.http
 
 🛠️ 快速开始
 
+📦 集成方式
+
+   添加依赖
+   implementation "com.github.liucai-bit:lcaipermission:v1.1.2"
+
 1. 基本 GET 请求
 
 ```java

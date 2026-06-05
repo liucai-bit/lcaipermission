@@ -15,7 +15,7 @@ LcaiTipsDialogBulider Android 弹窗构建器使用文档
 📦 集成方式
 
 1. 添加依赖
-   implementation "com.github.liucai-bit:lcaipermission:vx.x.x"
+   implementation "com.github.liucai-bit:lcaipermission:v1.1.2"
 
 2. 添加资源文件（可选）
 如果需要使用自定义背景，在 `res/drawable` 目录下添加相应的 drawable 资源文件。

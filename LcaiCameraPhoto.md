@@ -15,7 +15,7 @@ LcaiCameraPhotoBulider Android 相机相册构建器使用文档
 📦 集成方式
 
 1. 添加依赖
-   implementation "com.github.liucai-bit:lcaipermission:vx.x.x"
+   implementation "com.github.liucai-bit:lcaipermission:v1.1.2"
 
 2. 权限配置
 在 `AndroidManifest.xml` 中添加必要的权限：

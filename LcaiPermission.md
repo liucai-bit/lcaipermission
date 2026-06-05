@@ -15,7 +15,7 @@ LcaiPermissionRequestBulider Android 权限请求构建器使用文档
 
 📦 集成方式
 
-implementation "com.github.liucai-bit:lcaipermission:vx.x.x"
+implementation "com.github.liucai-bit:lcaipermission:v1.1.2"
 
 1.权限声明
    在 `AndroidManifest.xml` 中声明所需的权限，例如：
