@@ -10,7 +10,7 @@ public class LcaiHttpMethod {
     /**
      * GET请求
      */
-    public static final String GET = "GET";
+   public static final String GET = "GET";
     /**
      * POST请求
      */

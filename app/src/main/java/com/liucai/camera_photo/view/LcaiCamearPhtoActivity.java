@@ -34,10 +34,6 @@ import java.lang.ref.WeakReference;
  */
 public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
 
-    public static final int OPEN_PHOTO_CODE = 604;
-
-    public static final int OPEN_CAMERA_CODE = 1448;
-
     public static final String OPEN_KEY = "OPEN_CAMERA_PHOTO";
     public static final String RESULT_KEY = "RESULT_CAMERA_PHOTO";
     public static final String SAVE_IMAGE_KEY = "SAVE_IMAGE";

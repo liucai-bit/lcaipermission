@@ -487,18 +487,18 @@ SegDisplayModule module = new SegDisplayModule()
 
 ```java
 public class DialogStyles {
-    public static final int TITLE_COLOR_PRIMARY = Color.parseColor("1c1c1c");
-    public static final int CONTENT_COLOR_PRIMARY = Color.parseColor("666666");
-    public static final int BUTTON_COLOR_CONFIRM = Color.parseColor("2196F3");
-    public static final int BUTTON_COLOR_CANCEL = Color.parseColor("9E9E9E");
-    public static final int TITLE_SIZE = 18;
-    public static final int CONTENT_SIZE = 14;
-    public static final int BUTTON_SIZE = 16;
+    int TITLE_COLOR_PRIMARY = Color.parseColor("1c1c1c");
+    int CONTENT_COLOR_PRIMARY = Color.parseColor("666666");
+    int BUTTON_COLOR_CONFIRM = Color.parseColor("2196F3");
+    int BUTTON_COLOR_CANCEL = Color.parseColor("9E9E9E");
+    int TITLE_SIZE = 18;
+    int CONTENT_SIZE = 14;
+    int BUTTON_SIZE = 16;
     
     // 分段显示颜色
-    public static final String SEGMENT_COLOR_PRIMARY = "1c1c1c";
-    public static final String SEGMENT_COLOR_SECONDARY = "666666";
-    public static final String SEGMENT_COLOR_ACCENT = "2196F3";
+    String SEGMENT_COLOR_PRIMARY = "1c1c1c";
+    String SEGMENT_COLOR_SECONDARY = "666666";
+    String SEGMENT_COLOR_ACCENT = "2196F3";
 }
 ```
 

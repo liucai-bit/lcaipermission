@@ -81,7 +81,7 @@ public class LcaiManager{
         private static final LcaiManager INSTANCE = new LcaiManager();
     }
 
-    public static final class Internal{
+    public static class Internal{
         private Internal() {}
 
         public static LcaiPermissionActivityResult getPermissionResult() {
