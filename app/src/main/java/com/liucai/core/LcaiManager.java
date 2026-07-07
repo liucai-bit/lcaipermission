@@ -14,7 +14,7 @@ import com.liucai.permission.core.LcaiReqPermissionResult;
 import java.lang.ref.WeakReference;
 
 /**
- * @author LIUCAI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/6/5

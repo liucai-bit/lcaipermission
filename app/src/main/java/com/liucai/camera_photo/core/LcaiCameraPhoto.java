@@ -7,7 +7,7 @@ import com.liucai.camera_photo.bulider.LcaiCameraPhotoBulider;
 import com.liucai.camera_photo.view.LcaiCamearPhtoActivity;
 
 /**
- * @author LIUCAI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/6/4

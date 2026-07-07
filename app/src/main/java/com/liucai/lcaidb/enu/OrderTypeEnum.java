@@ -1,7 +1,7 @@
 package com.liucai.lcaidb.enu;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/6/9

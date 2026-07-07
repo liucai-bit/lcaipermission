@@ -10,7 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
- * @author LIUCAI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/5/26

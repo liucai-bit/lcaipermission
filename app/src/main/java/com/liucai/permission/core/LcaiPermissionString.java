@@ -3,7 +3,7 @@ package com.liucai.permission.core;
 import android.Manifest;
 
 /**
- * @author LIUCAI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/5/26

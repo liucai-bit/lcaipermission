@@ -7,7 +7,7 @@ import com.liucai.camera_photo.core.LcaiPhotoLib;
 import com.liucai.camera_photo.core.LcaiPhotoResult;
 
 /**
- * @author LIUCAI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/6/4

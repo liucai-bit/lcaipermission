@@ -198,7 +198,7 @@ userDao.deleteById(ids);
 
 - 当前版本：1.0
 - 最后更新：2026年6月9日
-- 作者：HUAWEI / liucai
+- 作者：liucai / liucai
 - 项目名称：lcpermission
 
 许可证

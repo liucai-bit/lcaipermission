@@ -11,7 +11,7 @@ import com.liucai.core.base.LcaiBasePermissionActivity;
 import com.liucai.permission.core.LcaiPermissionString;
 
 /**
- * @author LIUCAI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/5/26

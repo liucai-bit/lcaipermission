@@ -16,6 +16,10 @@
             android:theme="@style/LcaiTransparentTheme"
             android:launchMode="singleInstance"/>
 
+        <activity android:name="com.liucai.jsbridge.web.WebActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
         <provider
             android:name="com.liucai.core.util.file.LcaiFileProvider"
             android:authorities="${applicationId}.fileprovider"

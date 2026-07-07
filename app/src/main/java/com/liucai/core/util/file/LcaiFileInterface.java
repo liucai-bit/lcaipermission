@@ -1,7 +1,7 @@
 package com.liucai.core.util.file;
 
 /**
- * @author LIUCAI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/6/5
