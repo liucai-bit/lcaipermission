@@ -113,6 +113,11 @@ public class LcaiPermissionRequestBulider {
      */
     public int titleSize = 18;
 
+    /**
+     * 弹窗背景颜色
+     */
+    public int tipsBackground;
+
 
     /**
      * 权限集合
@@ -318,6 +323,11 @@ public class LcaiPermissionRequestBulider {
      */
     public LcaiPermissionRequestBulider addTitleSize(int titleSize) {
         this.titleSize = titleSize;
+        return this;
+    }
+
+    public LcaiPermissionRequestBulider addTipsBackground(int tipsBackground) {
+        this.tipsBackground = tipsBackground;
         return this;
     }
 

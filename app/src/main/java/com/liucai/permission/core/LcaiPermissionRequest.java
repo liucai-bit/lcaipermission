@@ -107,6 +107,7 @@ public class LcaiPermissionRequest {
                 .addConfirmColor(bulider.rightColor)
                 .addConfirmSize(bulider.btnSize)
                 .addConfirmBackground(bulider.rightBg)
+                .addTipsBackground(bulider.tipsBackground)
                 .addDialogInterface(new OnTipsDialogInterface() {
                     @Override
                     public void onCancelListener() {
