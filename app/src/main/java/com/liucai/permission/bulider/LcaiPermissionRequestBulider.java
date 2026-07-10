@@ -58,7 +58,7 @@ public class LcaiPermissionRequestBulider {
      * 左侧按钮背景
      * 默认无背景
      */
-    public Drawable leftBg;
+    public int leftBg;
 
     /**
      * 按钮文字大小
@@ -81,7 +81,7 @@ public class LcaiPermissionRequestBulider {
      * 右侧文字背景
      * 默认无背景
      */
-    public Drawable rightBg;
+    public int rightBg;
 
     /**
      * 右侧文字颜色
@@ -233,7 +233,7 @@ public class LcaiPermissionRequestBulider {
      * @param leftBg
      * @return
      */
-    public LcaiPermissionRequestBulider addLeftBg(Drawable leftBg) {
+    public LcaiPermissionRequestBulider addLeftBg(int leftBg) {
         this.leftBg = leftBg;
         return this;
     }
@@ -291,7 +291,7 @@ public class LcaiPermissionRequestBulider {
      * @param rightBg
      * @return
      */
-    public LcaiPermissionRequestBulider addRightBg(Drawable rightBg) {
+    public LcaiPermissionRequestBulider addRightBg(int rightBg) {
         this.rightBg = rightBg;
         return this;
     }

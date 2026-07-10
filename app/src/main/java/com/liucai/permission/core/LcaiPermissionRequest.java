@@ -14,6 +14,8 @@ import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.view.LcaiPermissionActivity;
+import com.liucai.tipsdialog.bulider.LcaiTipsDialogBulider;
+import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,13 +49,6 @@ public class LcaiPermissionRequest {
             }
         }
 
-        if (TextUtils.haveOneArray(bulider.permissions.toArray(new String[bulider.permissions.size()]), LcaiPermissionString.MANAGE_EXTERNAL_STORAGE)) {
-            if (!checkPermission(LcaiPermissionString.MANAGE_EXTERNAL_STORAGE)) {
-//                requestManageExternalStoragePermission();
-                return;
-            }
-        }
-
         List<String> stringList = new ArrayList<>();
         //未授权集合
         for (String permission : bulider.permissions) {
@@ -69,13 +64,13 @@ public class LcaiPermissionRequest {
                 }
                 return;
             }
-            LcaiLogUtils.i(stringList.size(),"start request permission");
-            Intent intent = new Intent();
-            Bundle bundle = new Bundle();
-            bundle.putStringArray(LcaiPermissionString.PERMISSION_KEY, stringList.toArray(new String[stringList.size()]));
-            intent.putExtras(bundle);
-            intent.setClass(bulider.mActivity, LcaiPermissionActivity.class);
-            bulider.mActivity.startActivity(intent);
+
+            if (bulider.asDialog) {
+                showDialog(stringList);
+            } else {
+                reqPermission(stringList);
+            }
+
 
         } else {
             if (bulider.result != null) {
@@ -94,10 +89,48 @@ public class LcaiPermissionRequest {
         return false;
     }
 
-    public void requestManageExternalStoragePermission() {
-        Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-        intent.setData(Uri.parse("package:"+bulider.mActivity.getPackageName()));
-        bulider.mActivity.startActivityForResult(intent, LcaiPermissionActivity.MANAGE_EXTERNAL_PERMISSION);
+    public void showDialog(List<String> stringList) {
+        new LcaiTipsDialogBulider()
+                .with(bulider.mActivity)
+                .addTitle(bulider.title)
+                .addTitleColor(bulider.titleColor)
+                .addTitleSize(bulider.titleSize)
+                .addContent(bulider.content)
+                .addContentColor(bulider.contentColor)
+                .addContentSize(bulider.contentSize)
+                .addCancelText(bulider.leftString)
+                .addCancelSize(bulider.btnSize)
+                .addCancelColor(bulider.leftColor)
+                .addCancelColor(bulider.leftColor)
+                .addCancelBackground(bulider.leftBg)
+                .addConfirmText(bulider.rightString)
+                .addConfirmColor(bulider.rightColor)
+                .addConfirmSize(bulider.btnSize)
+                .addConfirmBackground(bulider.rightBg)
+                .addDialogInterface(new OnTipsDialogInterface() {
+                    @Override
+                    public void onCancelListener() {
+                        if (bulider.result != null) {
+                            bulider.result.onReqPermissionPass();
+                        }
+                    }
+
+                    @Override
+                    public void onConfirmListener() {
+                        reqPermission(stringList);
+                    }
+                }).bulid();
+
+    }
+
+    public void reqPermission(List<String> stringList) {
+        LcaiLogUtils.i(stringList.size(),"start request permission");
+        Intent intent = new Intent();
+        Bundle bundle = new Bundle();
+        bundle.putStringArray(LcaiPermissionString.PERMISSION_KEY, stringList.toArray(new String[stringList.size()]));
+        intent.putExtras(bundle);
+        intent.setClass(bulider.mActivity, LcaiPermissionActivity.class);
+        bulider.mActivity.startActivity(intent);
     }
 }
 

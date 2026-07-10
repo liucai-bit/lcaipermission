@@ -18,8 +18,6 @@ import com.liucai.permission.core.LcaiPermissionString;
  */
 public class LcaiPermissionActivity extends LcaiBasePermissionActivity {
 
-    public final static int MANAGE_EXTERNAL_PERMISSION = 1736;
-
     private String[] permissionArray;
     private ActivityResultLauncher permissionLauncher;
 
