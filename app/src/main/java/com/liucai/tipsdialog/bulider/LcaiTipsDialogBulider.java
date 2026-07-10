@@ -184,7 +184,9 @@ public class LcaiTipsDialogBulider {
      * @return
      */
     public LcaiTipsDialogBulider addCancelBackground(int drawable) {
-        this.cancelBackground = mContext.getResources().getDrawable(drawable);
+        if (drawable > 0) {
+            this.cancelBackground = mContext.getResources().getDrawable(drawable);
+        }
         return this;
     }
 
@@ -233,7 +235,9 @@ public class LcaiTipsDialogBulider {
      * @return
      */
     public LcaiTipsDialogBulider addConfirmBackground(int drawable) {
-        this.confirmBackground = mContext.getResources().getDrawable(drawable);
+        if (drawable > 0) {
+            this.confirmBackground = mContext.getResources().getDrawable(drawable);
+        }
         return this;
     }
 
@@ -245,7 +249,9 @@ public class LcaiTipsDialogBulider {
      * @return
      */
     public LcaiTipsDialogBulider addTipsBackground(int drawable) {
-        this.tipsBackground = mContext.getResources().getDrawable(drawable);
+        if (drawable > 0) {
+            this.tipsBackground = mContext.getResources().getDrawable(drawable);
+        }
         return this;
     }
 
