@@ -50,7 +50,7 @@ public class LcaiTipsDialogBulider {
         return this;
     }
 
-    public int titleSize;
+    public int titleSize=18;
 
     /**
      * 标题大小
@@ -98,7 +98,7 @@ public class LcaiTipsDialogBulider {
         return this;
     }
 
-    public int contentSize;
+    public int contentSize=16;
 
     /**
      * 内容大小
@@ -164,7 +164,7 @@ public class LcaiTipsDialogBulider {
         return this;
     }
 
-    public int cancelSize;
+    public int cancelSize=16;
 
     /**
      * 左侧按钮文字大小
@@ -215,7 +215,7 @@ public class LcaiTipsDialogBulider {
         return this;
     }
 
-    public int confirmSize;
+    public int confirmSize=16;
 
     /**
      * 右侧按钮文字大小

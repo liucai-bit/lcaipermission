@@ -142,7 +142,7 @@ public class LcaiManager{
                     @Override
                     public void onCancelListener() {
                         if (bulider.result != null) {
-                            bulider.result.onReqPermissionPass();
+                            bulider.result.onReqPermissionNoPass();
                         }
                     }
 

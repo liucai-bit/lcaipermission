@@ -2,6 +2,7 @@ package com.liucai.core.base;
 
 import android.app.Application;
 
+import com.liucai.core.apputils.GloabalAppUtil;
 import com.liucai.core.exception.LcaiException;
 import com.liucai.permission.BuildConfig;
 
@@ -16,8 +17,7 @@ public class LcaiBaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-
+        GloabalAppUtil.init(this);
         if (BuildConfig.DEBUG) {
             Thread.setDefaultUncaughtExceptionHandler(new LcaiException());
         }

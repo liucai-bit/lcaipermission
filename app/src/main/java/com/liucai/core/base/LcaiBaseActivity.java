@@ -1,11 +1,14 @@
 package com.liucai.core.base;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+
+import com.liucai.core.apputils.GlobalContextWrapper;
 
 /**
  * @author liucai
@@ -30,6 +33,11 @@ public abstract class LcaiBaseActivity extends Activity {
     private View view;
 
     public Bundle bundle;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(new GlobalContextWrapper(newBase).wrap());
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

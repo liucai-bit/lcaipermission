@@ -112,7 +112,7 @@ public class LcaiPermissionRequest {
                     @Override
                     public void onCancelListener() {
                         if (bulider.result != null) {
-                            bulider.result.onReqPermissionPass();
+                            bulider.result.onReqPermissionNoPass();
                         }
                     }
 
