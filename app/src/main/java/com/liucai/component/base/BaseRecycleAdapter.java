@@ -1,5 +1,6 @@
 package com.liucai.component.base;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +32,7 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
     private List<T> datas;
     @Nullable
     private JSONArray arrays;
-    private int layoutId;
+    private final int layoutId;
     private final Type tActualType;
     @Nullable
     public ItemClickListener clickListener;
@@ -54,14 +55,16 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
         return new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
     }
 
-    public BaseRecycleAdapter(Context mContext, int layoutId) {
+    public BaseRecycleAdapter(@NonNull Context mContext, int layoutId) {
         this.mContext = mContext;
         this.layoutId = layoutId;
         Type superType = getClass().getGenericSuperclass();
+        assert superType != null;
         Type[] typeArguments = ((ParameterizedType) superType).getActualTypeArguments();
         tActualType = typeArguments[1];
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void setData(@NonNull JSONArray arrays) {
         if (this.arrays==arrays) return;
         this.arrays = arrays;
@@ -69,6 +72,7 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
         notifyDataSetChanged();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void setData(@NonNull List<T> datas) {
         if (this.datas==datas) return;
         this.datas = datas;
