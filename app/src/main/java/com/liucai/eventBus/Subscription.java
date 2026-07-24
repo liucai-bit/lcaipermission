@@ -3,7 +3,7 @@ package com.liucai.eventBus;
 import java.lang.reflect.Method;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/7/15

@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/7/15

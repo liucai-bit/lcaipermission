@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description 轻量型基于事件ID的事件总线，修复多实例订阅冲突、反射调用异常等问题
  * @Date 2026/7/15

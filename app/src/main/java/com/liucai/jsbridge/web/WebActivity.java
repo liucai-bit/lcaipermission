@@ -26,7 +26,7 @@ import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.core.LcaiReqPermissionResult;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/7/7

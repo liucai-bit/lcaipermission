@@ -20,7 +20,7 @@ import com.liucai.preference.LcaiPreferenceUtils;
 import java.util.Locale;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/7/14

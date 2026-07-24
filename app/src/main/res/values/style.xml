@@ -1,0 +1,35 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <declare-styleable name="BusinessNodeStatusBar">
+        <attr name="titleSize" format="integer"/>
+        <attr name="titleColor" format="color"/>
+        <attr name="cloumns" format="integer"/>
+        <attr name="title" format="string"/>
+        <attr name="barBackground" format="reference|color"/>
+    </declare-styleable>
+
+    <declare-styleable name="ViewFlipperCarousel">
+        <attr name="indicatePoint" format="enum">
+            <enum name="bottom_center" value="0"/>
+            <enum name="bottom_left" value="1"/>
+            <enum name="bottom_right" value="2"/>
+            <enum name="top_center" value="3"/>
+            <enum name="top_left" value="4"/>
+            <enum name="top_right" value="5"/>
+        </attr>
+        <attr name="direction" format="enum">
+            <enum name="vertical" value="0"/>
+            <enum name="horizontal" value="1"/>
+        </attr>
+        <attr name="speed" format="integer"/>
+        <attr name="autoPlay" format="boolean"/>
+        <attr name="isSupportGesture" format="boolean"/>
+        <attr name="showReferencePoint" format="boolean"/>
+        <attr name="maxPointSize" format="integer"/>
+        <attr name="pointStyle" format="enum">
+            <enum name="cricle" value="0"/>
+            <enum name="line" value="1"/>
+        </attr>
+        <attr name="checkColor" format="reference"/>
+        <attr name="uncheckColor" format="reference"/>
+    </declare-styleable>
+</resources>
