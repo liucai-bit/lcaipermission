@@ -103,13 +103,16 @@ import java.util.List;
         pointStyle = mTa.getInt(R.styleable.ViewFlipperCarousel_pointStyle, 0);
         uncheckColor = mTa.getDrawable(R.styleable.ViewFlipperCarousel_uncheckColor);
         checkColor = mTa.getDrawable(R.styleable.ViewFlipperCarousel_checkColor);
-        mTa.recycle();
         if (uncheckColor == null) {
             uncheckColor = mContext.getDrawable(R.drawable.view_flipper_uncheck);
         }
         if (checkColor == null) {
             checkColor = mContext.getDrawable(R.drawable.view_flipper_check);
         }
+    }
+
+    @Override
+    public void initView() {
         initViewFlipper();
     }
 

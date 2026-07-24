@@ -7,6 +7,7 @@ import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.liucai.core.util.text.TextUtils;
@@ -14,7 +15,8 @@ import com.liucai.core.util.text.TextUtils;
 /**
  * @author liucai
  * @program lcpermission
- * @description
+ * @description 通用自定义LinearLayout基类
+ * 封装属性读取、单位转换等通用能力，所有子类自动继承无需重复实现
  * @Date 2026/7/23
  */
 public abstract class BaseLinearLayout extends LinearLayout {
@@ -24,67 +26,116 @@ public abstract class BaseLinearLayout extends LinearLayout {
 
     public abstract void init();
 
-    public Context mContext;
-    public TypedArray mTa;
+    public abstract void initView();
 
+    @NonNull
+    protected final Context mContext;
+    @Nullable
+    protected TypedArray mTa;
+
+    /**
+     * 子类可重写此方法，返回自身定义的styleable属性数组
+     * @return 自定义属性ID数组，基类自动完成属性初始化
+     */
+    @NonNull
     public int[] setAttrs() {
         return new int[]{};
     }
 
-    public BaseLinearLayout(Context context) {
+    public BaseLinearLayout(@NonNull Context context) {
         super(context);
         this.mContext = context;
         init();
+        initView();
     }
 
-    public BaseLinearLayout(Context context, @Nullable AttributeSet attrs) {
+    public BaseLinearLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.mContext = context;
         initAttr(attrs);
         init();
+        autoRecycleTypedArray();
+        initView();
     }
 
-    public BaseLinearLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public BaseLinearLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
         initAttr(attrs);
         init();
+        autoRecycleTypedArray();
+        initView();
     }
 
-    public BaseLinearLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public BaseLinearLayout(@NonNull Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.mContext = context;
         initAttr(attrs);
         init();
-    }
-
-    private void initAttr(AttributeSet attr) {
-        if (setAttrs() != null && setAttrs().length > 0) {
-            mTa = mContext.obtainStyledAttributes(attr, setAttrs());
-        }
+        autoRecycleTypedArray();
+        initView();
     }
 
     /**
-     * dp转换成px
-     * @param dpValue
-     * @return
+     * 初始化自定义属性TypedArray
+     * @param attr 布局传入的属性集
      */
-    public int dip2px( float dpValue) {
-        if (TextUtils.isEmpty(dpValue + "")) {
-            return 0;
+    private void initAttr(@Nullable AttributeSet attr) {
+        int[] styleableArr = setAttrs();
+        if (styleableArr != null && styleableArr.length > 0 && attr != null) {
+            mTa = mContext.obtainStyledAttributes(attr, styleableArr);
         }
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpValue, getResources().getDisplayMetrics());
     }
+
     /**
-     * px转换成dp
-     * @param pxValue
-     * @return
+     * 自动回收TypedArray资源，子类无需手动调用recycle，完全避免内存泄漏
+     * 子类如果需要提前在init中读取属性，读取完成后可主动调用recycle
+     */
+    private void autoRecycleTypedArray() {
+        if (mTa != null) {
+            mTa.recycle();
+            mTa = null;
+        }
+    }
+
+    /**
+     * dp单位转px单位，自动适配当前设备屏幕密度
+     * @param dpValue 输入dp数值
+     * @return 转换后的像素值，非法输入默认返回0
+     */
+    public int dip2px(float dpValue) {
+        if (dpValue <= 0) return 0;
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                dpValue,
+                getResources().getDisplayMetrics()
+        );
+    }
+
+    /**
+     * px单位转dp单位，适配不同屏幕密度下的数值还原
+     * @param pxValue 输入像素数值
+     * @return 转换后的dp数值，非法输入默认返回0
      */
     public int px2dip(float pxValue) {
-        if (TextUtils.isEmpty(pxValue + "")) {
-            return 0;
-        }
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, pxValue, getResources().getDisplayMetrics());
+        if (pxValue <= 0) return 0;
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_PX,
+                pxValue,
+                getResources().getDisplayMetrics()
+        );
     }
 
+    /**
+     * 生命周期回调，组件销毁时自动释放所有持有的资源
+     */
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // 二次兜底回收TypedArray，彻底避免内存泄漏
+        if (mTa != null) {
+            mTa.recycle();
+            mTa = null;
+        }
+    }
 }

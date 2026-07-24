@@ -6,12 +6,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSONArray;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -22,45 +25,64 @@ import java.util.List;
  */
 public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends RecyclerView.Adapter<VH> {
 
+    @NonNull
     public Context mContext;
+    @Nullable
     private List<T> datas;
+    @Nullable
     private JSONArray arrays;
     private int layoutId;
-    public RecyclerView.LayoutManager manager;
+    private final Type tActualType;
+    @Nullable
     public ItemClickListener clickListener;
-    private boolean isT;
+    private View mContentView;
 
     public abstract void onBindView(int position, View mConvertView, VH holder, T object);
 
+    @NonNull
     public RecyclerView.LayoutManager getLineManager() {
-        manager = new LinearLayoutManager(mContext);
-        return manager;
+        return new LinearLayoutManager(mContext);
     }
 
+    @NonNull
     public RecyclerView.LayoutManager getGridManager(int cloumns) {
-        manager = new GridLayoutManager(mContext, cloumns);
-        return manager;
+        return new GridLayoutManager(mContext, cloumns);
     }
 
+    @NonNull
     public RecyclerView.LayoutManager getHorManager() {
-        manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        return manager;
+        return new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
     }
 
     public BaseRecycleAdapter(Context mContext, int layoutId) {
         this.mContext = mContext;
         this.layoutId = layoutId;
+        Type superType = getClass().getGenericSuperclass();
+        Type[] typeArguments = ((ParameterizedType) superType).getActualTypeArguments();
+        tActualType = typeArguments[1];
     }
 
-    public void setData(JSONArray arrays) {
+    public void setData(@NonNull JSONArray arrays) {
+        if (this.arrays==arrays) return;
         this.arrays = arrays;
+        this.datas = null;
         notifyDataSetChanged();
     }
 
-    public void setData(List<T> datas) {
-        this.isT = true;
+    public void setData(@NonNull List<T> datas) {
+        if (this.datas==datas) return;
         this.datas = datas;
+        this.arrays = null;
         notifyDataSetChanged();
+    }
+
+    public T getItem(int position) {
+        if (position < 0 || position >= getItemCount()) return null;
+        if (datas != null) return datas.get(position);
+        if (arrays != null) {
+            return arrays.getJSONObject(position).toJavaObject(tActualType);
+        }
+        return null;
     }
 
     public void setClickListener(ItemClickListener clickListener) {
@@ -70,21 +92,29 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(layoutId, null);
-        return (VH) new BaseViewHolder(view);
+        mContentView = LayoutInflater.from(mContext).inflate(layoutId, parent, false);
+        VH viewHolder;
+        try {
+            viewHolder = (VH) new BaseViewHolder(mContentView);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("BaseViewHolder 类型不匹配，请确认VH泛型约束正确", e);
+        }
+        return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
-        if (isT) {
-            onBindView(position, null, holder, datas.get(position));
-        }else{
-            onBindView(position, null, holder, (T) arrays.get(position));
+        if (datas != null) {
+            onBindView(position,mContentView,holder,datas.get(position));
+        } else if (arrays != null) {
+            onBindView(position,mContentView,holder,arrays.getJSONObject(position).toJavaObject(tActualType));
         }
     }
 
     @Override
     public int getItemCount() {
-        return isT ? (datas!=null ? datas.size() : 0) : (arrays!=null ? arrays.size() : 0);
+        if (datas != null) return datas.size();
+        if (arrays != null) return arrays.size();
+        return 0;
     }
 }
