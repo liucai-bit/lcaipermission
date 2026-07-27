@@ -1,11 +1,7 @@
 package com.liucai.camera_photo.view;
 
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -13,18 +9,15 @@ import androidx.annotation.Nullable;
 
 import com.alibaba.fastjson.JSONObject;
 import com.liucai.camera_photo.core.LcaiPhotoLib;
-import com.liucai.camera_photo.core.LcaiPhotoResult;
 import com.liucai.core.LcaiManager;
 import com.liucai.core.base.LcaiBasePermissionActivity;
 import com.liucai.core.util.file.LcaiFileInterface;
 import com.liucai.core.util.file.LcaiFileProvider;
 import com.liucai.core.util.file.LcaiFileUtils;
 import com.liucai.core.util.text.TextUtils;
-import com.liucai.http.thread.GlobalThreadPool;
-import com.liucai.http.thread.LcaiRunnableUtils;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
+import java.util.Objects;
 
 /**
  * @author liucai
@@ -48,12 +41,6 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
     private boolean addHeader;
     private File imageFile;
 
-    private Uri imageUri;
-
-    private ActivityResultLauncher<Uri> cameraLauncher;
-
-    private ActivityResultLauncher<String> photoLauncher;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,16 +51,12 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
             saveImage = savedInstanceState.getBoolean(SAVE_IMAGE_KEY);
             addHeader = savedInstanceState.getBoolean(ADD_HEADER_KEY);
         }else {
-            LcaiManager.Internal.getPhotoCameraResult().onError("获取参数失败");
+            Objects.requireNonNull(LcaiManager.Internal.getPhotoCameraResult()).onError("获取参数失败");
         }
 
-        cameraLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), callback -> {
-            cameraResult(callback);
-        });
+        ActivityResultLauncher<Uri> cameraLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), this::cameraResult);
 
-        photoLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), callback -> {
-            photoResult(callback);
-        });
+        ActivityResultLauncher<String> photoLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), this::photoResult);
 
         if (TextUtils.equals(checkType, LcaiPhotoLib.CHECK_PHOTO)) {
             photoLauncher.launch("image/*");
@@ -81,7 +64,7 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
 
         if (TextUtils.equals(checkType, LcaiPhotoLib.OPEN_CAMERA)) {
             imageFile = LcaiFileUtils.createCameraImageFile(this);
-            imageUri = LcaiFileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", imageFile);
+            Uri imageUri = LcaiFileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", imageFile);
             cameraLauncher.launch(imageUri);
         }
     }
@@ -90,7 +73,7 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
         if (callback != null) {
             if (TextUtils.equals(resultType, LcaiPhotoLib.BACK_BASE64)) {
                 JSONObject jsonObject = LcaiFileUtils.convertImageToBase64(LcaiCamearPhtoActivity.this, callback, false);
-                LcaiManager.Internal.getPhotoCameraResult().onBase64(jsonObject.toJSONString());
+                Objects.requireNonNull(LcaiManager.Internal.getPhotoCameraResult()).onBase64(jsonObject.toJSONString());
             }
 
             if (TextUtils.equals(resultType, LcaiPhotoLib.BACK_URL)) {
@@ -103,7 +86,7 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
                     jsonObject.put("fileSize", fileSize);
                 }
                 jsonObject.put("content", path);
-                LcaiManager.Internal.getPhotoCameraResult().onUrl(jsonObject.toJSONString());
+                Objects.requireNonNull(LcaiManager.Internal.getPhotoCameraResult()).onUrl(jsonObject.toJSONString());
             }
         }
         finish();
@@ -113,7 +96,7 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
         if (callback) {
             if (TextUtils.equals(resultType, LcaiPhotoLib.BACK_BASE64)) {
                 JSONObject jsonObject = LcaiFileUtils.converImagePathToBase64(imageFile.getAbsolutePath(), addHeader);
-                LcaiManager.Internal.getPhotoCameraResult().onBase64(jsonObject.toJSONString());
+                Objects.requireNonNull(LcaiManager.Internal.getPhotoCameraResult()).onBase64(jsonObject.toJSONString());
             }
 
             if (saveImage) {
@@ -129,12 +112,12 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
                                 jsonObject.put("fileSize", fileSize);
                             }
                             jsonObject.put("content", filePath);
-                            LcaiManager.Internal.getPhotoCameraResult().onUrl(jsonObject.toJSONString());
+                            Objects.requireNonNull(LcaiManager.Internal.getPhotoCameraResult()).onUrl(jsonObject.toJSONString());
                         }
 
                         if (TextUtils.equals(resultType, LcaiPhotoLib.BACK_BASE64)) {
                             JSONObject jsonObject = LcaiFileUtils.converImagePathToBase64(filePath, addHeader);
-                            LcaiManager.Internal.getPhotoCameraResult().onBase64(jsonObject.toJSONString());
+                            Objects.requireNonNull(LcaiManager.Internal.getPhotoCameraResult()).onBase64(jsonObject.toJSONString());
                         }
                     }
                 });
@@ -143,7 +126,7 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
             }
         } else {
             LcaiFileUtils.clearFile(imageFile);
-            LcaiManager.Internal.getPhotoCameraResult().onError("拍摄照片失败");
+            Objects.requireNonNull(LcaiManager.Internal.getPhotoCameraResult()).onError("拍摄照片失败");
         }
         finish();
     }

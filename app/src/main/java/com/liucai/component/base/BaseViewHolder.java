@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author liucai
@@ -44,6 +45,10 @@ public class BaseViewHolder extends RecyclerView.ViewHolder {
         return new BaseViewHolder(mConvertView);
     }
 
+    public View getmConvertView() {
+        return mConvertView;
+    }
+
     /**
      * 从缓存中获取控件，避免重复执行findViewById
      * @param viewId 目标控件的ID
@@ -59,7 +64,7 @@ public class BaseViewHolder extends RecyclerView.ViewHolder {
         }
         // 添加空安全返回，找不到控件时返回null而非抛出异常
         if (view != null) {
-            return (T) view;
+            return Objects.requireNonNull((T) view);
         }
         return null;
     }

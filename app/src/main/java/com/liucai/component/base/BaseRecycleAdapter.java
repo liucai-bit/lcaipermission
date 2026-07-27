@@ -36,8 +36,6 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
     private final Type tActualType;
     @Nullable
     public ItemClickListener clickListener;
-    private View mContentView;
-
     public abstract void onBindView(int position, View mConvertView, VH holder, T object);
 
     @NonNull
@@ -96,10 +94,10 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        mContentView = LayoutInflater.from(mContext).inflate(layoutId, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(layoutId, parent, false);
         VH viewHolder;
         try {
-            viewHolder = (VH) new BaseViewHolder(mContentView);
+            viewHolder = (VH) new BaseViewHolder(view);
         } catch (Exception e) {
             throw new IllegalArgumentException("BaseViewHolder 类型不匹配，请确认VH泛型约束正确", e);
         }
@@ -109,9 +107,9 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         if (datas != null) {
-            onBindView(position,mContentView,holder,datas.get(position));
+            onBindView(position,holder.getmConvertView(),holder,datas.get(position));
         } else if (arrays != null) {
-            onBindView(position,mContentView,holder,arrays.getJSONObject(position).toJavaObject(tActualType));
+            onBindView(position,holder.getmConvertView(),holder,arrays.getJSONObject(position).toJavaObject(tActualType));
         }
     }
 

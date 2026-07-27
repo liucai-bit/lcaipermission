@@ -15,8 +15,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.liucai.component.adapter.BusinessNodeStatusAdapter;
 import com.liucai.component.base.BaseLinearLayout;
 import com.liucai.component.base.ItemClickListener;
+import com.liucai.component.bean.BusinessNodesStatusBean;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.R;
+
+import java.util.List;
 
 /**
  * @author liucai
@@ -40,7 +44,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
     @Nullable
     public ItemClickListener clickListener;
     @Nullable
-    private JSONArray arrays;
+    private List<BusinessNodesStatusBean> datas;
 
     @Override
     public int[] setAttrs() {
@@ -57,13 +61,14 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
 
     @Override
     public void init() {
+        LcaiLogUtils.d("属性：",mTa.toString());
         titleSize = mTa.getInt(R.styleable.BusinessNodeStatusBar_titleSize, 16);
         titleColor = mTa.getColor(R.styleable.BusinessNodeStatusBar_titleColor, mContext.getColor(R.color.text_1c1c1c));
-        columns = mTa.getInt(R.styleable.BusinessNodeStatusBar_columns, 1);
-        // 边界校验：非法列数自动适配为默认值1，避免GridLayoutManager抛出异常
-        if (columns <= 0) columns = 1;
+        columns = mTa.getInt(R.styleable.BusinessNodeStatusBar_business_columns, 0);
         title = mTa.getString(R.styleable.BusinessNodeStatusBar_title);
         barBackground = mTa.getDrawable(R.styleable.BusinessNodeStatusBar_barBackground);
+        // 边界校验：非法列数自动适配为默认值1，避免GridLayoutManager抛出异常
+        if (columns <= 0) columns = 1;
 
         // 版本兼容处理，兼容Android 5.0以下系统背景设置API
         if (barBackground != null) {
@@ -134,14 +139,15 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         mTitle.setText(title);
     }
 
+
     /**
      * 更新节点数据集
-     * @param arrays Fastjson JSONArray类型的节点数据
+     * @param datas 节点数据
      */
-    public void setArrays(@Nullable JSONArray arrays) {
-        this.arrays = arrays;
+    public void setDatas(@Nullable List<BusinessNodesStatusBean> datas) {
+        this.datas = datas;
         if (adapter != null) {
-            adapter.setData(arrays);
+            adapter.setData(datas);
         }
     }
 
@@ -178,7 +184,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         adapter = null;
         recyclerView = null;
         mTitle = null;
-        arrays = null;
+        datas = null;
         clickListener = null;
     }
 }

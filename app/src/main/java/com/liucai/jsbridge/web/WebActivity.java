@@ -3,14 +3,12 @@ package com.liucai.jsbridge.web;
 import static android.view.View.VISIBLE;
 
 import android.annotation.SuppressLint;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.ViewGroup;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.alibaba.fastjson.JSONObject;
@@ -18,7 +16,6 @@ import com.liucai.core.LcaiManager;
 import com.liucai.core.base.LcaiBaseActivity;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
-import com.liucai.jsbridge.bridge.LcaiBridgeHandler;
 import com.liucai.jsbridge.bridge.LcaiCallbackFunction;
 import com.liucai.jsbridge.bridge.LcaiDefaultHandler;
 import com.liucai.permission.R;
@@ -35,8 +32,6 @@ public class WebActivity extends LcaiBaseActivity {
     public static final String BACK_METHOD = "__back";
     public static final String PERMISSION_METHOD = "__permission";
     private WebActivityConfig config;
-    private LinearLayout mWebActivityBack;
-    private TextView mWebActivityTitleText;
     private LcaiBridgeWebview mWebActivityWebview;
     private Handler handler;
     @Override
@@ -44,13 +39,12 @@ public class WebActivity extends LcaiBaseActivity {
         return R.layout.web_activity_layout;
     }
 
-    @SuppressLint("JavascriptInterface")
+    @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
     @Override
     public void initView() {
         config = WebActivityConfig.getConfig();
         handler = new Handler(Looper.getMainLooper());
-        mWebActivityBack = findViewById(R.id.web_activity_back);
-        mWebActivityTitleText = findViewById(R.id.web_activity_title_text);
+        TextView mWebActivityTitleText = findViewById(R.id.web_activity_title_text);
         mWebActivityWebview = findViewById(R.id.web_activity_webview);
 
         if (!TextUtils.isEmpty(config.title)) {
@@ -58,9 +52,7 @@ public class WebActivity extends LcaiBaseActivity {
             mWebActivityTitleText.setText(config.title);
         }
 
-        mWebActivityBack.setOnClickListener(v->{
-            verifyMethod(null, BACK_METHOD, "");
-        });
+        findViewById(R.id.web_activity_back).setOnClickListener(v-> verifyMethod(null, BACK_METHOD, ""));
 
         mWebActivityWebview.setDefaultHandler(new LcaiDefaultHandler());
 
@@ -75,14 +67,10 @@ public class WebActivity extends LcaiBaseActivity {
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            settings.setMediaPlaybackRequiresUserGesture(false);
-        }
+        settings.setMediaPlaybackRequiresUserGesture(false);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            settings.setAllowFileAccessFromFileURLs(false);
-            settings.setAllowUniversalAccessFromFileURLs(false);
-        }
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
 
         mWebActivityWebview.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -108,20 +96,15 @@ public class WebActivity extends LcaiBaseActivity {
             }
         });
 
-        if (config.methodArrays!=null && config.methodArrays.length > 0) {
+        if (config.methodArrays != null) {
             for (String method : config.methodArrays) {
                 LcaiLogUtils.d("增加JSBridge方法", method);
-                mWebActivityWebview.registerHandler(method, new LcaiBridgeHandler() {
-                    @Override
-                    public void handler(String data, LcaiCallbackFunction function) {
-                        verifyMethod(function,method,data);
-                    }
-                });
+                mWebActivityWebview.registerHandler(method, (data, function) -> verifyMethod(function,method,data));
             }
         }
 
         if (config.callback != null) {
-            if (config.callback.createJsMethod() != null && config.callback.createJsMethod().size() > 0) {
+            if (config.callback.createJsMethod() != null && !config.callback.createJsMethod().isEmpty()) {
                 for (JsInterface jsInterface : config.callback.createJsMethod()) {
                     LcaiLogUtils.d("增加Javascript", jsInterface.methodName);
                     mWebActivityWebview.addJavascriptInterface(jsInterface,jsInterface.methodName);
@@ -145,7 +128,7 @@ public class WebActivity extends LcaiBaseActivity {
         if (callback != null) {
             LcaiLogUtils.d("回调原生数据",jsonObject.toJSONString());
             callback.onMethodBack(jsBridgeCallback,jsonObject,this);
-            handler.postDelayed(() -> safeFinish(), 300);
+            handler.postDelayed(this::safeFinish, 300);
         }
     }
 
