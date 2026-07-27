@@ -8,7 +8,7 @@ import com.alibaba.fastjson.JSONObject;
  * @description
  * @Date 2026/7/23
  */
-public interface ItemClickListener<T> {
+public interface ItemClickListener{
 
     void onItemClickListener(int position, Object entity);
 }

@@ -1,8 +1,12 @@
 package com.liucai.component;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -13,6 +17,10 @@ import androidx.annotation.Nullable;
 import com.bumptech.glide.Glide;
 import com.liucai.component.base.BaseRelativeLayout;
 import com.liucai.component.base.BaseViewFlipper;
+import com.liucai.component.base.ItemClickListener;
+import com.liucai.component.base.ViewFlipperCarouseInterface;
+import com.liucai.component.bean.ViewFlipperCarouselBean;
+import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.permission.R;
 
 import java.util.ArrayList;
@@ -21,7 +29,7 @@ import java.util.List;
 /**
  * @author liucai
  * @program lctipsdialog
- * @description 
+ * @description
  * @Date 2026/7/24
  */public class ViewFlipperCarousel extends BaseRelativeLayout {
 
@@ -63,6 +71,24 @@ import java.util.List;
      */
     public int pointStyle;
     /**
+     * 样式
+     * 文字
+     * 图片
+     */
+    public int flipperMode;
+    /**
+     * 文字大小
+     */
+    public int fontSize;
+    /**
+     * 文字颜色
+     */
+    public int fontColor;
+    /**
+     * 文字居中模式
+     */
+    public int centerMode;
+    /**
      * 当前指示点颜色
      */
     public Drawable checkColor;
@@ -71,10 +97,13 @@ import java.util.List;
      */
     public Drawable uncheckColor;
 
-    public List<String> datas;
+    public List<ViewFlipperCarouselBean> datas;
 
     private BaseViewFlipper viewFlipper;
     private List<TextView> points;
+
+    private ViewFlipperCarouseInterface carouseInterface;
+    private ItemClickListener clickListener;
 
     @Override
     public int[] setAttrs() {
@@ -84,15 +113,31 @@ import java.util.List;
     public ViewFlipperCarousel(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
-
-    public void setDatas(List<String> datas) {
+    public void setDatas(List<ViewFlipperCarouselBean> datas) {
         this.datas = datas;
+        if (flipperMode == 2) {
+            if (carouseInterface == null) {
+                throw new LcaiHttpException("view 模式，必须实现ViewFlipperCarouseInterface接口");
+            }
+        }
         initFlipperData();
         initPoint();
     }
 
+    public void setCarouseInterface(ViewFlipperCarouseInterface carouseInterface) {
+        this.carouseInterface = carouseInterface;
+    }
+
+    public void setClickListener(ItemClickListener clickListener) {
+        this.clickListener = clickListener;
+    }
+
     @Override
     public void init() {
+        flipperMode = mTa.getInt(R.styleable.ViewFlipperCarousel_flipper_mode, 0);
+        fontSize = mTa.getInt(R.styleable.ViewFlipperCarousel_fontSize, 14);
+        fontColor = mTa.getColor(R.styleable.ViewFlipperCarousel_fontColor, Color.parseColor("#1c1c1c"));
+        centerMode = mTa.getInt(R.styleable.ViewFlipperCarousel_centerMode, 0);
         direction = mTa.getInt(R.styleable.ViewFlipperCarousel_direction, 1);
         speed = mTa.getInt(R.styleable.ViewFlipperCarousel_speed, 3000);
         autoPlay = mTa.getBoolean(R.styleable.ViewFlipperCarousel_autoPlay, true);
@@ -134,14 +179,52 @@ import java.util.List;
         if (viewFlipper != null) {
             viewFlipper.removeAllViews();
         }
-        for (String data : datas) {
-            ImageView imageView = new ImageView(mContext);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(MP, MP);
-            imageView.setLayoutParams(params);
-            Glide.with(mContext).load(data).into(imageView);
-            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-            if (viewFlipper != null) {
-                viewFlipper.addView(imageView);
+
+        if (flipperMode == 1) {
+            for (ViewFlipperCarouselBean data : datas) {
+                ImageView imageView = new ImageView(mContext);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(MP, MP);
+                imageView.setLayoutParams(params);
+                Glide.with(mContext).load(data.getLabel()).into(imageView);
+                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                imageView.setOnClickListener(v->{
+                    if (clickListener != null) {
+                        clickListener.onItemClickListener(0,data);
+                    }
+                });
+                if (viewFlipper != null) {
+                    viewFlipper.addView(imageView);
+                }
+
+            }
+        } else if (flipperMode == 2) {
+            LinearLayout.LayoutParams viewParams = new LinearLayout.LayoutParams(MP, WC);
+            for (ViewFlipperCarouselBean bean : datas) {
+                View view = carouseInterface.onRender( bean);
+                view.setLayoutParams(viewParams);
+                if (viewFlipper != null) {
+                    viewFlipper.addView(view);
+                }
+            }
+        } else {
+            for (ViewFlipperCarouselBean data : datas) {
+                TextView textView = new TextView(mContext);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(MP, MP);
+                textView.setLayoutParams(params);
+                textView.setText(data.getLabel());
+                textView.setTextColor(fontColor);
+                textView.setGravity(centerMode == 0 ? Gravity.CENTER : Gravity.CENTER_HORIZONTAL);
+                textView.setTextSize(fontSize);
+                textView.setSingleLine();
+                textView.setEllipsize(TextUtils.TruncateAt.END);
+                textView.setOnClickListener(v->{
+                    if (clickListener != null) {
+                        clickListener.onItemClickListener(0,data);
+                    }
+                });
+                if (viewFlipper != null) {
+                    viewFlipper.addView(textView);
+                }
             }
         }
     }
@@ -179,7 +262,7 @@ import java.util.List;
             LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
             cricleParams.setMargins(dip2px(5),dip2px(5),dip2px(5),dip2px(5));
 
-            for (String data : datas) {
+            for (ViewFlipperCarouselBean data : datas) {
                 if (showReferencePoint) {
                     TextView textView = new TextView(mContext);
                     points.add(textView);

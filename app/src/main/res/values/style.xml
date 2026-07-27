@@ -29,7 +29,18 @@
             <enum name="cricle" value="0"/>
             <enum name="line" value="1"/>
         </attr>
-        <attr name="checkColor" format="reference"/>
+        <attr name="flipper_mode" format="enum">
+            <enum name="text" value="0"/>
+            <enum name="image" value="1"/>
+            <enum name="view" value="2"/>
+        </attr>
+        <attr name="centerMode" format="enum">
+            <enum name="vertical" value="0"/>
+            <enum name="horizontal" value="1"/>
+        </attr>
+        <attr name="fontSize" format="integer"/>
+        <attr name="fontColor" format="reference"/>
+        <attr name="checkColor" format="color"/>
         <attr name="uncheckColor" format="reference"/>
     </declare-styleable>
 </resources>
