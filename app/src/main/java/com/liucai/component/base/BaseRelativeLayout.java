@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
@@ -43,6 +44,7 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
     public BaseRelativeLayout(Context context) {
         super(context);
         this.mContext = context;
+        initLayout();
         init();
         initView();
     }
@@ -50,6 +52,7 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
     public BaseRelativeLayout(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.mContext = context;
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
@@ -59,6 +62,7 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
     public BaseRelativeLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
@@ -68,10 +72,15 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
     public BaseRelativeLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.mContext = context;
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
         initView();
+    }
+
+    private void initLayout() {
+        setLayoutParams(new LayoutParams(MP, WC));
     }
 
     /**

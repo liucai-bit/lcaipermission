@@ -47,6 +47,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context) {
         super(context);
         this.mContext = context;
+        initLayout();
         init();
         initView();
     }
@@ -54,6 +55,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.mContext = context;
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
@@ -63,6 +65,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
@@ -72,10 +75,15 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.mContext = context;
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
         initView();
+    }
+
+    private void initLayout() {
+        setLayoutParams(new LayoutParams(MP, WC));
     }
 
     /**

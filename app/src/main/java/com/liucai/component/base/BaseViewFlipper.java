@@ -5,6 +5,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.ViewFlipper;
 
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.permission.R;
 
 
@@ -23,6 +24,8 @@ public class BaseViewFlipper extends ViewFlipper {
 
     public ChangeListener changeListener;
 
+    public ItemClickListener clickListener;
+
     public BaseViewFlipper(Context context) {
         super(context);
     }
@@ -33,6 +36,10 @@ public class BaseViewFlipper extends ViewFlipper {
 
     public void setChangeListener(ChangeListener changeListener) {
         this.changeListener = changeListener;
+    }
+
+    public void setClickListener(ItemClickListener clickListener) {
+        this.clickListener = clickListener;
     }
 
     @Override
@@ -122,6 +129,10 @@ public class BaseViewFlipper extends ViewFlipper {
                                     changeListener.onChanged(position);
                                 }
                             }
+                        } else {
+                            if (clickListener != null) {
+                                clickListener.onItemClickListener(getDisplayedChild(),null);
+                            }
                         }
                     }else{
                         if (startX - endX > SWIPE_THRESHOLD) {
@@ -142,6 +153,10 @@ public class BaseViewFlipper extends ViewFlipper {
                                 if (changeListener != null) {
                                     changeListener.onChanged(position);
                                 }
+                            }
+                        }else {
+                            if (clickListener != null) {
+                                clickListener.onItemClickListener(getDisplayedChild(),null);
                             }
                         }
                     }

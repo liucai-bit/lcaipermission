@@ -41,5 +41,11 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         } else {
             point.setVisibility(GONE);
         }
+
+        holder.getView(R.id.business_nodes_status).setOnClickListener(v->{
+            if (clickListener != null) {
+                clickListener.onItemClickListener(position,bean.getData());
+            }
+        });
     }
 }

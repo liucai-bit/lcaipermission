@@ -8,6 +8,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -61,7 +62,6 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
 
     @Override
     public void init() {
-        LcaiLogUtils.d("属性：",mTa.toString());
         titleSize = mTa.getInt(R.styleable.BusinessNodeStatusBar_titleSize, 16);
         titleColor = mTa.getColor(R.styleable.BusinessNodeStatusBar_titleColor, mContext.getColor(R.color.text_1c1c1c));
         columns = mTa.getInt(R.styleable.BusinessNodeStatusBar_business_columns, 0);
@@ -149,6 +149,11 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         if (adapter != null) {
             adapter.setData(datas);
         }
+    }
+
+    public void setColumns(@NonNull int columns) {
+        this.columns = columns;
+        recyclerView.setLayoutManager(adapter.getGridManager(columns));
     }
 
     /**

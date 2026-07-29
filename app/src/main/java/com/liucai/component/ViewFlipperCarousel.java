@@ -21,6 +21,7 @@ import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.base.ViewFlipperCarouseInterface;
 import com.liucai.component.bean.ViewFlipperCarouselBean;
 import com.liucai.core.exception.LcaiHttpException;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.permission.R;
 
 import java.util.ArrayList;
@@ -120,6 +121,9 @@ import java.util.List;
                 throw new LcaiHttpException("view 模式，必须实现ViewFlipperCarouseInterface接口");
             }
         }
+        if (this.datas.size() <=1) {
+            viewFlipper.setSupportGesture(false);
+        }
         initFlipperData();
         initPoint();
     }
@@ -172,6 +176,18 @@ import java.util.List;
         viewFlipper.setChangeListener((position)->{
             notifyPoint(position);
         });
+        viewFlipper.setClickListener(new ItemClickListener() {
+            @Override
+            public void onItemClickListener(int position, Object entity) {
+                if (clickListener != null) {
+                    if (datas != null && datas.get(position) != null) {
+                        clickListener.onItemClickListener(position, datas.get(position).getData());
+                    } else {
+                        clickListener.onItemClickListener(position,null);
+                    }
+                }
+            }
+        });
         addView(viewFlipper);
     }
 
@@ -187,11 +203,6 @@ import java.util.List;
                 imageView.setLayoutParams(params);
                 Glide.with(mContext).load(data.getLabel()).into(imageView);
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                imageView.setOnClickListener(v->{
-                    if (clickListener != null) {
-                        clickListener.onItemClickListener(0,data);
-                    }
-                });
                 if (viewFlipper != null) {
                     viewFlipper.addView(imageView);
                 }
@@ -219,7 +230,7 @@ import java.util.List;
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setOnClickListener(v->{
                     if (clickListener != null) {
-                        clickListener.onItemClickListener(0,data);
+                        clickListener.onItemClickListener(0,data.getData());
                     }
                 });
                 if (viewFlipper != null) {
