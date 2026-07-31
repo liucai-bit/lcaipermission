@@ -20,6 +20,7 @@ import com.liucai.component.base.BaseViewFlipper;
 import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.base.ViewFlipperCarouseInterface;
 import com.liucai.component.bean.ViewFlipperCarouselBean;
+import com.liucai.component.bean.ViewFlipperCarouselItemConfig;
 import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.permission.R;
@@ -106,6 +107,8 @@ import java.util.List;
     private ViewFlipperCarouseInterface carouseInterface;
     private ItemClickListener clickListener;
 
+    private ViewFlipperCarouselItemConfig itemConfig;
+
     @Override
     public int[] setAttrs() {
         return R.styleable.ViewFlipperCarousel;
@@ -138,6 +141,7 @@ import java.util.List;
 
     @Override
     public void init() {
+        itemConfig = new ViewFlipperCarouselItemConfig();
         flipperMode = mTa.getInt(R.styleable.ViewFlipperCarousel_flipper_mode, 0);
         fontSize = mTa.getInt(R.styleable.ViewFlipperCarousel_fontSize, 14);
         fontColor = mTa.getColor(R.styleable.ViewFlipperCarousel_fontColor, Color.parseColor("#1c1c1c"));
@@ -189,6 +193,13 @@ import java.util.List;
             }
         });
         addView(viewFlipper);
+    }
+
+    public void setSpeed(int speed) {
+        if (viewFlipper==null) return;
+        if (speed > 0) {
+            viewFlipper.setFlipInterval(speed);
+        }
     }
 
     public void initFlipperData() {

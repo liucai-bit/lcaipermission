@@ -11,6 +11,7 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.liucai.core.util.common.CommonUtils;
 import com.liucai.core.util.text.TextUtils;
 
 /**
@@ -110,13 +111,8 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
      * @param dpValue 输入dp数值
      * @return 转换后的像素值，非法输入默认返回0
      */
-    public int dip2px(float dpValue) {
-        if (dpValue <= 0) return 0;
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dpValue,
-                getResources().getDisplayMetrics()
-        );
+    public int dip2px(int dpValue) {
+        return CommonUtils.dip2px(mContext, dpValue);
     }
 
     /**
@@ -124,13 +120,8 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
      * @param pxValue 输入像素数值
      * @return 转换后的dp数值，非法输入默认返回0
      */
-    public int px2dip(float pxValue) {
-        if (pxValue <= 0) return 0;
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_PX,
-                pxValue,
-                getResources().getDisplayMetrics()
-        );
+    public int px2dip(int pxValue) {
+        return CommonUtils.px2dip(mContext, pxValue);
     }
 
     /**

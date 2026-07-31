@@ -36,6 +36,64 @@ public class JSONUtils{
     }
 
     /**
+     * 获取JSONObject 中的JSONArray对象
+     * @param data
+     * @param key
+     * @return
+     */
+    public static JSONArray getJSONArray(JSONObject data,String key) {
+        JSONArray array = null;
+        try {
+            if (data != null) {
+                array = data.getJSONArray(key);
+            }
+        } catch (Exception e) {
+            LcaiLogUtils.w("数据获取失败");
+        }finally {
+            return array;
+        }
+    }
+
+    /**
+     * 获取JSONObject中的JSONObject对象
+     *
+     * @param data
+     * @param key
+     * @return
+     */
+    public static JSONObject getJSONObject(JSONObject data, String key) {
+        JSONObject jsonObject = null;
+        try {
+            if (data != null) {
+                jsonObject = data.getJSONObject(key);
+            }
+        } catch (Exception e) {
+            LcaiLogUtils.w("数据获取失败");
+        }finally {
+            return jsonObject;
+        }
+    }
+
+    /**
+     * 获取JSONArray中的JSONObject
+     * @param data
+     * @param index
+     * @return
+     */
+    public static JSONObject getJSONObject(JSONArray data, int index) {
+        JSONObject jsonObject = null;
+        try {
+            if (data != null && data.size() > 0) {
+                jsonObject = data.getJSONObject(index);
+            }
+        } catch (Exception e) {
+            LcaiLogUtils.w("数据获取失败");
+        } finally {
+            return jsonObject;
+        }
+    }
+
+    /**
      * 将字符串转换成array
      * @param data
      * @return

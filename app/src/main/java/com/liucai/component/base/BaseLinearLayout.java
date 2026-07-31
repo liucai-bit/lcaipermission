@@ -3,16 +3,14 @@ package com.liucai.component.base;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.liucai.core.util.log.LcaiLogUtils;
-import com.liucai.core.util.text.TextUtils;
-import com.liucai.permission.R;
+import com.liucai.component.bean.BaseComponentConfig;
+import com.liucai.core.util.common.CommonUtils;
 
 /**
  * @author liucai
@@ -35,6 +33,8 @@ public abstract class BaseLinearLayout extends LinearLayout {
     @Nullable
     protected TypedArray mTa;
 
+    public BaseComponentConfig config;
+
     /**
      * 子类可重写此方法，返回自身定义的styleable属性数组
      * @return 自定义属性ID数组，基类自动完成属性初始化
@@ -47,6 +47,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context) {
         super(context);
         this.mContext = context;
+        config = new BaseComponentConfig();
         initLayout();
         init();
         initView();
@@ -55,6 +56,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.mContext = context;
+        config = new BaseComponentConfig();
         initLayout();
         initAttr(attrs);
         init();
@@ -65,6 +67,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
+        config = new BaseComponentConfig();
         initLayout();
         initAttr(attrs);
         init();
@@ -75,6 +78,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
     public BaseLinearLayout(@NonNull Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.mContext = context;
+        config = new BaseComponentConfig();
         initLayout();
         initAttr(attrs);
         init();
@@ -113,13 +117,8 @@ public abstract class BaseLinearLayout extends LinearLayout {
      * @param dpValue 输入dp数值
      * @return 转换后的像素值，非法输入默认返回0
      */
-    public int dip2px(float dpValue) {
-        if (dpValue <= 0) return 0;
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dpValue,
-                getResources().getDisplayMetrics()
-        );
+    public int dip2px(int dpValue) {
+        return CommonUtils.dip2px(mContext, dpValue);
     }
 
     /**
@@ -127,13 +126,8 @@ public abstract class BaseLinearLayout extends LinearLayout {
      * @param pxValue 输入像素数值
      * @return 转换后的dp数值，非法输入默认返回0
      */
-    public int px2dip(float pxValue) {
-        if (pxValue <= 0) return 0;
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_PX,
-                pxValue,
-                getResources().getDisplayMetrics()
-        );
+    public int px2dip(int pxValue) {
+        return CommonUtils.px2dip(mContext,pxValue);
     }
 
     /**

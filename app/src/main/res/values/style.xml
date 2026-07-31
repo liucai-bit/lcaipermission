@@ -1,9 +1,24 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <declare-styleable name="BusinessNodeStatusBar">
+        <!--标题大小-->
         <attr name="titleSize" format="integer"/>
+        <!--标题颜色-->
         <attr name="titleColor" format="color"/>
-        <attr name="business_columns" format="integer"/>
+        <!--每行显示多少个-->
+        <attr name="columns" format="integer"/>
+        <!--标题-->
         <attr name="title" format="string"/>
+        <!--图标宽度-->
+        <attr name="iconWidth" format="integer"/>
+        <!--图标高度-->
+        <attr name="iconHeight" format="integer"/>
+        <!--图标上下间距-->
+        <attr name="itemSpace" format="integer"/>
+        <!--item文字大小-->
+        <attr name="itemTextSize" format="integer"/>
+        <!--item文字颜色-->
+        <attr name="itemTextColor" format="color"/>
+        <!--背景-->
         <attr name="barBackground" format="reference|color"/>
     </declare-styleable>
 

@@ -17,7 +17,8 @@ import com.liucai.permission.R;
  */
 public class BaseViewFlipper extends ViewFlipper {
 
-    private static final int SWIPE_THRESHOLD = 50;
+    private static final int SWIPE_THRESHOLD = 100;
+    private static final int CLICK_MAX_DURATION = 200;
 
     public boolean isSupportGesture;
     public int direction;
@@ -25,6 +26,8 @@ public class BaseViewFlipper extends ViewFlipper {
     public ChangeListener changeListener;
 
     public ItemClickListener clickListener;
+
+    public long touchDownTime;
 
     public BaseViewFlipper(Context context) {
         super(context);
@@ -92,26 +95,42 @@ public class BaseViewFlipper extends ViewFlipper {
 
     private float startX;
     private float startY;
+    private boolean isSwipeAction=true;
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (isSupportGesture) {
-            if (getChildCount() <= 1) {
-                return true;
-            }
+        if (isSupportGesture && getChildCount() > 1) {
             switch (ev.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     startX = ev.getX();
                     startY = ev.getY();
+                    touchDownTime = System.currentTimeMillis();
                     stopFlipping();
+                    isSwipeAction = false;
                     break;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                     float endX = ev.getX();
                     float endY = ev.getY();
+                    long touchDuration = System.currentTimeMillis() - touchDownTime;
+                    float xDiff = Math.abs(startX - endX);
+                    float yDiff = Math.abs(startY - endY);
+                    // 核心判定：同时满足 滑动距离极小 + 按下时长极短 才判定为点击
+                    boolean isPureClick = xDiff < SWIPE_THRESHOLD / 3 && yDiff < SWIPE_THRESHOLD / 3 && touchDuration < CLICK_MAX_DURATION;
+                    if (isPureClick) {
+                        setInAnimation(null);
+                        setOutAnimation(null);
+                        // 纯点击逻辑，仅回调点击事件，绝对不触发任何切换动画
+                        if (clickListener != null) {
+                            clickListener.onItemClickListener(getDisplayedChild(), null);
+                        }
+                        startFlipping();
+                        break;
+                    }
                     if (direction == 0) {
                         if (startY - endY > SWIPE_THRESHOLD) {
-                            if (getDisplayedChild() < getChildCount() -1) {
+                            isSwipeAction = true;
+                            if (getDisplayedChild() < getChildCount() - 1) {
                                 showNext();
                             } else {
                                 setDisplayedChild(0);
@@ -120,6 +139,7 @@ public class BaseViewFlipper extends ViewFlipper {
                                 }
                             }
                         } else if (endY - startY > SWIPE_THRESHOLD) {
+                            isSwipeAction = true;
                             if (getDisplayedChild() > 0) {
                                 showPrevious();
                             } else {
@@ -129,14 +149,11 @@ public class BaseViewFlipper extends ViewFlipper {
                                     changeListener.onChanged(position);
                                 }
                             }
-                        } else {
-                            if (clickListener != null) {
-                                clickListener.onItemClickListener(getDisplayedChild(),null);
-                            }
                         }
-                    }else{
+                    } else {
                         if (startX - endX > SWIPE_THRESHOLD) {
-                            if (getDisplayedChild() < getChildCount() -1) {
+                            isSwipeAction = true;
+                            if (getDisplayedChild() < getChildCount() - 1) {
                                 showNext();
                             } else {
                                 setDisplayedChild(0);
@@ -145,6 +162,7 @@ public class BaseViewFlipper extends ViewFlipper {
                                 }
                             }
                         } else if (endX - startX > SWIPE_THRESHOLD) {
+                            isSwipeAction = true;
                             if (getDisplayedChild() > 0) {
                                 showPrevious();
                             } else {
@@ -153,10 +171,6 @@ public class BaseViewFlipper extends ViewFlipper {
                                 if (changeListener != null) {
                                     changeListener.onChanged(position);
                                 }
-                            }
-                        }else {
-                            if (clickListener != null) {
-                                clickListener.onItemClickListener(getDisplayedChild(),null);
                             }
                         }
                     }
@@ -167,13 +181,20 @@ public class BaseViewFlipper extends ViewFlipper {
                     break;
             }
             return true;
+        } else {
+            if (clickListener != null) {
+                clickListener.onItemClickListener(getDisplayedChild(),null);
+            }
         }
         return super.onTouchEvent(ev);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return isSupportGesture;
+        if (isSupportGesture && getChildCount() > 1) {
+            return true;
+        }
+        return super.onInterceptTouchEvent(ev);
     }
 
     public interface ChangeListener{
