@@ -17,6 +17,7 @@ import com.liucai.component.base.BaseLinearLayout;
 import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.bean.BusinessNodeStatusItemConfig;
 import com.liucai.component.bean.BusinessNodesStatusBean;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.R;
 
@@ -204,22 +205,5 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
     @Nullable
     public BusinessNodeStatusAdapter getAdapter() {
         return adapter;
-    }
-
-    /**
-     * 重写生命周期方法，组件销毁时释放资源，避免内存泄漏
-     */
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        if (recyclerView != null) {
-            recyclerView.setAdapter(null);
-            recyclerView.removeAllViews();
-        }
-        adapter = null;
-        recyclerView = null;
-        mTitle = null;
-        datas = null;
-        clickListener = null;
     }
 }
