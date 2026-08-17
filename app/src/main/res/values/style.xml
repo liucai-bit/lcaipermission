@@ -50,8 +50,9 @@
             <enum name="view" value="2"/>
         </attr>
         <attr name="centerMode" format="enum">
-            <enum name="vertical" value="0"/>
-            <enum name="horizontal" value="1"/>
+            <enum name="center" value="0"/>
+            <enum name="left" value="1"/>
+            <enum name="right" value="2"/>
         </attr>
         <attr name="fontSize" format="integer"/>
         <attr name="fontColor" format="reference"/>

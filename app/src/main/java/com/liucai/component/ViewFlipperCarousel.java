@@ -126,6 +126,7 @@ import java.util.List;
         }
         if (this.datas.size() <=1) {
             viewFlipper.setSupportGesture(false);
+            viewFlipper.setAutoStart(false);
         }
         initFlipperData();
         initPoint();
@@ -235,7 +236,7 @@ import java.util.List;
                 textView.setLayoutParams(params);
                 textView.setText(data.getLabel());
                 textView.setTextColor(fontColor);
-                textView.setGravity(centerMode == 0 ? Gravity.CENTER : Gravity.CENTER_HORIZONTAL);
+                textView.setGravity(centerMode == 0 ? Gravity.CENTER : (centerMode==1 ? Gravity.START : Gravity.END));
                 textView.setTextSize(fontSize);
                 textView.setSingleLine();
                 textView.setEllipsize(TextUtils.TruncateAt.END);
@@ -251,10 +252,16 @@ import java.util.List;
         }
     }
 
+    private LinearLayout pointLayout;
     public void initPoint() {
         if (showReferencePoint) {
             points = new ArrayList<>();
-            LinearLayout pointLayout = new LinearLayout(mContext);
+            if (pointLayout == null) {
+                pointLayout = new LinearLayout(mContext);
+            } else {
+                pointLayout.removeAllViews();
+            }
+
             RelativeLayout.LayoutParams pointParams = new RelativeLayout.LayoutParams(WC, WC);
             if (indicatePoint == 0) {
                 pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
@@ -293,7 +300,9 @@ import java.util.List;
                     pointLayout.addView(textView);
                 }
             }
-            addView(pointLayout);
+            if (pointLayout == null) {
+                addView(pointLayout);
+            }
             notifyPoint(0);
         }
     }
