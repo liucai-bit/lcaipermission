@@ -262,7 +262,9 @@ import java.util.List;
     public void initPoint() {
         if (!showReferencePoint || datas == null || datas.isEmpty()) {
             if (pointLayout != null) pointLayout.removeAllViews();
-            points.clear();
+            if (points != null && points.size() > 0) {
+                points.clear();
+            }
             return;
         }
         points = new ArrayList<>();
