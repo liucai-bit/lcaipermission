@@ -124,9 +124,14 @@ import java.util.List;
                 throw new LcaiHttpException("view 模式，必须实现ViewFlipperCarouseInterface接口");
             }
         }
-        if (this.datas.size() <=1) {
+        if (this.datas != null && this.datas.size() < 2) {
             viewFlipper.setSupportGesture(false);
+            viewFlipper.stopFlipping();
             viewFlipper.setAutoStart(false);
+        } else {
+            viewFlipper.setSupportGesture(isSupportGesture);
+            viewFlipper.setFlipInterval(speed);
+            viewFlipper.setAutoStart(autoPlay);
         }
         initFlipperData();
         initPoint();
@@ -176,8 +181,6 @@ import java.util.List;
         viewFlipper.setDirection(direction);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(MP, MP);
         viewFlipper.setLayoutParams(params);
-        viewFlipper.setAutoStart(autoPlay);
-        viewFlipper.setFlipInterval(speed);
         viewFlipper.setChangeListener((position)->{
             notifyPoint(position);
         });
@@ -194,6 +197,9 @@ import java.util.List;
             }
         });
         addView(viewFlipper);
+
+        pointLayout = new LinearLayout(mContext);
+        addView(pointLayout);
     }
 
     public void setSpeed(int speed) {
@@ -254,78 +260,73 @@ import java.util.List;
 
     private LinearLayout pointLayout;
     public void initPoint() {
-        if (showReferencePoint) {
-            points = new ArrayList<>();
-            if (pointLayout == null) {
-                pointLayout = new LinearLayout(mContext);
-            } else {
-                pointLayout.removeAllViews();
-            }
-
-            RelativeLayout.LayoutParams pointParams = new RelativeLayout.LayoutParams(WC, WC);
-            if (indicatePoint == 0) {
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-                pointParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-            } else if (indicatePoint == 1) {
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE);
-            } else if (indicatePoint == 2) {
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-                pointParams.addRule(RelativeLayout.ALIGN_END, RelativeLayout.TRUE);
-            } else if (indicatePoint == 3) {
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-                pointParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-            } else if (indicatePoint == 4) {
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE);
-            } else if (indicatePoint == 5) {
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_END, RelativeLayout.TRUE);
-            } else {
-                pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-                pointParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-            }
-            pointLayout.setLayoutParams(pointParams);
-            pointLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-            LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
-            cricleParams.setMargins(dip2px(5),dip2px(5),dip2px(5),dip2px(5));
-
-            for (ViewFlipperCarouselBean data : datas) {
-                if (showReferencePoint) {
-                    TextView textView = new TextView(mContext);
-                    points.add(textView);
-                    textView.setLayoutParams(cricleParams);
-                    textView.setBackground(uncheckColor);
-                    pointLayout.addView(textView);
-                }
-            }
-            if (pointLayout == null) {
-                addView(pointLayout);
-            }
-            notifyPoint(0);
+        if (!showReferencePoint || datas == null || datas.isEmpty()) {
+            if (pointLayout != null) pointLayout.removeAllViews();
+            points.clear();
+            return;
         }
+        points = new ArrayList<>();
+        pointLayout.removeAllViews();
+        RelativeLayout.LayoutParams pointParams = new RelativeLayout.LayoutParams(WC, WC);
+        if (indicatePoint == 0) {
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            pointParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+        } else if (indicatePoint == 1) {
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE);
+        } else if (indicatePoint == 2) {
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            pointParams.addRule(RelativeLayout.ALIGN_END, RelativeLayout.TRUE);
+        } else if (indicatePoint == 3) {
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+            pointParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+        } else if (indicatePoint == 4) {
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE);
+        } else if (indicatePoint == 5) {
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_END, RelativeLayout.TRUE);
+        } else {
+            pointParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            pointParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+        }
+        pointLayout.setLayoutParams(pointParams);
+        pointLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+        LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
+        cricleParams.setMargins(dip2px(5),dip2px(5),dip2px(5),dip2px(5));
+        int realPointCount = Math.min(datas.size(), maxPointSize);
+        for (int i = 0; i < realPointCount; i++) {
+            TextView textView = new TextView(mContext);
+            points.add(textView);
+            textView.setLayoutParams(cricleParams);
+            textView.setBackground(uncheckColor);
+            pointLayout.addView(textView);
+        }
+        notifyPoint(0);
     }
 
     public void notifyPoint(int position) {
-        if (points != null && points.size() > 0) {
-            LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
-            cricleParams.setMargins(dip2px(5),dip2px(5),dip2px(5),dip2px(5));
-            LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(dip2px(POINT_LINE_WIDTH), dip2px(POINT_HEIGHT));
-            lineParams.setMargins(dip2px(5),dip2px(5),dip2px(5),dip2px(5));
-            TextView textView = points.get(position);
-            for (TextView textView1 : points) {
-                if (textView == textView1) {
-                    if (pointStyle == 0) {
-                        textView1.setLayoutParams(cricleParams);
-                    } else {
-                        textView1.setLayoutParams(lineParams);
-                    }
-                    textView1.setBackground(checkColor);
-                } else {
+        // 边界校验，避免数组越界
+        if (points == null || points.isEmpty() || position <0 || position >= points.size()) {
+            return;
+        }
+        LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
+        cricleParams.setMargins(dip2px(5), dip2px(5), dip2px(5), dip2px(5));
+        LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(dip2px(POINT_LINE_WIDTH), dip2px(POINT_HEIGHT));
+        lineParams.setMargins(dip2px(5), dip2px(5), dip2px(5), dip2px(5));
+        TextView textView = points.get(position);
+        for (TextView textView1 : points) {
+            if (textView == textView1) {
+                if (pointStyle == 0) {
                     textView1.setLayoutParams(cricleParams);
-                    textView1.setBackground(uncheckColor);
+                } else {
+                    textView1.setLayoutParams(lineParams);
                 }
+                textView1.setBackground(checkColor);
+            } else {
+                textView1.setLayoutParams(cricleParams);
+                textView1.setBackground(uncheckColor);
             }
         }
     }
