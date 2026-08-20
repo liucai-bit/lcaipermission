@@ -96,7 +96,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
      */
     private void initAttr(@Nullable AttributeSet attr) {
         int[] styleableArr = setAttrs();
-        if (styleableArr != null && styleableArr.length > 0 && attr != null) {
+        if (styleableArr.length > 0 && attr != null) {
             mTa = mContext.obtainStyledAttributes(attr, styleableArr);
         }
     }

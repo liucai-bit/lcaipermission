@@ -33,16 +33,6 @@ import com.liucai.tipsdialog.module.SegDisplayModule;
  */
 public class LcaiTipsDialog extends Dialog {
 
-    private LinearLayout mLcaiTipsDialogBg;
-
-    private TextView mLcaiTipsDialogTitle;
-
-    private TextView mLcaiTipsDialogContent;
-
-    private TextView mLcaiTipsDialogCancel;
-
-    private TextView mLcaiTipsDialogConfirm;
-
     public LcaiTipsDialogBulider bulider;
 
     public LcaiTipsDialog(LcaiTipsDialogBulider bulider) {
@@ -53,11 +43,11 @@ public class LcaiTipsDialog extends Dialog {
     }
 
     public void init() {
-        mLcaiTipsDialogBg = findViewById(R.id.lcai_tips_dialog_bg);
-        mLcaiTipsDialogTitle = findViewById(R.id.lcai_tips_dialog_title);
-        mLcaiTipsDialogContent = findViewById(R.id.lcai_tips_dialog_content);
-        mLcaiTipsDialogCancel = findViewById(R.id.lcai_tips_dialog_cancel);
-        mLcaiTipsDialogConfirm = findViewById(R.id.lcai_tips_dialog_confirm);
+        LinearLayout mLcaiTipsDialogBg = findViewById(R.id.lcai_tips_dialog_bg);
+        TextView mLcaiTipsDialogTitle = findViewById(R.id.lcai_tips_dialog_title);
+        TextView mLcaiTipsDialogContent = findViewById(R.id.lcai_tips_dialog_content);
+        TextView mLcaiTipsDialogCancel = findViewById(R.id.lcai_tips_dialog_cancel);
+        TextView mLcaiTipsDialogConfirm = findViewById(R.id.lcai_tips_dialog_confirm);
 
 
         if (bulider.tipsBackground != null) {
