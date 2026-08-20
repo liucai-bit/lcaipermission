@@ -97,7 +97,6 @@ public class BaseViewFlipper extends ViewFlipper {
 
     private float startX;
     private float startY;
-    private boolean isSwipeAction=true;
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
@@ -108,7 +107,6 @@ public class BaseViewFlipper extends ViewFlipper {
                     startY = ev.getY();
                     touchDownTime = System.currentTimeMillis();
                     stopFlipping();
-                    isSwipeAction = false;
                     break;
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
@@ -144,7 +142,6 @@ public class BaseViewFlipper extends ViewFlipper {
                             break;
                         }
                         if (startY - endY > SWIPE_THRESHOLD) {
-                            isSwipeAction = true;
                             if (getDisplayedChild() < getChildCount() -1) {
                                 showNext();
                             } else {
@@ -154,7 +151,6 @@ public class BaseViewFlipper extends ViewFlipper {
                                 }
                             }
                         } else if (endY - startY > SWIPE_THRESHOLD) {
-                            isSwipeAction = true;
                             if (getDisplayedChild() > 0) {
                                 showPrevious();
                             } else {
@@ -174,7 +170,6 @@ public class BaseViewFlipper extends ViewFlipper {
                             break;
                         }
                         if (startX - endX > SWIPE_THRESHOLD) {
-                            isSwipeAction = true;
                             if (getDisplayedChild() < getChildCount() -1) {
                                 showNext();
                             } else {
@@ -186,7 +181,6 @@ public class BaseViewFlipper extends ViewFlipper {
                                 }
                             }
                         } else if (endX - startX > SWIPE_THRESHOLD) {
-                            isSwipeAction = true;
                             if (getDisplayedChild() > 0) {
                                 showPrevious();
                             } else {
@@ -209,10 +203,6 @@ public class BaseViewFlipper extends ViewFlipper {
                     break;
             }
             return true;
-        } else {
-            if (clickListener != null) {
-                clickListener.onItemClickListener(getDisplayedChild(),null);
-            }
         }
         return super.onTouchEvent(ev);
     }

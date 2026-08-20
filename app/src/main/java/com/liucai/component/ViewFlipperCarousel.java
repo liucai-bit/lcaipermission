@@ -221,6 +221,11 @@ import java.util.List;
                 imageView.setLayoutParams(params);
                 Glide.with(mContext).load(data.getLabel()).into(imageView);
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                imageView.setOnClickListener(v->{
+                    if (clickListener != null) {
+                        clickListener.onItemClickListener(0,data.getData());
+                    }
+                });
                 if (viewFlipper != null) {
                     viewFlipper.addView(imageView);
                 }
