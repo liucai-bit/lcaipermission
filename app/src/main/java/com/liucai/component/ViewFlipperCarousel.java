@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/7/24
  */public class ViewFlipperCarousel extends BaseRelativeLayout {

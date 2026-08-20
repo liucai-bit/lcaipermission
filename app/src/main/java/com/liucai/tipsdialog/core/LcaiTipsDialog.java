@@ -4,7 +4,6 @@ import static android.view.View.VISIBLE;
 
 import android.app.Dialog;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextPaint;
@@ -20,7 +19,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.R;
 import com.liucai.tipsdialog.bulider.LcaiTipsDialogBulider;
@@ -29,7 +27,7 @@ import com.liucai.tipsdialog.module.SegDisplayModule;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/5/27
  */
@@ -79,14 +77,14 @@ public class LcaiTipsDialog extends Dialog {
             }
         }
 
-        if (bulider.segDisplay && bulider.moduleList.size() > 0) {
+        if (bulider.segDisplay && bulider.moduleList.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (SegDisplayModule module1 : bulider.moduleList) {
                 sb.append(module1.text);
             }
             SpannableString spannableString = new SpannableString(sb.toString());
             int staerIndex = 0;
-            int endIndex = 0;
+            int endIndex;
             for (SegDisplayModule module1 : bulider.moduleList) {
                 staerIndex += module1.text.length();
                 if (module1.clickEnabel) {

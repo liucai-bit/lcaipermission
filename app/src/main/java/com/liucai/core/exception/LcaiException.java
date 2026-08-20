@@ -7,7 +7,7 @@ import com.liucai.core.util.log.LcaiLogUtils;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/6/1
  */

@@ -2,7 +2,7 @@ package com.liucai.tipsdialog.core;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/5/27
  */

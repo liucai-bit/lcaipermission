@@ -3,20 +3,17 @@ package com.liucai.component.base;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.liucai.core.util.common.CommonUtils;
-import com.liucai.core.util.text.TextUtils;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/7/24
  */
@@ -42,7 +39,7 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
         return new int[]{};
     }
 
-    public BaseRelativeLayout(Context context) {
+    public BaseRelativeLayout(@NonNull Context context) {
         super(context);
         this.mContext = context;
         initLayout();
@@ -50,7 +47,7 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
         initView();
     }
 
-    public BaseRelativeLayout(Context context, @Nullable AttributeSet attrs) {
+    public BaseRelativeLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.mContext = context;
         initLayout();
@@ -60,7 +57,7 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
         initView();
     }
 
-    public BaseRelativeLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public BaseRelativeLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
         initLayout();
@@ -70,7 +67,7 @@ public abstract class BaseRelativeLayout extends RelativeLayout {
         initView();
     }
 
-    public BaseRelativeLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public BaseRelativeLayout(@NonNull Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.mContext = context;
         initLayout();

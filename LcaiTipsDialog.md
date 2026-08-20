@@ -470,7 +470,7 @@ SegDisplayModule module = new SegDisplayModule()
 
 如有技术问题或需要进一步的使用指导，请联系：
 - 作者：liucai
-- 项目名称：lctipsdialog
+- 项目名称：lcpermission
 - 创建日期：2026年5月27日
 
 ---

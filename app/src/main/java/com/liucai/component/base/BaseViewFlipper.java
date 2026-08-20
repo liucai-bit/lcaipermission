@@ -1,5 +1,6 @@
 package com.liucai.component.base;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -11,14 +12,14 @@ import com.liucai.permission.R;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/7/24
  */
 public class BaseViewFlipper extends ViewFlipper {
 
-    private static final int SWIPE_THRESHOLD = 100;
-    private static final int CLICK_MAX_DURATION = 200;
+    private static final float SWIPE_THRESHOLD = 100;
+    private static final float CLICK_MAX_DURATION = 200;
     // 新增：主方向判定系数，偏移量满足1.5倍才判定为有效主方向滑动，避免斜向滑动误判
     private static final float SWIPE_DOMINANT_RATIO = 1.5f;
 
@@ -98,6 +99,7 @@ public class BaseViewFlipper extends ViewFlipper {
     private float startX;
     private float startY;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (isSupportGesture && getChildCount()>1) {

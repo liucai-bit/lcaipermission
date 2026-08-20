@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/5/27
  */

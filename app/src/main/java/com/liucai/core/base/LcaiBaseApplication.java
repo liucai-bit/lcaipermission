@@ -8,7 +8,7 @@ import com.liucai.permission.BuildConfig;
 
 /**
  * @author liucai
- * @program lctipsdialog
+ * @program lcpermission
  * @description
  * @Date 2026/6/1
  */
