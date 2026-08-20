@@ -29,6 +29,21 @@ class GlobalModle {
         return null;
     }
 
+    public void remove(String key, Object value) {
+        boolean isHave = true;
+        if (_modle != null && _modle.size() > 0) {
+            for (Map.Entry<String, Object> entry : _modle.entrySet()) {
+                if (entry.getValue() == value) {
+                    isHave = true;
+                    break;
+                }
+            }
+            if (isHave) {
+                _modle.remove(key);
+            }
+        }
+    }
+
     public void clearModle() {
         _modle = null;
     }

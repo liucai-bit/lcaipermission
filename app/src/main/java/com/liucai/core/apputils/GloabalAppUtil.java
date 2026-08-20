@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +18,7 @@ import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.preference.LcaiPreferenceUtils;
 
+import java.io.File;
 import java.util.Locale;
 
 /**
@@ -27,13 +29,17 @@ import java.util.Locale;
  */
 public class GloabalAppUtil {
     private static GlobalModle modle;
+    private static File CACHE_DIR;
+    private static boolean saveLog;
 
     public static void init(Application application) {
         LcaiLogUtils.i("GloabalAppUtil初始化！！！");
         modle = new GlobalModle();
         modle.setModle(GlobalModleString.GLOBAL_APPLICATION, application);
-        registerActivityLifecycelCallback();
         LcaiPreferenceUtils.getModle().init();
+        registerActivityLifecycelCallback();
+        CACHE_DIR = application.getApplicationContext().getExternalCacheDir();
+        Log.d("日志输出地址", CACHE_DIR.getAbsolutePath());
     }
 
     private static void registerActivityLifecycelCallback() {
@@ -103,6 +109,26 @@ public class GloabalAppUtil {
         verifyModle();
         Activity activity = (Activity) modle.getModle(GlobalModleString.CLIENT_ACTIVITY);
         return activity;
+    }
+
+    /**
+     * 获取缓存文件
+     * @return
+     */
+    public static File getCacheFile() {
+        return CACHE_DIR;
+    }
+
+    /**
+     * 打开日志存储
+     * @return
+     */
+    public static void openSaveLog(boolean saveLog) {
+        GloabalAppUtil.saveLog = saveLog;
+    }
+
+    public static boolean openSaveLog() {
+        return GloabalAppUtil.saveLog;
     }
 
     /**
