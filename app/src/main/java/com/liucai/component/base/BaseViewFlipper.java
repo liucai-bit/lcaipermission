@@ -21,7 +21,7 @@ public class BaseViewFlipper extends ViewFlipper {
     private static final float SWIPE_THRESHOLD = 100;
     private static final float CLICK_MAX_DURATION = 200;
     // 新增：主方向判定系数，偏移量满足1.5倍才判定为有效主方向滑动，避免斜向滑动误判
-    private static final float SWIPE_DOMINANT_RATIO = 1.5f;
+    private static final float SWIPE_DOMINANT_RATIO = 1.0f;
 
     public boolean isSupportGesture;
     public int direction;
@@ -79,8 +79,8 @@ public class BaseViewFlipper extends ViewFlipper {
             setInAnimation(getContext(), R.anim.slide_top_in);
             setOutAnimation(getContext(), R.anim.slide_bottom_out);
         } else {
-            setInAnimation(getContext(), R.anim.slide_left_in);
             setOutAnimation(getContext(), R.anim.slide_right_out);
+            setInAnimation(getContext(), R.anim.slide_left_in);
         }
         super.showPrevious();
         int newIndex;

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.liucai.permission" >
+
+    <uses-sdk android:minSdkVersion="23" />
+
+    <application
+        android:name="com.liucai.core.base.LcaiBaseApplication"
+        android:allowBackup="false"
+        android:supportsRtl="true" >
+        <activity
+            android:name="com.liucai.permission.view.LcaiPermissionActivity"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:theme="@style/LcaiTransparentTheme" />
+        <activity
+            android:name="com.liucai.camera_photo.view.LcaiCamearPhtoActivity"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:theme="@style/LcaiTransparentTheme" />
+        <activity
+            android:name="com.liucai.jsbridge.web.WebActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <provider
+            android:name="com.liucai.core.util.file.LcaiFileProvider"
+            android:authorities="dollar_openBracket_applicationId_closeBracket.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/lcai_file_paths" />
+        </provider>
+    </application>
+
+</manifest>

@@ -20,6 +20,7 @@ import com.liucai.component.base.BaseRecycleAdapter;
 import com.liucai.component.base.BaseViewHolder;
 import com.liucai.component.bean.BusinessNodeStatusItemConfig;
 import com.liucai.component.bean.BusinessNodesStatusBean;
+import com.liucai.core.util.common.CommonUtils;
 import com.liucai.json.JSONUtils;
 import com.liucai.permission.R;
 
@@ -47,7 +48,7 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
     @Override
     public void onBindView(int position, View mConvertView, BaseViewHolder holder, BusinessNodesStatusBean bean) {
         ImageView imageView = holder.getView(R.id.business_nodes_status_icon);
-        ViewGroup.LayoutParams imageParams = new LinearLayout.LayoutParams(dip2px(config.iconWidth), dip2px(config.iconHeight));
+        ViewGroup.LayoutParams imageParams = new LinearLayout.LayoutParams(CommonUtils.dip2px(mContext,config.iconWidth), CommonUtils.dip2px(mContext,config.iconHeight));
         imageView.setLayoutParams(imageParams);
         Glide.with(mContext).load(bean.getIcon()).into(imageView);
 
@@ -67,7 +68,7 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         RelativeLayout relativeLayout = holder.getView(R.id.business_nodes_status);
         RelativeLayout.LayoutParams relativeLayoutParams = new RelativeLayout.LayoutParams(MP, WC);
         relativeLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,RelativeLayout.TRUE);
-        relativeLayoutParams.setMargins(0, 0, 0, dip2px(config.itemSpace));
+        relativeLayoutParams.setMargins(0, 0, 0, CommonUtils.dip2px(mContext,config.itemSpace));
         relativeLayout.setLayoutParams(relativeLayoutParams);
         holder.getView(R.id.business_nodes_status).setOnClickListener(v -> {
             if (clickListener != null) {
