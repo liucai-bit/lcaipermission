@@ -11,4 +11,5 @@ public class GlobalModleString {
     public static String GLOBAL_APPLICATION = "__application";
     public static String CLIENT_ACTIVITY = "__activity";
     public static String GLOBAL_FONT_SCALE = "__font_scale";
+    public static String GLOBAL_DEBUG_MODE = "__debug_mode";
 }

@@ -39,7 +39,12 @@ public class GloabalAppUtil {
         LcaiPreferenceUtils.getModle().init();
         registerActivityLifecycelCallback();
         CACHE_DIR = application.getApplicationContext().getExternalCacheDir();
-        Log.d("日志输出地址", CACHE_DIR.getAbsolutePath());
+        LcaiLogUtils.d("日志输出地址", CACHE_DIR.getAbsolutePath());
+    }
+
+    public static void setIsDebug(boolean isDebug) {
+        verifyModle();
+        modle.setModle(GlobalModleString.GLOBAL_DEBUG_MODE, isDebug);
     }
 
     private static void registerActivityLifecycelCallback() {
@@ -78,6 +83,7 @@ public class GloabalAppUtil {
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
                 LcaiLogUtils.i("destroyed activity"+activity.getLocalClassName());
+                modle.setModle(GlobalModleString.CLIENT_ACTIVITY, null);
             }
         });
     }
@@ -88,7 +94,7 @@ public class GloabalAppUtil {
      */
     public static Application getApplicatioon() {
         verifyModle();
-        return (Application) modle.getModle(GlobalModleString.GLOBAL_APPLICATION);
+        return (Application) modle.getModle(GlobalModleString.GLOBAL_APPLICATION,null);
     }
 
     /**
@@ -97,7 +103,7 @@ public class GloabalAppUtil {
      */
     public static Context getApplicationContext() {
         verifyModle();
-        Application application = (Application) modle.getModle(GlobalModleString.GLOBAL_APPLICATION);
+        Application application = (Application) modle.getModle(GlobalModleString.GLOBAL_APPLICATION,null);
         return application.getApplicationContext();
     }
 
@@ -107,7 +113,7 @@ public class GloabalAppUtil {
      */
     public static Activity getActivity() {
         verifyModle();
-        Activity activity = (Activity) modle.getModle(GlobalModleString.CLIENT_ACTIVITY);
+        Activity activity = (Activity) modle.getModle(GlobalModleString.CLIENT_ACTIVITY,null);
         return activity;
     }
 
@@ -146,9 +152,9 @@ public class GloabalAppUtil {
      * @param key
      * @return
      */
-    public static Object globalGetobject(String key) {
+    public static Object globalGetobject(String key,Object defaultValue) {
         verifyModle();
-        return modle.getModle(key);
+        return modle.getModle(key,defaultValue);
     }
 
     /**

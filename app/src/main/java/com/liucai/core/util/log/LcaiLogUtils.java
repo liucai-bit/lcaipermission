@@ -3,6 +3,7 @@ package com.liucai.core.util.log;
 import android.util.Log;
 
 import com.liucai.core.apputils.GloabalAppUtil;
+import com.liucai.core.apputils.GlobalModleString;
 import com.liucai.http.thread.GlobalThreadPool;
 import com.liucai.permission.BuildConfig;
 
@@ -38,27 +39,40 @@ public class LcaiLogUtils {
     }
 
     public static void i(Object... objects) {
-        getClassNames(new Throwable().getStackTrace());
-        String fullLog = buildLogString(objects);
-        splitAndLog(Log.INFO, className, fullLog);
+        if (isDebug()) {
+            getClassNames(new Throwable().getStackTrace());
+            String fullLog = buildLogString(objects);
+            splitAndLog(Log.INFO, className, fullLog);
+        }
     }
 
     public static void d(Object... objects) {
-        getClassNames(new Throwable().getStackTrace());
-        String fullLog = buildLogString(objects);
-        splitAndLog(Log.DEBUG, className, fullLog);
+        if (isDebug()) {
+            getClassNames(new Throwable().getStackTrace());
+            String fullLog = buildLogString(objects);
+            splitAndLog(Log.DEBUG, className, fullLog);
+        }
     }
 
     public static void e(Object... objects) {
-        getClassNames(new Throwable().getStackTrace());
-        String fullLog = buildLogString(objects);
-        splitAndLog(Log.ERROR, className, fullLog);
+        if (isDebug()) {
+            getClassNames(new Throwable().getStackTrace());
+            String fullLog = buildLogString(objects);
+            splitAndLog(Log.ERROR, className, fullLog);
+        }
     }
 
     public static void w(Object... objects) {
-        getClassNames(new Throwable().getStackTrace());
-        String fullLog = buildLogString(objects);
-        splitAndLog(Log.WARN, className, fullLog);
+        if (isDebug()) {
+            getClassNames(new Throwable().getStackTrace());
+            String fullLog = buildLogString(objects);
+            splitAndLog(Log.WARN, className, fullLog);
+        }
+    }
+
+    private static boolean isDebug() {
+        boolean debug = (boolean) GloabalAppUtil.globalGetobject(GlobalModleString.GLOBAL_DEBUG_MODE, false);
+        return debug;
     }
 
     /**

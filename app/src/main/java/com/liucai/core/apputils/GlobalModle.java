@@ -21,12 +21,12 @@ class GlobalModle {
         _modle.put(key, value);
     }
 
-    public Object getModle(String key) {
+    public Object getModle(String key,Object defaultValue) {
         if (_modle != null && _modle.size() > 0) {
             return _modle.get(key);
         }
         LcaiLogUtils.w("get key=>"+key+"失败");
-        return null;
+        return defaultValue;
     }
 
     public void remove(String key, Object value) {
