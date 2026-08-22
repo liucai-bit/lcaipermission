@@ -52,9 +52,11 @@ public class BaseViewFlipper extends ViewFlipper {
     public void showNext() {
         int currentIndex = getDisplayedChild();
         if (direction == 0) {
+            LcaiLogUtils.d("设置动画，从底部进入，从顶部移除");
             setInAnimation(getContext(), R.anim.slide_bottom_in);
             setOutAnimation(getContext(), R.anim.slide_top_out);
         } else {
+            LcaiLogUtils.d("设置动画，从右侧进入，从左侧移除");
             setInAnimation(getContext(), R.anim.slide_right_in);
             setOutAnimation(getContext(), R.anim.slide_left_out);
         }
@@ -76,11 +78,13 @@ public class BaseViewFlipper extends ViewFlipper {
     public void showPrevious() {
         int currentIndex = getDisplayedChild();
         if (direction == 0) {
+            LcaiLogUtils.d("设置动画，从顶部进入，从底部移除");
             setInAnimation(getContext(), R.anim.slide_top_in);
             setOutAnimation(getContext(), R.anim.slide_bottom_out);
         } else {
-            setOutAnimation(getContext(), R.anim.slide_right_out);
+            LcaiLogUtils.d("设置动画，从左侧进入，从右侧移除");
             setInAnimation(getContext(), R.anim.slide_left_in);
+            setOutAnimation(getContext(), R.anim.slide_right_out);
         }
         super.showPrevious();
         int newIndex;
@@ -105,6 +109,8 @@ public class BaseViewFlipper extends ViewFlipper {
         if (isSupportGesture && getChildCount()>1) {
             switch (ev.getAction()) {
                 case MotionEvent.ACTION_DOWN:
+                    setInAnimation(null);
+                    setOutAnimation(null);
                     startX = ev.getX();
                     startY = ev.getY();
                     touchDownTime = System.currentTimeMillis();
@@ -175,6 +181,7 @@ public class BaseViewFlipper extends ViewFlipper {
                             if (getDisplayedChild() < getChildCount() -1) {
                                 showNext();
                             } else {
+                                LcaiLogUtils.d("设置动画，从右侧进入，从左侧移除");
                                 setInAnimation(getContext(), R.anim.slide_right_in);
                                 setOutAnimation(getContext(),R.anim.slide_left_out);
                                 setDisplayedChild(0);
@@ -186,6 +193,7 @@ public class BaseViewFlipper extends ViewFlipper {
                             if (getDisplayedChild() > 0) {
                                 showPrevious();
                             } else {
+                                LcaiLogUtils.d("设置动画，从左侧进入，从右侧移除");
                                 setInAnimation(getContext(), R.anim.slide_left_in);
                                 setOutAnimation(getContext(),R.anim.slide_right_out);
                                 int position = getChildCount() - 1;
