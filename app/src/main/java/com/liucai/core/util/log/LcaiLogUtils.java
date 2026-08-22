@@ -39,40 +39,27 @@ public class LcaiLogUtils {
     }
 
     public static void i(Object... objects) {
-        if (isDebug()) {
             getClassNames(new Throwable().getStackTrace());
             String fullLog = buildLogString(objects);
             splitAndLog(Log.INFO, className, fullLog);
-        }
     }
 
     public static void d(Object... objects) {
-        if (isDebug()) {
             getClassNames(new Throwable().getStackTrace());
             String fullLog = buildLogString(objects);
             splitAndLog(Log.DEBUG, className, fullLog);
-        }
     }
 
     public static void e(Object... objects) {
-        if (isDebug()) {
             getClassNames(new Throwable().getStackTrace());
             String fullLog = buildLogString(objects);
             splitAndLog(Log.ERROR, className, fullLog);
-        }
     }
 
     public static void w(Object... objects) {
-        if (isDebug()) {
             getClassNames(new Throwable().getStackTrace());
             String fullLog = buildLogString(objects);
             splitAndLog(Log.WARN, className, fullLog);
-        }
-    }
-
-    private static boolean isDebug() {
-        boolean debug = (boolean) GloabalAppUtil.globalGetobject(GlobalModleString.GLOBAL_DEBUG_MODE, false);
-        return debug;
     }
 
     /**
