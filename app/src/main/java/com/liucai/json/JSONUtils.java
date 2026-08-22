@@ -162,7 +162,6 @@ public class JSONUtils{
      */
     public static boolean isJson(String arg) {
         if (TextUtils.isEmpty(arg)) {
-            LcaiLogUtils.w("字符串为空");
             return false;
         }
         try {
