@@ -248,7 +248,7 @@ import java.util.List;
                 textView.setLayoutParams(params);
                 textView.setText(data.getLabel());
                 textView.setTextColor(fontColor);
-                textView.setGravity(centerMode == 0 ? Gravity.CENTER : (centerMode==1 ? Gravity.START : Gravity.END));
+                textView.setGravity(centerMode == 0 ? Gravity.CENTER : (centerMode==1 ? Gravity.LEFT|CENTER_VERTICAL : Gravity.END|CENTER_VERTICAL));
                 textView.setTextSize(fontSize);
                 textView.setSingleLine();
                 textView.setEllipsize(TextUtils.TruncateAt.END);
