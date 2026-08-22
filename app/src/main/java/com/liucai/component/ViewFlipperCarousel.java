@@ -132,6 +132,7 @@ import java.util.List;
             viewFlipper.setSupportGesture(isSupportGesture);
             viewFlipper.setFlipInterval(speed);
             viewFlipper.setAutoStart(autoPlay);
+            viewFlipper.startFlipping();
         }
         initFlipperData();
         initPoint();
