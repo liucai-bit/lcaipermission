@@ -23,7 +23,9 @@ class GlobalModle {
 
     public Object getModle(String key,Object defaultValue) {
         if (_modle != null && _modle.size() > 0) {
-            return _modle.get(key);
+            if (_modle.containsKey(key)) {
+                return _modle.get(key);
+            }
         }
         LcaiLogUtils.w("get key=>"+key+"失败");
         return defaultValue;
