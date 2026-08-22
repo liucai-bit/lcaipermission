@@ -34,12 +34,10 @@ public class GloabalAppUtil {
 
     public static void init(Application application) {
         modle = new GlobalModle();
-        LcaiLogUtils.i("GloabalAppUtil初始化！！！");
         modle.setModle(GlobalModleString.GLOBAL_APPLICATION, application);
         LcaiPreferenceUtils.getModle().init();
         registerActivityLifecycelCallback();
         CACHE_DIR = application.getApplicationContext().getExternalCacheDir();
-        LcaiLogUtils.d("日志输出地址", CACHE_DIR.getAbsolutePath());
     }
 
     public static void setIsDebug(boolean isDebug) {
@@ -51,38 +49,31 @@ public class GloabalAppUtil {
         getApplicatioon().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-                LcaiLogUtils.i("create activity" + activity.getLocalClassName());
                 modle.setModle(GlobalModleString.CLIENT_ACTIVITY, activity);
             }
 
             @Override
             public void onActivityStarted(@NonNull Activity activity) {
-                LcaiLogUtils.i("start activity"+activity.getLocalClassName());
             }
 
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
-                LcaiLogUtils.i("resumed activity"+activity.getLocalClassName());
             }
 
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
-                LcaiLogUtils.i("paused activity"+activity.getLocalClassName());
             }
 
             @Override
             public void onActivityStopped(@NonNull Activity activity) {
-                LcaiLogUtils.i("stop activity"+activity.getLocalClassName());
             }
 
             @Override
             public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-                LcaiLogUtils.i("save activity"+activity.getLocalClassName());
             }
 
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
-                LcaiLogUtils.i("destroyed activity"+activity.getLocalClassName());
                 modle.setModle(GlobalModleString.CLIENT_ACTIVITY, null);
             }
         });
