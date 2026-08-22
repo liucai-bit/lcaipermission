@@ -33,8 +33,8 @@ public class GloabalAppUtil {
     private static boolean saveLog;
 
     public static void init(Application application) {
-        LcaiLogUtils.i("GloabalAppUtil初始化！！！");
         modle = new GlobalModle();
+        LcaiLogUtils.i("GloabalAppUtil初始化！！！");
         modle.setModle(GlobalModleString.GLOBAL_APPLICATION, application);
         LcaiPreferenceUtils.getModle().init();
         registerActivityLifecycelCallback();
