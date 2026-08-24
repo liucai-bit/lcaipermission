@@ -27,7 +27,6 @@ class GlobalModle {
                 return _modle.get(key);
             }
         }
-        LcaiLogUtils.w("get key=>"+key+"失败");
         return defaultValue;
     }
 
@@ -38,6 +37,9 @@ class GlobalModle {
     }
 
     public void clearModle() {
-        _modle = null;
+        if (_modle != null && _modle.size() > 0) {
+            _modle.clear();
+            _modle = null;
+        }
     }
 }
