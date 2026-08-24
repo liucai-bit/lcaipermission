@@ -29,7 +29,6 @@ public class LcaiPreferenceUtils {
     }
 
     public void init() {
-        LcaiLogUtils.i("缓存初始化！！！");
         Context context = GloabalAppUtil.getApplicationContext();
         preferences = context.getSharedPreferences(GlobalModleString.GLOBAL_PREFERENCE, Context.MODE_PRIVATE);
     }
