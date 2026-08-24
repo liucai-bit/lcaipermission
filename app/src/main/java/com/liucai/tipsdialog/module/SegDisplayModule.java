@@ -2,7 +2,7 @@ package com.liucai.tipsdialog.module;
 
 /**
  * @author liucai
- * @program jgxt
+ * @program lcpermission
  * @description
  * @Date 2026/5/12
  */

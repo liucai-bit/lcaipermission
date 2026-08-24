@@ -3,7 +3,7 @@ package com.liucai.component.bean;
 import android.graphics.Color;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/7/28

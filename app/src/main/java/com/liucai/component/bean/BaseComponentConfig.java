@@ -4,7 +4,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/7/30

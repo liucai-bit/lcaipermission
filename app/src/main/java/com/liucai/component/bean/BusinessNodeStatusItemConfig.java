@@ -1,7 +1,7 @@
 package com.liucai.component.bean;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/7/30
