@@ -49,7 +49,7 @@ public class GloabalAppUtil {
         getApplicatioon().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-                modle.setModle(GlobalModleString.CLIENT_ACTIVITY, activity);
+
             }
 
             @Override
@@ -58,10 +58,12 @@ public class GloabalAppUtil {
 
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
+                modle.setModle(GlobalModleString.CLIENT_ACTIVITY, activity);
             }
 
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
+                modle.remove(GlobalModleString.CLIENT_ACTIVITY);
             }
 
             @Override
@@ -74,7 +76,7 @@ public class GloabalAppUtil {
 
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
-                modle.setModle(GlobalModleString.CLIENT_ACTIVITY, null);
+                modle.remove(GlobalModleString.CLIENT_ACTIVITY);
             }
         });
     }
