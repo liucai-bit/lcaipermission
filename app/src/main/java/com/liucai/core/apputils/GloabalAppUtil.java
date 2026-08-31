@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -16,6 +18,7 @@ import androidx.annotation.Nullable;
 
 import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.core.util.log.LcaiLogUtils;
+import com.liucai.core.util.system.SystemUtils;
 import com.liucai.preference.LcaiPreferenceUtils;
 
 import java.io.File;
@@ -148,6 +151,14 @@ public class GloabalAppUtil {
     public static Object globalGetobject(String key,Object defaultValue) {
         verifyModle();
         return modle.getModle(key,defaultValue);
+    }
+
+    /**
+     * 清除存储的值
+     */
+    public static void globalClearobject() {
+        verifyModle();
+        modle.clearModle();
     }
 
     /**
@@ -375,6 +386,28 @@ public class GloabalAppUtil {
     public static String getDeviceDefaultLanguage() {
         return Locale.getDefault().getLanguage();
     }
+
+    /**
+     * 是否连接网络
+     * @return
+     */
+    public static boolean isNetWorkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) GloabalAppUtil.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert cm != null;
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    }
+
+    /**
+     * 检测是否是模拟器
+     * @return
+     */
+    public static boolean isEmulator() {
+        return SystemUtils.CheckEmulatorFiles()
+                || SystemUtils.CheckEmulatorBuild();
+    }
+
+
 
     private static void verifyModle(){
         if (modle == null) {
