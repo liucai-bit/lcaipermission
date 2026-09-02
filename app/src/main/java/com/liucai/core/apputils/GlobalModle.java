@@ -31,8 +31,6 @@ class GlobalModle {
     }
 
     public void clearModle() {
-        if (_modle.size() > 0) {
-            _modle.clear();
-        }
+        _modle = new ConcurrentHashMap<>();
     }
 }

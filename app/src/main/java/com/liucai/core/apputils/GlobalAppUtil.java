@@ -152,6 +152,15 @@ public class GlobalAppUtil {
     }
 
     /**
+     * 删除指定缓存
+     * @param key
+     */
+    public static void globalRemoveObject(String key) {
+        verifyModle();
+        modle.remove(key);
+    }
+
+    /**
      * 清除存储的值
      */
     public static void globalClearObject() {
