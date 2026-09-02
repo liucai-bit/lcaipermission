@@ -1,5 +1,6 @@
 package com.liucai.core.apputils;
 
+import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.core.util.log.LcaiLogUtils;
 
 import java.util.Map;
@@ -15,31 +16,23 @@ class GlobalModle {
     private Map<String, Object> _modle = new ConcurrentHashMap<>();
 
     public void setModle(String key,Object value) {
-        if (_modle == null) {
-            _modle = new ConcurrentHashMap<>();
-        }
+        if (key == null) throw new LcaiHttpException("key must not be null");
+        if (value == null) throw new LcaiHttpException("value must not be null");
         _modle.put(key, value);
     }
 
     public Object getModle(String key,Object defaultValue) {
-        if (_modle != null && _modle.size() > 0) {
-            if (_modle.containsKey(key)) {
-                return _modle.get(key);
-            }
-        }
-        return defaultValue;
+        Object value = _modle.get(key);
+        return value != null ? value : defaultValue;
     }
 
     public void remove(String key) {
-        if (_modle != null && _modle.size() > 0) {
-            _modle.remove(key);
-        }
+        _modle.remove(key);
     }
 
     public void clearModle() {
-        if (_modle != null && _modle.size() > 0) {
+        if (_modle.size() > 0) {
             _modle.clear();
-            _modle = null;
         }
     }
 }

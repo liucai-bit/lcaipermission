@@ -3,10 +3,9 @@ package com.liucai.preference;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.liucai.core.apputils.GloabalAppUtil;
+import com.liucai.core.apputils.GlobalAppUtil;
 import com.liucai.core.apputils.GlobalModleString;
 import com.liucai.core.exception.LcaiHttpException;
-import com.liucai.core.util.log.LcaiLogUtils;
 
 /**
  * @author liucai
@@ -29,7 +28,7 @@ public class LcaiPreferenceUtils {
     }
 
     public void init() {
-        Context context = GloabalAppUtil.getApplicationContext();
+        Context context = GlobalAppUtil.getApplicationContext();
         preferences = context.getSharedPreferences(GlobalModleString.GLOBAL_PREFERENCE, Context.MODE_PRIVATE);
     }
 

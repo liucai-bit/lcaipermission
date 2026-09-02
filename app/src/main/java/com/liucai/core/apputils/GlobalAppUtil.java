@@ -10,8 +10,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,8 +28,8 @@ import java.util.Locale;
  * @description
  * @Date 2026/7/14
  */
-public class GloabalAppUtil {
-    private static GlobalModle modle;
+public class GlobalAppUtil {
+    private static volatile GlobalModle modle;
     private static File CACHE_DIR;
     private static boolean saveLog;
 
@@ -49,7 +47,7 @@ public class GloabalAppUtil {
     }
 
     private static void registerActivityLifecycelCallback() {
-        getApplicatioon().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+        getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
 
@@ -88,7 +86,7 @@ public class GloabalAppUtil {
      * 获取application
      * @return
      */
-    public static Application getApplicatioon() {
+    public static Application getApplication() {
         verifyModle();
         return (Application) modle.getModle(GlobalModleString.GLOBAL_APPLICATION,null);
     }
@@ -126,11 +124,11 @@ public class GloabalAppUtil {
      * @return
      */
     public static void openSaveLog(boolean saveLog) {
-        GloabalAppUtil.saveLog = saveLog;
+        GlobalAppUtil.saveLog = saveLog;
     }
 
-    public static boolean openSaveLog() {
-        return GloabalAppUtil.saveLog;
+    public static boolean isSaveLog() {
+        return GlobalAppUtil.saveLog;
     }
 
     /**
@@ -148,7 +146,7 @@ public class GloabalAppUtil {
      * @param key
      * @return
      */
-    public static Object globalGetobject(String key,Object defaultValue) {
+    public static Object globalGetObject(String key,Object defaultValue) {
         verifyModle();
         return modle.getModle(key,defaultValue);
     }
@@ -156,7 +154,7 @@ public class GloabalAppUtil {
     /**
      * 清除存储的值
      */
-    public static void globalClearobject() {
+    public static void globalClearObject() {
         verifyModle();
         modle.clearModle();
     }
@@ -169,8 +167,12 @@ public class GloabalAppUtil {
         Context context = getApplicationContext();
         Resources resources = context.getResources();
         int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
-        int height = resources.getDimensionPixelSize(resourceId);
-        return height;
+        if (resourceId != 0) {
+            int height = resources.getDimensionPixelSize(resourceId);
+            return height;
+        }
+        LcaiLogUtils.w("获取status_bar_height失败");
+        return 0;
     }
 
     /**
@@ -181,8 +183,12 @@ public class GloabalAppUtil {
         Context context = getApplicationContext();
         Resources resources = context.getResources();
         int resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
-        int height = resources.getDimensionPixelSize(resourceId);
-        return height;
+        if (resourceId != 0) {
+            int height = resources.getDimensionPixelSize(resourceId);
+            return height;
+        }
+        LcaiLogUtils.w("获取navigation_bar_height失败");
+        return 0;
     }
 
     /**
@@ -207,8 +213,11 @@ public class GloabalAppUtil {
         if (fScale != fontScale) {
             LcaiPreferenceUtils.getModle().put(GlobalModleString.GLOBAL_FONT_SCALE, fontScale);
         }
-        //设置后需要重启
-        getActivity().recreate();
+        Activity activity = getActivity();
+        if (activity != null) {
+            //设置后需要重启
+            activity.recreate();
+        }
     }
 
     /**
@@ -237,8 +246,6 @@ public class GloabalAppUtil {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
             // 获取版本名称 (例如：1.0)
             mVersionName = packageInfo.versionName;
-            // 获取版本号 (例如：1)
-            int versionCode = packageInfo.versionCode;
         } catch (Exception e) {
             LcaiLogUtils.i("获取版本名称信息失败");
         }
@@ -250,7 +257,7 @@ public class GloabalAppUtil {
      * 获取版本号
      * @return
      */
-    public static int getAppversionCode() {
+    public static int getAppVersionCode() {
         verifyModle();
         int versionCode = 1;
         Context context = getApplicationContext();
@@ -316,7 +323,7 @@ public class GloabalAppUtil {
     /**
      * fingerprit 信息
      **/
-    public static String getDeviceFubgerprint() {
+    public static String getDeviceFingerprint() {
         return Build.FINGERPRINT;
     }
 
@@ -349,7 +356,7 @@ public class GloabalAppUtil {
     }
 
     /**
-     * 获取手机用户名
+     * 获取用户名
      **/
     public static String getDeviceUser() {
         return Build.USER;
@@ -358,6 +365,7 @@ public class GloabalAppUtil {
     /**
      * 获取手机 硬件序列号
      **/
+    @Deprecated
     public static String getDeviceSerial() {
         return Build.SERIAL;
     }
@@ -392,8 +400,8 @@ public class GloabalAppUtil {
      * @return
      */
     public static boolean isNetWorkConnected() {
-        ConnectivityManager cm = (ConnectivityManager) GloabalAppUtil.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        assert cm != null;
+        ConnectivityManager cm = (ConnectivityManager) GlobalAppUtil.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }

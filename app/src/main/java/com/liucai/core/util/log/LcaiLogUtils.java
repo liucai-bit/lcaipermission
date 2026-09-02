@@ -2,10 +2,9 @@ package com.liucai.core.util.log;
 
 import android.util.Log;
 
-import com.liucai.core.apputils.GloabalAppUtil;
+import com.liucai.core.apputils.GlobalAppUtil;
 import com.liucai.core.apputils.GlobalModleString;
 import com.liucai.http.thread.GlobalThreadPool;
-import com.liucai.permission.BuildConfig;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -71,7 +70,7 @@ public class LcaiLogUtils {
     }
 
     private static boolean isDebug() {
-        boolean debug = (boolean) GloabalAppUtil.globalGetobject(GlobalModleString.GLOBAL_DEBUG_MODE, false);
+        boolean debug = (boolean) GlobalAppUtil.globalGetObject(GlobalModleString.GLOBAL_DEBUG_MODE, false);
         return debug;
     }
 
@@ -99,7 +98,7 @@ public class LcaiLogUtils {
         // 如果日志长度小于等于最大限制，直接打印
         if (content.length() <= MAX_LOG_LENGTH) {
             Log.println(priority, tag, content);
-            if (GloabalAppUtil.openSaveLog()) {
+            if (GlobalAppUtil.isSaveLog()) {
                 writeLog(getLevel(priority),tag,content);
             }
             return;
@@ -115,7 +114,7 @@ public class LcaiLogUtils {
                     String segmentTag = "LcaiLogUtils:" + "[" + (i + 1) + "/" +
                             ((content.length() + MAX_LOG_LENGTH - 1) / MAX_LOG_LENGTH) + "]";
                     Log.println(priority, segmentTag, segment);
-                    if (GloabalAppUtil.openSaveLog()) {
+                    if (GlobalAppUtil.isSaveLog()) {
                         writeLog(getLevel(priority),tag,content);
                     }
                 }
@@ -127,8 +126,8 @@ public class LcaiLogUtils {
         GlobalThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                if (GloabalAppUtil.getCacheFile() != null) {
-                    File logDir = new File(GloabalAppUtil.getCacheFile(), "logs");
+                if (GlobalAppUtil.getCacheFile() != null) {
+                    File logDir = new File(GlobalAppUtil.getCacheFile(), "logs");
                     if (!logDir.exists()) {
                         logDir.mkdirs();
                     }
