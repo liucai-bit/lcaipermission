@@ -11,9 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import androidx.annotation.Nullable;
-
 import com.bumptech.glide.Glide;
 import com.liucai.component.base.BaseRelativeLayout;
 import com.liucai.component.base.BaseViewFlipper;
@@ -22,9 +20,7 @@ import com.liucai.component.base.ViewFlipperCarouseInterface;
 import com.liucai.component.bean.ViewFlipperCarouselBean;
 import com.liucai.component.bean.ViewFlipperCarouselItemConfig;
 import com.liucai.core.exception.LcaiHttpException;
-import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.permission.R;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,80 +29,46 @@ import java.util.List;
  * @program lcpermission
  * @description
  * @Date 2026/7/24
- */public class ViewFlipperCarousel extends BaseRelativeLayout {
-
+ */
+public class ViewFlipperCarousel extends BaseRelativeLayout {
     private final int POINT_HEIGHT = 5;
     private final int POINT_CEICLE_WIDTH = 5;
     private final int POINT_LINE_WIDTH = 15;
 
-    /**
-     * 0 纵向
-     * 1 横向
-     */
+    /** 0 纵向 1 横向 */
     public int direction;
-    /**
-     * 速度/s
-     */
+    /** 速度/s */
     public int speed;
-    /**
-     * 自动播放
-     */
+    /** 自动播放 */
     public boolean autoPlay;
-    /**
-     * 支持手势
-     */
+    /** 支持手势 */
     public boolean isSupportGesture;
-    /**
-     * 显示指示点
-     */
+    /** 显示指示点 */
     public boolean showReferencePoint;
-    /**
-     * 指示点最大数量
-     */
+    /** 指示点最大数量 */
     public int maxPointSize;
-    /**
-     * 指示点位置
-     */
+    /** 指示点位置 */
     public int indicatePoint;
-    /**
-     * 指示点样式
-     */
+    /** 指示点样式 */
     public int pointStyle;
-    /**
-     * 样式
-     * 文字
-     * 图片
-     */
+    /** 样式 文字 图片 */
     public int flipperMode;
-    /**
-     * 文字大小
-     */
+    /** 文字大小 */
     public int fontSize;
-    /**
-     * 文字颜色
-     */
+    /** 文字颜色 */
     public int fontColor;
-    /**
-     * 文字居中模式
-     */
+    /** 文字居中模式 */
     public int centerMode;
-    /**
-     * 当前指示点颜色
-     */
+    /** 当前指示点颜色 */
     public Drawable checkColor;
-    /**
-     * 其他指示点颜色
-     */
+    /** 其他指示点颜色 */
     public Drawable uncheckColor;
 
     public List<ViewFlipperCarouselBean> datas;
-
     private BaseViewFlipper viewFlipper;
     private List<TextView> points;
-
     private ViewFlipperCarouseInterface carouseInterface;
     private ItemClickListener clickListener;
-
     private ViewFlipperCarouselItemConfig itemConfig;
 
     @Override
@@ -117,6 +79,97 @@ import java.util.List;
     public ViewFlipperCarousel(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
+
+    public void setDirection(int direction) {
+        this.direction = direction;
+        if (viewFlipper != null) {
+            viewFlipper.setDirection(direction);
+        }
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+        if (viewFlipper == null) return;
+        if (speed > 0) {
+            viewFlipper.setFlipInterval(speed);
+        }
+    }
+
+    public void setAutoPlay(boolean autoPlay) {
+        this.autoPlay = autoPlay;
+        if (viewFlipper != null) {
+            viewFlipper.setAutoStart(autoPlay);
+            if(autoPlay) viewFlipper.startFlipping();
+        }
+    }
+
+    public void setSupportGesture(boolean supportGesture) {
+        isSupportGesture = supportGesture;
+        if (viewFlipper != null) {
+            viewFlipper.setSupportGesture(supportGesture);
+        }
+    }
+
+    public void setShowReferencePoint(boolean showReferencePoint) {
+        this.showReferencePoint = showReferencePoint;
+        initPoint();
+    }
+
+    public void setMaxPointSize(int maxPointSize) {
+        this.maxPointSize = maxPointSize;
+        initPoint();
+    }
+
+    public void setIndicatePoint(int indicatePoint) {
+        this.indicatePoint = indicatePoint;
+        initPoint();
+    }
+
+    public void setPointStyle(int pointStyle) {
+        this.pointStyle = pointStyle;
+        // 刷新指示点样式
+        if (points != null && !points.isEmpty()) {
+            notifyPoint(0);
+        }
+    }
+
+    public void setFlipperMode(int flipperMode) {
+        this.flipperMode = flipperMode;
+        initFlipperData();
+    }
+
+    public void setFontSize(int fontSize) {
+        this.fontSize = fontSize;
+        // 如果是文本模式，重新初始化以应用新字体大小
+        if (flipperMode == 0) initFlipperData();
+    }
+
+    public void setFontColor(int fontColor) {
+        this.fontColor = fontColor;
+        // 如果是文本模式，重新初始化以应用新颜色
+        if (flipperMode == 0) initFlipperData();
+    }
+
+    public void setCenterMode(int centerMode) {
+        this.centerMode = centerMode;
+        // 如果是文本模式，重新初始化以应用新对齐方式
+        if (flipperMode == 0) initFlipperData();
+    }
+
+    public void setCheckColor(Drawable checkColor) {
+        this.checkColor = checkColor;
+        if (points != null && !points.isEmpty()) {
+            notifyPoint(0);
+        }
+    }
+
+    public void setUncheckColor(Drawable uncheckColor) {
+        this.uncheckColor = uncheckColor;
+        if (points != null && !points.isEmpty()) {
+            notifyPoint(0);
+        }
+    }
+
     public void setDatas(List<ViewFlipperCarouselBean> datas) {
         this.datas = datas;
         if (flipperMode == 2) {
@@ -125,14 +178,18 @@ import java.util.List;
             }
         }
         if (this.datas != null && this.datas.size() < 2) {
-            viewFlipper.setSupportGesture(false);
-            viewFlipper.stopFlipping();
-            viewFlipper.setAutoStart(false);
+            if(viewFlipper != null) {
+                viewFlipper.setSupportGesture(false);
+                viewFlipper.stopFlipping();
+                viewFlipper.setAutoStart(false);
+            }
         } else {
-            viewFlipper.setSupportGesture(isSupportGesture);
-            viewFlipper.setFlipInterval(speed);
-            viewFlipper.setAutoStart(autoPlay);
-            viewFlipper.startFlipping();
+            if(viewFlipper != null) {
+                viewFlipper.setSupportGesture(isSupportGesture);
+                viewFlipper.setFlipInterval(speed);
+                viewFlipper.setAutoStart(autoPlay);
+                viewFlipper.startFlipping();
+            }
         }
         initFlipperData();
         initPoint();
@@ -198,23 +255,14 @@ import java.util.List;
             }
         });
         addView(viewFlipper);
-
         pointLayout = new LinearLayout(mContext);
         addView(pointLayout);
-    }
-
-    public void setSpeed(int speed) {
-        if (viewFlipper==null) return;
-        if (speed > 0) {
-            viewFlipper.setFlipInterval(speed);
-        }
     }
 
     public void initFlipperData() {
         if (viewFlipper != null) {
             viewFlipper.removeAllViews();
         }
-
         if (flipperMode == 1) {
             for (ViewFlipperCarouselBean data : datas) {
                 ImageView imageView = new ImageView(mContext);
@@ -230,7 +278,6 @@ import java.util.List;
                 if (viewFlipper != null) {
                     viewFlipper.addView(imageView);
                 }
-
             }
         } else if (flipperMode == 2) {
             LinearLayout.LayoutParams viewParams = new LinearLayout.LayoutParams(MP, WC);
@@ -265,6 +312,7 @@ import java.util.List;
     }
 
     private LinearLayout pointLayout;
+
     public void initPoint() {
         if (!showReferencePoint || datas == null || datas.isEmpty()) {
             if (pointLayout != null) pointLayout.removeAllViews();
@@ -300,7 +348,6 @@ import java.util.List;
         }
         pointLayout.setLayoutParams(pointParams);
         pointLayout.setOrientation(LinearLayout.HORIZONTAL);
-
         LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
         cricleParams.setMargins(dip2px(5),dip2px(5),dip2px(5),dip2px(5));
         int realPointCount = Math.min(datas.size(), maxPointSize);
