@@ -112,6 +112,15 @@ public class GlobalAppUtil {
     }
 
     /**
+     * 判断当前activity是否存在
+     * @param mActivity
+     * @return
+     */
+    public static boolean isRuning(Activity mActivity) {
+        return !mActivity.isFinishing() || !mActivity.isDestroyed();
+    }
+
+    /**
      * 获取缓存文件
      * @return
      */

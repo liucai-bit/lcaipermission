@@ -20,6 +20,7 @@ import com.liucai.component.base.ViewFlipperCarouseInterface;
 import com.liucai.component.bean.ViewFlipperCarouselBean;
 import com.liucai.component.bean.ViewFlipperCarouselItemConfig;
 import com.liucai.core.exception.LcaiHttpException;
+import com.liucai.image.ImageUtils;
 import com.liucai.permission.R;
 import java.util.ArrayList;
 import java.util.List;
@@ -268,7 +269,7 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
                 ImageView imageView = new ImageView(mContext);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(MP, MP);
                 imageView.setLayoutParams(params);
-                Glide.with(mContext).load(data.getLabel()).into(imageView);
+                ImageUtils.loadImage(mContext, data.getLabel(), imageView);
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 imageView.setOnClickListener(v->{
                     if (clickListener != null) {

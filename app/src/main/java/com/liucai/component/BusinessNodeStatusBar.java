@@ -65,6 +65,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
     public void init() {
         config.titleSize = mTa.getInt(R.styleable.BusinessNodeStatusBar_titleSize, 16);
         config.titleColor = mTa.getColor(R.styleable.BusinessNodeStatusBar_titleColor, mContext.getColor(R.color.text_1c1c1c));
+        config.textStyle = mTa.getString(R.styleable.BusinessNodeStatusBar_titleStyle);
         columns = mTa.getInt(R.styleable.BusinessNodeStatusBar_columns, 0);
         title = mTa.getString(R.styleable.BusinessNodeStatusBar_title);
         barBackground = mTa.getDrawable(R.styleable.BusinessNodeStatusBar_barBackground);

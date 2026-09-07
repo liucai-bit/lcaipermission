@@ -21,6 +21,7 @@ import com.liucai.component.base.BaseViewHolder;
 import com.liucai.component.bean.BusinessNodeStatusItemConfig;
 import com.liucai.component.bean.BusinessNodesStatusBean;
 import com.liucai.core.util.common.CommonUtils;
+import com.liucai.image.ImageUtils;
 import com.liucai.json.JSONUtils;
 import com.liucai.permission.R;
 
@@ -48,7 +49,7 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         ImageView imageView = holder.getView(R.id.business_nodes_status_icon);
         ViewGroup.LayoutParams imageParams = new LinearLayout.LayoutParams(CommonUtils.dip2px(mContext,config.iconWidth), CommonUtils.dip2px(mContext,config.iconHeight));
         imageView.setLayoutParams(imageParams);
-        Glide.with(mContext).load(bean.getIcon()).into(imageView);
+        ImageUtils.loadImage(mContext, bean.getIcon(), imageView);
 
         TextView textView = holder.getView(R.id.business_nodes_status_string);
         textView.setTextSize(config.titleSize);
