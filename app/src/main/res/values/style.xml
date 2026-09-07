@@ -5,9 +5,9 @@
         <!--标题颜色-->
         <attr name="titleColor" format="color"/>
         <attr name="titleStyle" format="enum">
-            <flag name="normal" value="0" />
-            <flag name="bold" value="1" />
-            <flag name="italic" value="2" />
+            <enum name="normal" value="0" />
+            <enum name="bold" value="1" />
+            <enum name="italic" value="2" />
         </attr>
         <!--每行显示多少个-->
         <attr name="columns" format="integer"/>
