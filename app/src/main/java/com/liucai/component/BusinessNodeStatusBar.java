@@ -2,6 +2,7 @@ package com.liucai.component;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -77,7 +78,6 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         datas = new ArrayList<>();
         // 边界校验：非法列数自动适配为默认值1，避免GridLayoutManager抛出异常
         if (columns <= 0) columns = 1;
-
         // 版本兼容处理，兼容Android 5.0以下系统背景设置API
         if (barBackground != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -109,7 +109,13 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         mTitle.setTextColor(config.titleColor);
         mTitle.setTextSize(config.titleSize);
         mTitle.setVisibility(GONE);
-
+        if (TextUtils.equals(config.textStyle, "1")) {
+            //加粗
+            mTitle.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+        } else if (TextUtils.equals(config.textStyle, "2")) {
+            //斜体
+            mTitle.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+        }
         // 空值校验：空标题自动隐藏控件
         if (!TextUtils.isEmpty(title)) {
             mTitle.setVisibility(VISIBLE);

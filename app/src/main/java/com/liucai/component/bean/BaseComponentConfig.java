@@ -21,6 +21,7 @@ public class BaseComponentConfig {
     public int titleColor= Color.parseColor("#1C1C1C");
 
     public int titleSize=16;
+    public String textStyle = "0";
 
     public Drawable componentBackground;
 
@@ -51,6 +52,11 @@ public class BaseComponentConfig {
 
     public BaseComponentConfig setTitleSize(int titleSize) {
         this.titleSize = titleSize;
+        return this;
+    }
+
+    public BaseComponentConfig setTitleStyle(String textStyle) {
+        this.textStyle = textStyle;
         return this;
     }
 
