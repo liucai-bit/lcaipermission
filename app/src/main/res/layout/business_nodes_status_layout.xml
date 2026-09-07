@@ -33,14 +33,15 @@
 
         <TextView
             android:id="@+id/business_nodes_status_point"
+            android:visibility="gone"
             android:textColor="#ffffff"
             android:gravity="center"
             android:background="@drawable/business_nodes_point_bg"
             android:textSize="10sp"
-            android:text="2"
+            android:text="22"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
-            android:layout_width="20dp"
-            android:layout_height="20dp"/>
+            android:layout_width="15dp"
+            android:layout_height="15dp"/>
     </RelativeLayout>
 </RelativeLayout>

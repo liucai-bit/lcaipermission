@@ -34,8 +34,6 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
 
     private BusinessNodeStatusItemConfig config;
 
-
-
     public BusinessNodeStatusAdapter(Context mContext) {
         super(mContext, R.layout.business_nodes_status_layout);
     }
