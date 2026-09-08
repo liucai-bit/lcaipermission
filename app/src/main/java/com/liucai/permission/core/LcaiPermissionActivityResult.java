@@ -1,5 +1,10 @@
 package com.liucai.permission.core;
 
+import com.alibaba.fastjson.JSONArray;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author liucai
  * @program lcpermission
@@ -8,5 +13,5 @@ package com.liucai.permission.core;
  */
 public interface LcaiPermissionActivityResult {
 
-    void onPermissionResult(boolean granted);
+    void onPermissionResult(boolean granted, Map<String,Boolean> permissions);
 }

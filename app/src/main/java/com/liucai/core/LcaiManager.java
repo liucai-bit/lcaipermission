@@ -19,6 +19,7 @@ import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liucai
@@ -27,7 +28,6 @@ import java.util.List;
  * @Date 2026/6/5
  */
 public class LcaiManager{
-    public static final Integer SETTING_CALLBACK = 1440;
     private static WeakReference<LcaiPermissionActivityResult> sPermissionResultRef;
     private WeakReference<LcaiPermissionRequestBulider> mBuilderRef;
     private static WeakReference<LcaiPhotoCameraActivityResult> sPhotoCameraResultRef;
@@ -35,7 +35,7 @@ public class LcaiManager{
 
     private LcaiPermissionActivityResult permissionActivityResult = new LcaiPermissionActivityResult() {
         @Override
-        public void onPermissionResult(boolean granted) {
+        public void onPermissionResult(boolean granted, Map<String,Boolean> permissions) {
             LcaiPermissionRequestBulider builder = mBuilderRef != null ? mBuilderRef.get() : null;
             LcaiReqPermissionResult result = builder != null ? builder.result : null;
 
@@ -44,9 +44,9 @@ public class LcaiManager{
                     result.onReqPermissionPass();
                 } else {
                     if (builder.system) {
-                        showNeverDialog(builder);
+                        showNeverDialog(builder,permissions);
                     } else {
-                        result.onReqPermissionNoPass();
+                        result.onReqPermissionNoPass(permissions);
                     }
                 }
             }
@@ -120,7 +120,7 @@ public class LcaiManager{
         new LcaiCameraPhoto(bulider);
     }
 
-    public void showNeverDialog(LcaiPermissionRequestBulider bulider) {
+    public void showNeverDialog(LcaiPermissionRequestBulider bulider,Map<String,Boolean> permissions) {
         new LcaiTipsDialogBulider()
                 .with(bulider.mActivity)
                 .addTitle(bulider.title)
@@ -142,7 +142,7 @@ public class LcaiManager{
                     @Override
                     public void onCancelListener() {
                         if (bulider.result != null) {
-                            bulider.result.onReqPermissionNoPass();
+                            bulider.result.onReqPermissionNoPass(permissions);
                         }
                     }
 

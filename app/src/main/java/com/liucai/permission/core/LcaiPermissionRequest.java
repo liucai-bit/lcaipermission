@@ -19,6 +19,8 @@ import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liucai
@@ -50,9 +52,11 @@ public class LcaiPermissionRequest {
         }
 
         List<String> stringList = new ArrayList<>();
+        Map<String, Boolean> permissions = new ConcurrentHashMap<>();
         //未授权集合
         for (String permission : bulider.permissions) {
             if (!checkPermission(permission)) {
+                permissions.put(permission, false);
                 stringList.add(permission);
             }
         }
@@ -60,13 +64,13 @@ public class LcaiPermissionRequest {
         if (stringList != null && stringList.size() > 0) {
             if (bulider.checkPermission) {
                 if (bulider.result != null) {
-                    bulider.result.onReqPermissionNoPass();
+                    bulider.result.onReqPermissionNoPass(permissions);
                 }
                 return;
             }
 
             if (bulider.asDialog) {
-                showDialog(stringList);
+                showDialog(stringList,permissions);
             } else {
                 reqPermission(stringList);
             }
@@ -89,7 +93,7 @@ public class LcaiPermissionRequest {
         return false;
     }
 
-    public void showDialog(List<String> stringList) {
+    public void showDialog(List<String> stringList,Map<String,Boolean> permissions) {
         new LcaiTipsDialogBulider()
                 .with(bulider.mActivity)
                 .addTitle(bulider.title)
@@ -112,7 +116,7 @@ public class LcaiPermissionRequest {
                     @Override
                     public void onCancelListener() {
                         if (bulider.result != null) {
-                            bulider.result.onReqPermissionNoPass();
+                            bulider.result.onReqPermissionNoPass(permissions);
                         }
                     }
 

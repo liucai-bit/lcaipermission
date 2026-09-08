@@ -22,6 +22,8 @@ import com.liucai.permission.R;
 import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.core.LcaiReqPermissionResult;
 
+import java.util.Map;
+
 /**
  * @author liucai
  * @program lcpermission
@@ -87,9 +89,9 @@ public class WebActivity extends LcaiBaseActivity {
                             }
 
                             @Override
-                            public void onReqPermissionNoPass() {
+                            public void onReqPermissionNoPass(Map<String, Boolean> permissions) {
                                 request.deny();
-                                LcaiLogUtils.d("系统权限未授权，返回失败");
+                                LcaiLogUtils.d("系统权限未授权，返回失败","未授权权限:"+permissions);
                                 verifyMethod(null, PERMISSION_METHOD, "");
                             }
                         }));
