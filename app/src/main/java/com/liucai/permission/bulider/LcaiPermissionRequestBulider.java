@@ -2,9 +2,9 @@ package com.liucai.permission.bulider;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+import android.os.Build;
 
-import com.liucai.permission.core.LcaiPermissionRequest;
+import com.liucai.permission.core.LcaiPermissionString;
 import com.liucai.permission.core.LcaiReqPermissionResult;
 
 import java.util.ArrayList;
@@ -27,6 +27,11 @@ public class LcaiPermissionRequestBulider {
      * 检查权限
      */
     public boolean checkPermission;
+
+    /**
+     * 是否包含通知权限
+     */
+    public boolean hasNotification;
 
     /**
      * 是否显示自定义索权弹窗
@@ -151,6 +156,17 @@ public class LcaiPermissionRequestBulider {
      */
     public LcaiPermissionRequestBulider check(boolean checkPermission) {
         this.checkPermission = checkPermission;
+        return this;
+    }
+
+    public LcaiPermissionRequestBulider addNotification() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            //如果是Android 13 以下
+            this.hasNotification = true;
+            addPermission(LcaiPermissionString.NOTIFICATIONS);
+        } else {
+            addPermission(LcaiPermissionString.NOTIFICATIONS_13);
+        }
         return this;
     }
 
@@ -350,7 +366,7 @@ public class LcaiPermissionRequestBulider {
      * @return
      */
     public LcaiPermissionRequestBulider addPermission(String... pers) {
-        if (permissions == null || permissions.size() < 1) {
+        if (permissions == null) {
             permissions = new ArrayList<>();
         }
         for (String permission : pers) {

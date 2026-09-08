@@ -11,7 +11,17 @@ import android.Manifest;
 public interface LcaiPermissionString {
 
     String PERMISSION_KEY = "LCAI_PERMISSION_KEY";
-
+    String HAS_NOTIFICATION = "hasNotification";
+    /**
+     * 通知权限
+     * Android 13及以上
+     */
+    String NOTIFICATIONS_13 = Manifest.permission.POST_NOTIFICATIONS;
+    /**
+     * 通知权限
+     * Android 13以下
+     */
+    String NOTIFICATIONS = "NOTIFICATION";
     /**
      * 读取权限
      */

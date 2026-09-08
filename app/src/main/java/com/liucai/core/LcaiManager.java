@@ -18,24 +18,13 @@ import com.liucai.tipsdialog.bulider.LcaiTipsDialogBulider;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 import java.util.Map;
 
-/**
- * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/5
- */
-public class LcaiManager{
-    private static WeakReference<LcaiPermissionActivityResult> sPermissionResultRef;
-    private WeakReference<LcaiPermissionRequestBulider> mBuilderRef;
-    private static WeakReference<LcaiPhotoCameraActivityResult> sPhotoCameraResultRef;
-    private WeakReference<LcaiCameraPhotoBulider> mBuilderPhotoRef;
+public class LcaiManager {
 
-    private LcaiPermissionActivityResult permissionActivityResult = new LcaiPermissionActivityResult() {
+    private final LcaiPermissionActivityResult permissionActivityResult = new LcaiPermissionActivityResult() {
         @Override
-        public void onPermissionResult(boolean granted, Map<String,Boolean> permissions) {
+        public void onPermissionResult(boolean granted, Map<String, Boolean> permissions) {
             LcaiPermissionRequestBulider builder = mBuilderRef != null ? mBuilderRef.get() : null;
             LcaiReqPermissionResult result = builder != null ? builder.result : null;
 
@@ -44,63 +33,58 @@ public class LcaiManager{
                     result.onReqPermissionPass();
                 } else {
                     if (builder.system) {
-                        showNeverDialog(builder,permissions);
+                        showNeverDialog(builder, permissions);
                     } else {
                         result.onReqPermissionNoPass(permissions);
                     }
                 }
             }
-
-            // 清理引用
-            clearReferences();
+            // 权限回调完成后清理引用
+            clearPermissionReferences();
         }
     };
 
-    private LcaiPhotoCameraActivityResult photoCameraActivityResult = new LcaiPhotoCameraActivityResult() {
+    private final LcaiPhotoCameraActivityResult photoCameraActivityResult = new LcaiPhotoCameraActivityResult() {
         @Override
         public void onUrl(String url) {
             LcaiCameraPhotoBulider bulider = mBuilderPhotoRef != null ? mBuilderPhotoRef.get() : null;
             LcaiPhotoResult result = bulider != null ? bulider.result : null;
-            if (result != null) {
-                result.onUrl(url);
-            }
+            if (result != null) result.onUrl(url);
         }
 
         @Override
         public void onBase64(String base64) {
             LcaiCameraPhotoBulider bulider = mBuilderPhotoRef != null ? mBuilderPhotoRef.get() : null;
             LcaiPhotoResult result = bulider != null ? bulider.result : null;
-            if (result != null) {
-                result.onBase64(base64);
-            }
+            if (result != null) result.onBase64(base64);
         }
 
         @Override
         public void onError(String error) {
             LcaiCameraPhotoBulider bulider = mBuilderPhotoRef != null ? mBuilderPhotoRef.get() : null;
             LcaiPhotoResult result = bulider != null ? bulider.result : null;
-            if (result != null) {
-                result.onError(error);
-            }
+            if (result != null) result.onError(error);
         }
     };
 
+    private WeakReference<LcaiPermissionRequestBulider> mBuilderRef;
+    private WeakReference<LcaiCameraPhotoBulider> mBuilderPhotoRef;
 
     private LcaiManager() {}
 
-    private static class LcaiManagerHelper{
+    private static class LcaiManagerHelper {
         private static final LcaiManager INSTANCE = new LcaiManager();
     }
 
-    public static class Internal{
+    public static class Internal {
         private Internal() {}
 
         public static LcaiPermissionActivityResult getPermissionResult() {
-            return sPermissionResultRef != null ? sPermissionResultRef.get() : null;
+            return getInstance().permissionActivityResult;
         }
 
         public static LcaiPhotoCameraActivityResult getPhotoCameraResult() {
-            return sPhotoCameraResultRef != null ? sPhotoCameraResultRef.get() : null;
+            return getInstance().photoCameraActivityResult;
         }
     }
 
@@ -109,18 +93,18 @@ public class LcaiManager{
     }
 
     public void permissionReq(@NonNull LcaiPermissionRequestBulider bulider) {
-        sPermissionResultRef = new WeakReference<>(permissionActivityResult);
+        clearPermissionReferences();
         mBuilderRef = new WeakReference<>(bulider);
         new LcaiPermissionRequest(bulider);
     }
 
     public void openPhotoOrCamera(@NonNull LcaiCameraPhotoBulider bulider) {
-        sPhotoCameraResultRef = new WeakReference<>(photoCameraActivityResult);
+        clearPhotoReferences(); // 清理旧的相机引用
         mBuilderPhotoRef = new WeakReference<>(bulider);
         new LcaiCameraPhoto(bulider);
     }
 
-    public void showNeverDialog(LcaiPermissionRequestBulider bulider,Map<String,Boolean> permissions) {
+    public void showNeverDialog(LcaiPermissionRequestBulider bulider, Map<String, Boolean> permissions) {
         new LcaiTipsDialogBulider()
                 .with(bulider.mActivity)
                 .addTitle(bulider.title)
@@ -131,7 +115,6 @@ public class LcaiManager{
                 .addContentSize(bulider.contentSize)
                 .addCancelText("取消")
                 .addCancelSize(bulider.btnSize)
-                .addCancelColor(bulider.leftColor)
                 .addCancelColor(bulider.leftColor)
                 .addCancelBackground(bulider.leftBg)
                 .addConfirmText("立即设置")
@@ -148,18 +131,18 @@ public class LcaiManager{
 
                     @Override
                     public void onConfirmListener() {
-                        //跳转设置
-                        // 有权限被永久拒绝，引导用户去设置页面
                         Uri packageURI = Uri.parse("package:" + bulider.mActivity.getPackageName());
                         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
                         bulider.mActivity.startActivity(intent);
                     }
                 }).bulid();
-
     }
 
-    private void clearReferences() {
-        sPermissionResultRef = null;
+    private void clearPermissionReferences() {
         mBuilderRef = null;
+    }
+
+    private void clearPhotoReferences() {
+        mBuilderPhotoRef = null;
     }
 }
