@@ -12,6 +12,7 @@ public interface LcaiPermissionString {
 
     String PERMISSION_KEY = "LCAI_PERMISSION_KEY";
     String HAS_NOTIFICATION = "hasNotification";
+    String TO_SYSTEM = "to_system_permission";
     /**
      * 通知权限
      * Android 13及以上

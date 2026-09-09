@@ -14,7 +14,7 @@ import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.view.LcaiPermissionActivity;
-import com.liucai.tipsdialog.bulider.LcaiTipsDialogBulider;
+import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
 import java.util.ArrayList;
@@ -77,9 +77,23 @@ public class LcaiPermissionRequest {
             }else{
                 //如果是需要申请权限
                 if (builder.asDialog) {
-                    showDialog(stringList, permissions);
+                    if (builder.builder != null) {
+                        builder.builder.setOnTipsDialogInterface(new OnTipsDialogInterface() {
+                            @Override
+                            public void onCancelListener() {
+                                if (builder.result != null) {
+                                    builder.result.onReqPermissionNoPass(permissions);
+                                }
+                            }
+
+                            @Override
+                            public void onConfirmListener() {
+                                reqPermission(stringList);
+                            }
+                        }).bulid();
+                    }
                 } else {
-                    reqPermission(stringList);
+
                 }
             }
         } else {
@@ -112,41 +126,6 @@ public class LcaiPermissionRequest {
         //Android 8以下没有通知开关
         return true;
     }
-
-    public void showDialog(List<String> stringList,Map<String,Boolean> permissions) {
-        new LcaiTipsDialogBulider()
-                .with(builder.mActivity)
-                .addTitle(builder.title)
-                .addTitleColor(builder.titleColor)
-                .addTitleSize(builder.titleSize)
-                .addContent(builder.content)
-                .addContentColor(builder.contentColor)
-                .addContentSize(builder.contentSize)
-                .addCancelText(builder.leftString)
-                .addCancelSize(builder.btnSize)
-                .addCancelColor(builder.leftColor)
-                .addCancelBackground(builder.leftBg)
-                .addConfirmText(builder.rightString)
-                .addConfirmColor(builder.rightColor)
-                .addConfirmSize(builder.btnSize)
-                .addConfirmBackground(builder.rightBg)
-                .addTipsBackground(builder.tipsBackground)
-                .addDialogInterface(new OnTipsDialogInterface() {
-                    @Override
-                    public void onCancelListener() {
-                        if (builder.result != null) {
-                            builder.result.onReqPermissionNoPass(permissions);
-                        }
-                    }
-
-                    @Override
-                    public void onConfirmListener() {
-                        reqPermission(stringList);
-                    }
-                }).bulid();
-
-    }
-
     public void reqPermission(List<String> stringList) {
         LcaiLogUtils.i(stringList.size(),"start request permission");
         Intent intent = new Intent();

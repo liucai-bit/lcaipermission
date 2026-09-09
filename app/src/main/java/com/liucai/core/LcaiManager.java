@@ -2,6 +2,7 @@ package com.liucai.core;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
@@ -10,14 +11,19 @@ import com.liucai.camera_photo.bulider.LcaiCameraPhotoBulider;
 import com.liucai.camera_photo.core.LcaiCameraPhoto;
 import com.liucai.camera_photo.core.LcaiPhotoCameraActivityResult;
 import com.liucai.camera_photo.core.LcaiPhotoResult;
+import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.core.LcaiPermissionActivityResult;
 import com.liucai.permission.core.LcaiPermissionRequest;
+import com.liucai.permission.core.LcaiPermissionString;
 import com.liucai.permission.core.LcaiReqPermissionResult;
-import com.liucai.tipsdialog.bulider.LcaiTipsDialogBulider;
+import com.liucai.permission.view.LcaiPermissionActivity;
+import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class LcaiManager {
@@ -33,7 +39,43 @@ public class LcaiManager {
                     result.onReqPermissionPass();
                 } else {
                     if (builder.system) {
-                        showNeverDialog(builder, permissions);
+                        if (builder.toSystemBuilder != null) {
+                            builder.toSystemBuilder.setOnTipsDialogInterface(new OnTipsDialogInterface() {
+                                @Override
+                                public void onCancelListener() {
+                                    if (builder.result != null) {
+                                        builder.result.onReqPermissionNoPass(permissions);
+                                    }
+                                }
+
+                                @Override
+                                public void onConfirmListener() {
+                                    if (!permissions.isEmpty()) {
+                                        List<String> stringList = new ArrayList<>();
+                                        boolean hasNotification = false;
+                                        for (Map.Entry<String, Boolean> entry : permissions.entrySet()) {
+                                            if (TextUtils.equals(entry.getKey(), LcaiPermissionString.NOTIFICATIONS)) {
+                                                hasNotification = true;
+                                            } else {
+                                                stringList.add(entry.getKey());
+                                            }
+                                        }
+                                        Intent intent = new Intent();
+                                        Bundle bundle = new Bundle();
+                                        bundle.putStringArray(LcaiPermissionString.PERMISSION_KEY, stringList.toArray(new String[stringList.size()]));
+                                        bundle.putBoolean(LcaiPermissionString.HAS_NOTIFICATION, hasNotification);
+                                        bundle.putBoolean(LcaiPermissionString.TO_SYSTEM, true);
+                                        intent.putExtras(bundle);
+                                        intent.setClass(builder.mActivity, LcaiPermissionActivity.class);
+                                        builder.mActivity.startActivity(intent);
+                                    }
+                                }
+                            }).bulid();
+                        } else {
+                            if (builder.result != null) {
+                                builder.result.onReqPermissionNoPass(permissions);
+                            }
+                        }
                     } else {
                         result.onReqPermissionNoPass(permissions);
                     }
@@ -103,41 +145,6 @@ public class LcaiManager {
         mBuilderPhotoRef = new WeakReference<>(bulider);
         new LcaiCameraPhoto(bulider);
     }
-
-    public void showNeverDialog(LcaiPermissionRequestBulider bulider, Map<String, Boolean> permissions) {
-        new LcaiTipsDialogBulider()
-                .with(bulider.mActivity)
-                .addTitle(bulider.title)
-                .addTitleColor(bulider.titleColor)
-                .addTitleSize(bulider.titleSize)
-                .addContent(bulider.neverContent)
-                .addContentColor(bulider.contentColor)
-                .addContentSize(bulider.contentSize)
-                .addCancelText("取消")
-                .addCancelSize(bulider.btnSize)
-                .addCancelColor(bulider.leftColor)
-                .addCancelBackground(bulider.leftBg)
-                .addConfirmText("立即设置")
-                .addConfirmColor(bulider.rightColor)
-                .addConfirmSize(bulider.btnSize)
-                .addConfirmBackground(bulider.rightBg)
-                .addDialogInterface(new OnTipsDialogInterface() {
-                    @Override
-                    public void onCancelListener() {
-                        if (bulider.result != null) {
-                            bulider.result.onReqPermissionNoPass(permissions);
-                        }
-                    }
-
-                    @Override
-                    public void onConfirmListener() {
-                        Uri packageURI = Uri.parse("package:" + bulider.mActivity.getPackageName());
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
-                        bulider.mActivity.startActivity(intent);
-                    }
-                }).bulid();
-    }
-
     private void clearPermissionReferences() {
         mBuilderRef = null;
     }

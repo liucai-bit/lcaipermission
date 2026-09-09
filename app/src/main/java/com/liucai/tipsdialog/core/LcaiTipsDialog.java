@@ -1,28 +1,27 @@
 package com.liucai.tipsdialog.core;
 
-import static android.view.View.VISIBLE;
-
-import android.app.Dialog;
 import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.text.style.ForegroundColorSpan;
-import android.view.Gravity;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.liucai.core.util.text.TextUtils;
+import com.liucai.image.ImageUtils;
+import com.liucai.jsbridge.web.LcaiBridgeWebview;
 import com.liucai.permission.R;
-import com.liucai.tipsdialog.bulider.LcaiTipsDialogBulider;
+import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
 import com.liucai.tipsdialog.module.SegDisplayModule;
+
+import java.util.List;
 
 
 /**
@@ -31,142 +30,164 @@ import com.liucai.tipsdialog.module.SegDisplayModule;
  * @description
  * @Date 2026/5/27
  */
-public class LcaiTipsDialog extends Dialog {
-
-    public LcaiTipsDialogBulider bulider;
-
-    public LcaiTipsDialog(LcaiTipsDialogBulider bulider) {
-        super(bulider.mContext,R.style.LcaiDialogTheme);
-        this.bulider = bulider;
-        setContentView(R.layout.lcai_tipsdialog_layout);
-        init();
+public class LcaiTipsDialog extends BaseTipsDialog {
+    private LinearLayout defaultRoot;
+    private TextView tvTitle, tvContent, tvCancel, tvConfirm;
+    private ImageView ivImage, ivClose;
+    private TextView tvRichTitle, tvRichCancel, tvRichConfirm;
+    private LcaiBridgeWebview wbContent;
+    public LcaiTipsDialog(@NonNull LcaiTipsDialogBuilder builder) {
+        super(builder);
     }
 
-    public void init() {
-        LinearLayout mLcaiTipsDialogBg = findViewById(R.id.lcai_tips_dialog_bg);
-        TextView mLcaiTipsDialogTitle = findViewById(R.id.lcai_tips_dialog_title);
-        TextView mLcaiTipsDialogContent = findViewById(R.id.lcai_tips_dialog_content);
-        TextView mLcaiTipsDialogCancel = findViewById(R.id.lcai_tips_dialog_cancel);
-        TextView mLcaiTipsDialogConfirm = findViewById(R.id.lcai_tips_dialog_confirm);
-
-
-        if (bulider.tipsBackground != null) {
-            mLcaiTipsDialogBg.setBackground(bulider.tipsBackground);
+    @Override
+    protected int getLayoutId() {
+        if (builder.mode == LcaiTipsMode.IMAGE_MODE) {
+            return R.layout.lcai_tips_dialg_image_layout;
+        } else if (builder.mode == LcaiTipsMode.RICH_TEXT_MODE) {
+            return R.layout.lcai_tips_dialg_richtext_layout;
         }
+        return R.layout.lcai_tips_dialg_default_layout;
+    }
 
-        if (!TextUtils.isEmpty(bulider.title)) {
-            mLcaiTipsDialogTitle.setVisibility(VISIBLE);
-            mLcaiTipsDialogTitle.setText(bulider.title);
-
-            if (bulider.titleSize > 0) {
-                mLcaiTipsDialogTitle.setTextSize(bulider.titleSize);
-            }
-
-            if (bulider.titleColor > 0) {
-                mLcaiTipsDialogTitle.setTextColor(bulider.titleColor);
-            }
+    @Override
+    protected void bindViewsAndData(View rootView) {
+        if (builder.mode == LcaiTipsMode.DEFALUT_MODE || builder.mode == LcaiTipsMode.CONTENT_CLICK_MODE) {
+            bindDefaultMode(rootView);
+        } else if (builder.mode == LcaiTipsMode.IMAGE_MODE) {
+            bindImageMode(rootView);
+        } else if (builder.mode == LcaiTipsMode.RICH_TEXT_MODE) {
+            bindRichTextMode(rootView);
         }
-
-        if (bulider.segDisplay && bulider.moduleList.isEmpty()) {
+    }
+    private void bindDefaultMode(View rootView) {
+        defaultRoot = rootView.findViewById(R.id.lcai_tips_dialog_default_l1);
+        tvTitle = rootView.findViewById(R.id.lcai_tips_dialog_default_t1);
+        tvContent = rootView.findViewById(R.id.lcai_tips_dialog_default_t2);
+        tvCancel = rootView.findViewById(R.id.lcai_tips_dialog_default_t3);
+        tvConfirm = rootView.findViewById(R.id.lcai_tips_dialog_default_t4);
+        if (builder.popupBg != null) defaultRoot.setBackground(builder.popupBg);
+        if (!TextUtils.isEmpty(builder.title)) {
+            tvTitle.setVisibility(View.VISIBLE);
+            tvTitle.setText(builder.title);
+            tvTitle.setTextColor(builder.titleColor);
+            tvTitle.setTextSize(builder.titleSize);
+        } else {
+            tvTitle.setVisibility(View.GONE);
+        }
+        if (builder.mode == LcaiTipsMode.DEFALUT_MODE) {
+            handleSimpleContent();
+        } else {
+            handleClickableContent();
+        }
+        setupButton(tvCancel, builder.cancelText, builder.cancelColor, builder.cancelSize, builder.cancelBg,
+                v -> {
+                    if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
+                    dismiss();
+                });
+        setupButton(tvConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
+                v -> {
+                    if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
+                    dismiss();
+                });
+    }
+    private void handleSimpleContent() {
+        if (!TextUtils.isEmpty(builder.content)) {
+            tvContent.setVisibility(View.VISIBLE);
+            tvContent.setText(builder.content);
+            tvContent.setTextColor(builder.contentColor);
+            tvContent.setTextSize(builder.contentSize);
+            tvContent.setGravity(builder.contentGravity);
+        }
+    }
+    private void handleClickableContent() {
+        List<SegDisplayModule> list = builder.moduleList;
+        if (list != null && !list.isEmpty()) {
+            tvContent.setVisibility(View.VISIBLE);
             StringBuilder sb = new StringBuilder();
-            for (SegDisplayModule module1 : bulider.moduleList) {
-                sb.append(module1.text);
-            }
-            SpannableString spannableString = new SpannableString(sb.toString());
-            int staerIndex = 0;
-            int endIndex;
-            for (SegDisplayModule module1 : bulider.moduleList) {
-                staerIndex += module1.text.length();
-                if (module1.clickEnabel) {
-                    endIndex = staerIndex - module1.text.length();
+            for (SegDisplayModule m : list) sb.append(m.text);
 
-                    spannableString.setSpan(new ClickableSpan() {
+            SpannableString spanStr = new SpannableString(sb.toString());
+            int startIndex = 0;
+
+            for (SegDisplayModule module : list) {
+                int endIndex = startIndex + module.text.length();
+                if (module.clickEnabel) {
+                    spanStr.setSpan(new ClickableSpan() {
                         @Override
                         public void onClick(@NonNull View widget) {
-                            if (bulider.contentClickDismiss) {
-                                dismiss();
-                            }
-                            //点击事件
-                            if (bulider.dialogInterface != null) {
-                                bulider.dialogInterface.onContentListener(module1.clickIndex);
-                            }
+                            if (builder.contentClickDismiss) dismiss();
+                            if (builder.dialogInterface != null)
+                                builder.dialogInterface.onContentListener(module.clickIndex);
                         }
 
                         @Override
                         public void updateDrawState(@NonNull TextPaint ds) {
-                            ds.setColor(Color.parseColor(module1.textColor));
+                            ds.setColor(Color.parseColor(module.textColor));
                             ds.setUnderlineText(false);
                         }
-                    }, endIndex, staerIndex, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
-                    spannableString.setSpan(new ForegroundColorSpan(Color.parseColor(module1.textColor)),
-                            endIndex, staerIndex, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    }, startIndex, endIndex, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
+                startIndex = endIndex;
             }
+            tvContent.setText(spanStr);
+            tvContent.setMovementMethod(LinkMovementMethod.getInstance());
+            tvContent.setHighlightColor(Color.TRANSPARENT); // 去除点击背景色
+        }
+    }
 
-            mLcaiTipsDialogContent.setText(spannableString);
-            mLcaiTipsDialogContent.setMovementMethod(LinkMovementMethod.getInstance());
+    private void bindImageMode(View rootView) {
+        ivImage = rootView.findViewById(R.id.lcai_tips_dialog_image_m1);
+        ivClose = rootView.findViewById(R.id.lcai_tips_dialog_image_m2);
+
+        ImageUtils.loadImage(builder.mContext, builder.content, ivImage);
+
+        ivClose.setOnClickListener(v -> {
+            if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
+            dismiss();
+        });
+    }
+
+    private void bindRichTextMode(View rootView) {
+        tvRichTitle = rootView.findViewById(R.id.lcai_tips_dialog_richtext_t1);
+        wbContent = rootView.findViewById(R.id.lcai_tips_dialog_richtext_w1);
+        tvRichCancel = rootView.findViewById(R.id.lcai_tips_dialog_richtext_t2);
+        tvRichConfirm = rootView.findViewById(R.id.lcai_tips_dialog_richtext_t3);
+
+        if (!TextUtils.isEmpty(builder.title)) {
+            tvRichTitle.setVisibility(View.VISIBLE);
+            tvRichTitle.setText(builder.title);
+            tvRichTitle.setTextColor(builder.titleColor);
+        }
+
+        if (!TextUtils.isEmpty(builder.content)) {
+            wbContent.loadDataWithBaseURL(null, builder.content, "text/html", "UTF-8", null);
+        }
+
+        setupButton(tvRichCancel, builder.cancelText, builder.cancelColor, builder.cancelSize, builder.cancelBg,
+                v -> {
+                    if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
+                    dismiss();
+                });
+
+        setupButton(tvRichConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
+                v -> {
+                    if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
+                    dismiss();
+                });
+    }
+
+    private void setupButton(TextView btn, String text, Integer color, Integer size, @Nullable android.graphics.drawable.Drawable bg, View.OnClickListener clickListener) {
+        if (btn == null) return;
+        if (!TextUtils.isEmpty(text)) {
+            btn.setVisibility(View.VISIBLE);
+            btn.setText(text);
+            if (color != null) btn.setTextColor(color);
+            if (size != null) btn.setTextSize(size);
+            if (bg != null) btn.setBackground(bg);
+            btn.setOnClickListener(clickListener);
         } else {
-            mLcaiTipsDialogContent.setText(bulider.content);
+            btn.setVisibility(View.GONE);
         }
-
-        if (!TextUtils.isEmpty(bulider.cancelText)) {
-            mLcaiTipsDialogCancel.setVisibility(VISIBLE);
-            mLcaiTipsDialogCancel.setText(bulider.cancelText);
-
-            if (bulider.cancelBackground != null) {
-                mLcaiTipsDialogCancel.setBackground(bulider.cancelBackground);
-            }
-
-            if (bulider.cancelSize > 0) {
-                mLcaiTipsDialogCancel.setTextSize(bulider.cancelSize);
-            }
-
-            if (bulider.cancelColor > 0) {
-                mLcaiTipsDialogCancel.setTextColor(bulider.cancelColor);
-            }
-        }
-
-        if (!TextUtils.isEmpty(bulider.confirmText)) {
-            mLcaiTipsDialogConfirm.setVisibility(VISIBLE);
-            mLcaiTipsDialogConfirm.setText(bulider.confirmText);
-
-            if (bulider.confirmBackground != null) {
-                mLcaiTipsDialogConfirm.setBackground(bulider.confirmBackground);
-            }
-
-            if (bulider.confirmSize > 0) {
-                mLcaiTipsDialogConfirm.setTextSize(bulider.confirmSize);
-            }
-
-            if (bulider.confirmColor > 0) {
-                mLcaiTipsDialogConfirm.setTextColor(bulider.confirmColor);
-            }
-        }
-
-        mLcaiTipsDialogCancel.setOnClickListener(v->{
-            dismiss();
-            if (bulider.dialogInterface != null) {
-                bulider.dialogInterface.onCancelListener();
-            }
-        });
-
-        mLcaiTipsDialogConfirm.setOnClickListener(v->{
-            dismiss();
-            if (bulider.dialogInterface != null) {
-                bulider.dialogInterface.onConfirmListener();
-            }
-        });
-
-        Window window = getWindow();
-        if (window != null) {
-            WindowManager.LayoutParams params = window.getAttributes();
-            params.width = WindowManager.LayoutParams.MATCH_PARENT;
-            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-            params.gravity = Gravity.CENTER;
-            window.setAttributes(params);
-        }
-
-        show();
     }
 }

@@ -6,6 +6,7 @@ import android.os.Build;
 
 import com.liucai.permission.core.LcaiPermissionString;
 import com.liucai.permission.core.LcaiReqPermissionResult;
+import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,10 @@ public class LcaiPermissionRequestBulider {
      * 默认不显示
      */
     public boolean asDialog = false;
-
+    /**
+     * 自定义索取按弹窗
+     */
+    public LcaiTipsDialogBuilder builder;
     /**
      * 权限申请标题
      */
@@ -133,7 +137,10 @@ public class LcaiPermissionRequestBulider {
      * 是否跳转系统设置
      */
     public boolean system;
-
+    /**
+     * 跳转系统设置弹窗
+     */
+    public LcaiTipsDialogBuilder toSystemBuilder;
     /**
      * 申请回调
      */
@@ -141,8 +148,6 @@ public class LcaiPermissionRequestBulider {
 
     /**
      * 设置上下文对象
-     * @param mActivity
-     * @return
      */
     public LcaiPermissionRequestBulider with(Activity mActivity) {
         this.mActivity = mActivity;
@@ -151,8 +156,6 @@ public class LcaiPermissionRequestBulider {
 
     /**
      * 仅仅检查权限
-     * @param checkPermission
-     * @return
      */
     public LcaiPermissionRequestBulider check(boolean checkPermission) {
         this.checkPermission = checkPermission;
@@ -172,18 +175,20 @@ public class LcaiPermissionRequestBulider {
 
     /**
      * 需要显示索权弹窗
-     * @return
      */
     public LcaiPermissionRequestBulider showDialog() {
         this.asDialog = true;
         return this;
     }
 
+    public LcaiPermissionRequestBulider addDialogBulider(LcaiTipsDialogBuilder builder) {
+        this.builder = builder;
+        return this;
+    }
+
     /**
      * 索权弹窗标题
      * 调用showDialog时设置
-     * @param title
-     * @return
      */
     public LcaiPermissionRequestBulider addTitle(String title) {
         this.title = title;
@@ -193,8 +198,6 @@ public class LcaiPermissionRequestBulider {
     /**
      * 索权弹窗内容
      * 调用showDialog时设置
-     * @param content
-     * @return
      */
     public LcaiPermissionRequestBulider addContent(String content) {
         this.content = content;
@@ -204,8 +207,6 @@ public class LcaiPermissionRequestBulider {
     /**
      * 索权弹窗拒绝时显示内容
      * 调用showDialog时设置
-     * @param neverContent
-     * @return
      */
     public LcaiPermissionRequestBulider addContentNever(String neverContent) {
         this.neverContent = neverContent;
@@ -216,8 +217,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗内容文字大小
      * 调用showDialog时设置
      * 默认 14
-     * @param contentSize
-     * @return
      */
     public LcaiPermissionRequestBulider addContentSize(int contentSize) {
         this.contentSize = contentSize;
@@ -228,8 +227,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗内容文字颜色
      * 调用showDialog时设置
      * 默认#66676B
-     * @param contentColor
-     * @return
      */
     public LcaiPermissionRequestBulider addContentColor(int contentColor) {
         this.contentColor = contentColor;
@@ -239,8 +236,6 @@ public class LcaiPermissionRequestBulider {
     /**
      * 索权弹窗左侧按钮
      * 调用showDialog时设置
-     * @param leftString
-     * @return
      */
     public LcaiPermissionRequestBulider addLeftString(String leftString) {
         this.leftString = leftString;
@@ -251,8 +246,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗左侧按钮背景
      * 调用showDialog时设置
      * 默认无背景
-     * @param leftBg
-     * @return
      */
     public LcaiPermissionRequestBulider addLeftBg(int leftBg) {
         this.leftBg = leftBg;
@@ -263,8 +256,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗按钮文字大小
      * 调用showDialog时设置
      * 默认 16
-     * @param btnSize
-     * @return
      */
     public LcaiPermissionRequestBulider addBtnSize(int btnSize) {
         this.btnSize = btnSize;
@@ -275,8 +266,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗左侧按钮颜色
      * 调用showDialog时设置
      * 默认 #66676B
-     * @param leftColor
-     * @return
      */
     public LcaiPermissionRequestBulider addLeftColor(int leftColor) {
         this.leftColor = leftColor;
@@ -286,8 +275,6 @@ public class LcaiPermissionRequestBulider {
     /**
      * 索权弹窗右侧按钮文字
      * 调用showDialog时设置
-     * @param rightString
-     * @return
      */
     public LcaiPermissionRequestBulider addRightStirng(String rightString) {
         this.rightString = rightString;
@@ -297,8 +284,6 @@ public class LcaiPermissionRequestBulider {
     /**
      * 索权弹窗右侧按钮颜色
      * 调用showDialog时设置
-     * @param rightColor
-     * @return
      */
     public LcaiPermissionRequestBulider addRightColor(int rightColor) {
         this.rightColor = rightColor;
@@ -309,8 +294,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗右侧按钮背景
      * 调用showDialog时设置
      * 默认无背景
-     * @param rightBg
-     * @return
      */
     public LcaiPermissionRequestBulider addRightBg(int rightBg) {
         this.rightBg = rightBg;
@@ -321,9 +304,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗标题文字颜色
      * 调用showDialog时设置
      * 默认 #333333
-     *
-     * @param titleColor
-     * @return
      */
     public LcaiPermissionRequestBulider addTitleColor(int titleColor) {
         this.titleColor = titleColor;
@@ -334,8 +314,6 @@ public class LcaiPermissionRequestBulider {
      * 索权弹窗标题文字大小
      * 调用showDialog时设置
      * 默认 18
-     * @param titleSize
-     * @return
      */
     public LcaiPermissionRequestBulider addTitleSize(int titleSize) {
         this.titleSize = titleSize;
@@ -349,8 +327,6 @@ public class LcaiPermissionRequestBulider {
 
     /**
      * 申请权限
-     * @param permission
-     * @return
      */
     public LcaiPermissionRequestBulider addPermission(String permission) {
         if (permissions == null || permissions.size() < 1) {
@@ -362,8 +338,6 @@ public class LcaiPermissionRequestBulider {
 
     /**
      * 一次添加多个权限
-     * @param pers
-     * @return
      */
     public LcaiPermissionRequestBulider addPermission(String... pers) {
         if (permissions == null) {
@@ -378,17 +352,19 @@ public class LcaiPermissionRequestBulider {
     /**
      * 跳转系统设置
      * 拒绝权限后提示
-     * @return
      */
     public LcaiPermissionRequestBulider toSystem() {
         this.system = true;
         return this;
     }
 
+    public LcaiPermissionRequestBulider addToSystemBuilder(LcaiTipsDialogBuilder builder) {
+        this.toSystemBuilder = builder;
+        return this;
+    }
+
     /**
      * 权限回调
-     * @param result
-     * @return
      */
     public LcaiPermissionRequestBulider addResult(LcaiReqPermissionResult result) {
         this.result = result;
