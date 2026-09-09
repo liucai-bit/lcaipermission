@@ -7,38 +7,38 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.liucai.core.exception.LcaiHttpException;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier; // 用于过滤 static 方法
+import java.util.ArrayList;
+import java.util.HashMap; // 优化：使用 HashMap 替代 ConcurrentHashMap 以提升性能
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author liucai
- * @program lcpermission
- * @description 轻量型基于事件ID的事件总线，修复多实例订阅冲突、反射调用异常等问题
- * @Date 2026/7/15
+ * @description 轻量型基于事件ID的事件总线
  */
 public class LcaiEventBus {
-
     private static volatile LcaiEventBus instance;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    // 核心注册表结构：Key为事件ID，Value为该事件下所有订阅者的集合
-    private final Map<String, CopyOnWriteArraySet<Subscription>> eventMap = new ConcurrentHashMap<>();
+    // Key为事件ID，Value为该事件下所有订阅者的集合
+    private final Map<String, CopyOnWriteArraySet<Subscription>> eventMap = new HashMap<>();
 
-    // 粘性事件缓存，存储最近一次发送的粘性事件对象
+    // 粘性事件缓存
     private final Map<String, MessageEvent> stickyEventMap = new ConcurrentHashMap<>();
 
-    // 私有构造，禁止外部直接实例化
-    private LcaiEventBus() {}
+    private LcaiEventBus() {
+    }
 
-    /**
-     * 双重校验锁获取单例，线程安全
-     */
     public static LcaiEventBus getInstance() {
         if (instance == null) {
             synchronized (LcaiEventBus.class) {
@@ -51,53 +51,46 @@ public class LcaiEventBus {
     }
 
     /**
-     * 注册订阅，新增重复检测、参数校验，支持同一个事件ID下多个订阅者共存
-     * @param eventId 要订阅的事件唯一ID
-     * @param subscriber 订阅者的实例对象，不能为null
+     * 注册订阅
+     * 支持向上遍历父类查找 @Subscribe 方法
      */
     public void register(@NonNull String eventId, @NonNull Object subscriber) {
         if (TextUtils.isEmpty(eventId) || subscriber == null) {
             throw new IllegalArgumentException("eventId and subscriber can not be empty");
         }
 
-        Class<?> subClass = subscriber.getClass();
-        Method[] methods = subClass.getDeclaredMethods();
+        // 1. 获取所有方法（包含父类）
+        List<Method> allMethods = findAllSubscribeMethods(subscriber.getClass());
 
-        for (Method method : methods) {
-            if (!method.isAnnotationPresent(Subscribe.class)) {
-                continue;
-            }
-
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length != 1) {
-                throw new IllegalArgumentException("Method " + method.getName() + " must have exactly one parameter");
-            }
-
-            Class<?> parameterType = parameterTypes[0];
-            // 校验参数类型必须是String，和事件发送格式对齐
-            if (parameterType !=String.class) {
-                throw new IllegalArgumentException("Subscribe method param must be String type");
-            }
-
-            Subscribe annotation = method.getAnnotation(Subscribe.class);
-            Subscription newSubscription = new Subscription(subscriber, method, annotation.mode());
-
-            // 获取事件对应的订阅集合，不存在则自动创建
-            CopyOnWriteArraySet<Subscription> subscriptions = null;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                subscriptions = eventMap.computeIfAbsent(eventId, k -> new CopyOnWriteArraySet<>());
-            }else {
+        // 2. 线程安全地操作 eventMap
+        synchronized (eventMap) {
+            CopyOnWriteArraySet<Subscription> subscriptions = eventMap.get(eventId);
+            if (subscriptions == null) {
                 subscriptions = new CopyOnWriteArraySet<>();
                 eventMap.put(eventId, subscriptions);
             }
 
-            // 避免重复注册
-            if (!subscriptions.contains(newSubscription)) {
-                subscriptions.add(newSubscription);
+            // 3. 遍历找到的方法并注册
+            for (Method method : allMethods) {
+                Subscribe annotation = method.getAnnotation(Subscribe.class);
+                if (annotation == null) continue;
+
+                // 参数校验
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length != 1) {
+                    throw new LcaiHttpException("Method " + method.getName() + " must have exactly one parameter");
+                }
+                if (parameterTypes[0] != String.class) {
+                    throw new LcaiHttpException("Subscribe method param must be String type");
+                }
+
+                Subscription newSubscription = new Subscription(subscriber, method, annotation.mode());
+                if (!subscriptions.contains(newSubscription)) {
+                    subscriptions.add(newSubscription);
+                }
             }
         }
 
-        // 注册完成后，如果存在该事件的粘性事件，直接触发回调
         MessageEvent stickyEvent = stickyEventMap.get(eventId);
         if (stickyEvent != null) {
             post(stickyEvent);
@@ -105,68 +98,79 @@ public class LcaiEventBus {
     }
 
     /**
-     * 取消订阅，基于实例对象匹配，避免同类型多个实例互相干扰
-     * @param subscriber 要取消的订阅者实例
+     * 递归查找父类方法
+     */
+    private List<Method> findAllSubscribeMethods(Class<?> clazz) {
+        List<Method> methodList = new ArrayList<>();
+        Class<?> current = clazz;
+
+        // 向上遍历直到 Object
+        while (current != null && current != Object.class) {
+            Method[] declaredMethods = current.getDeclaredMethods();
+            for (Method m : declaredMethods) {
+                // 过滤掉 static 方法，防止内存泄漏或调用错误
+                if (!Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Subscribe.class)) {
+                    methodList.add(m);
+                }
+            }
+            current = current.getSuperclass();
+        }
+        return methodList;
+    }
+
+    /**
+     * 取消订阅
      */
     public void unRegister(@NonNull Object subscriber) {
         if (subscriber == null) return;
 
-        for (Map.Entry<String, CopyOnWriteArraySet<Subscription>> entry : eventMap.entrySet()) {
-            CopyOnWriteArraySet<Subscription> subscriptions = entry.getValue();
-            if (subscriptions == null || subscriptions.isEmpty()) {
-                continue;
-            }
+        synchronized (eventMap) {
+            Iterator<Map.Entry<String, CopyOnWriteArraySet<Subscription>>> iterator = eventMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, CopyOnWriteArraySet<Subscription>> entry = iterator.next();
+                CopyOnWriteArraySet<Subscription> subscriptions = entry.getValue();
 
-            // 移除该实例对应的所有订阅
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                subscriptions.removeIf(subscription -> subscription.subscriber == subscriber);
-            }else {
-                if (subscriptions != null && !subscriptions.isEmpty()) {
-                    Iterator<Subscription> iterator = subscriptions.iterator();
-                    while (iterator.hasNext()) {
-                        Subscription subscription = iterator.next();
-                        // 使用 == 比较实例引用，确保精准移除特定对象
-                        if (subscription.subscriber == subscriber) {
-                            iterator.remove();
-                        }
+                if (subscriptions != null) {
+                    // 使用迭代器安全移除
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        subscriptions.removeIf(subscription -> subscription.subscriber == subscriber);
                     }
                 }
-            }
 
-            // 订阅集合为空则清理对应事件ID，避免内存残留空对象
-            if (subscriptions.isEmpty()) {
-                eventMap.remove(entry.getKey());
+                // 如果该事件ID下没有订阅者了，移除该Key以节省内存
+                if (subscriptions == null || subscriptions.isEmpty()) {
+                    iterator.remove();
+                }
             }
         }
     }
 
     /**
-     * 发送普通事件，空安全校验，遍历所有匹配该事件ID的订阅回调
-     * @param event 要发送的事件对象，不能为null
+     * 发送普通事件
      */
     public void post(@NonNull MessageEvent event) {
         if (event == null || TextUtils.isEmpty(event.msgId)) {
             throw new IllegalArgumentException("event and msgId can not be empty");
         }
 
-        CopyOnWriteArraySet<Subscription> targetSubscriptions = eventMap.get(event.msgId);
-        if (targetSubscriptions == null || targetSubscriptions.isEmpty()) {
-            return;
+        CopyOnWriteArraySet<Subscription> targetSubscriptions;
+        synchronized (eventMap) {
+            targetSubscriptions = eventMap.get(event.msgId);
         }
 
-        for (Subscription subscription : targetSubscriptions) {
-            ThreadMode mode = subscription.threadMode;
-            if (mode == ThreadMode.POSTING) {
-                invokeMethod(subscription.subscriber, subscription.subscribeMethod, event.msgContent);
-            } else if (mode == ThreadMode.MAIN) {
-                invokeMainMethod(subscription.subscriber, subscription.subscribeMethod, event.msgContent);
+        if (targetSubscriptions != null && !targetSubscriptions.isEmpty()) {
+            for (Subscription subscription : targetSubscriptions) {
+                if (subscription.threadMode == ThreadMode.POSTING) {
+                    invokeMethod(subscription.subscriber, subscription.subscribeMethod, event.msgContent);
+                } else if (subscription.threadMode == ThreadMode.MAIN) {
+                    invokeMainMethod(subscription.subscriber, subscription.subscribeMethod, event.msgContent);
+                }
             }
         }
     }
 
     /**
-     * 发送粘性事件，会缓存事件对象，后续注册的订阅者也能立刻收到该事件
-     * @param event 要发送的粘性事件对象
+     * 发送粘性事件
      */
     public void postSticky(@NonNull MessageEvent event) {
         if (event == null || TextUtils.isEmpty(event.msgId)) return;
@@ -174,49 +178,30 @@ public class LcaiEventBus {
         post(event);
     }
 
-    /**
-     * 移除指定事件ID对应的粘性事件缓存
-     * @param eventId 要清理的粘性事件ID
-     */
     public void removeStickyEvent(@NonNull String eventId) {
         stickyEventMap.remove(eventId);
     }
 
-    /**
-     * 当前线程直接执行反射回调，修复原代码传Class对象的致命错误，传入真实订阅实例
-     */
     private void invokeMethod(@NonNull Object subscriber, @NonNull Method method, @Nullable String msgContent) {
         try {
             method.setAccessible(true);
             method.invoke(subscriber, msgContent);
         } catch (InvocationTargetException e) {
-            throw new RuntimeException("Event dispatch failed, inner method error", e.getCause());
+            LcaiLogUtils.e("Event dispatch failed in method: " + method.getName());
+            e.getCause().printStackTrace();
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Can not access subscribe method", e);
+            e.printStackTrace();
         }
     }
 
-    /**
-     * 切到主线程执行反射回调，修复原代码传参错误
-     */
     private void invokeMainMethod(@NonNull Object subscriber, @NonNull Method method, @Nullable String msgContent) {
-        mainHandler.post(() -> {
-            try {
-                method.setAccessible(true);
-                method.invoke(subscriber, msgContent);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException("Main thread event dispatch failed", e.getCause());
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException("Can not access subscribe method in main thread", e);
-            }
-        });
+        mainHandler.post(() -> invokeMethod(subscriber, method, msgContent));
     }
 
-    /**
-     * 清空所有资源，在Application退出时调用，避免内存泄漏
-     */
     public void clearAll() {
-        eventMap.clear();
+        synchronized (eventMap) {
+            eventMap.clear();
+        }
         stickyEventMap.clear();
         mainHandler.removeCallbacksAndMessages(null);
         instance = null;
