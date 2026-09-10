@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class LcaiTipsDialog extends Dialog {
 
-    private LinearLayout defaultRoot;
+    private LinearLayout defaultRoot,richTextRoot;
     private TextView tvTitle, tvContent, tvCancel, tvConfirm;
     private ImageView ivImage, ivClose;
     private TextView tvRichTitle, tvRichCancel, tvRichConfirm;
@@ -130,11 +130,12 @@ public class LcaiTipsDialog extends Dialog {
     }
 
     private void bindRichTextMode() {
+        richTextRoot = findViewById(R.id.lcai_tips_dialog_richtext_l1);
         tvRichTitle = findViewById(R.id.lcai_tips_dialog_richtext_t1);
         wbContent = findViewById(R.id.lcai_tips_dialog_richtext_w1);
         tvRichCancel = findViewById(R.id.lcai_tips_dialog_richtext_t2);
         tvRichConfirm = findViewById(R.id.lcai_tips_dialog_richtext_t3);
-
+        if (builder.popupBg != null) richTextRoot.setBackground(builder.popupBg);
         if (!TextUtils.isEmpty(builder.title)) {
             tvRichTitle.setVisibility(View.VISIBLE);
             tvRichTitle.setText(builder.title);
