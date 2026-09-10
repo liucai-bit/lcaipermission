@@ -12,8 +12,8 @@ import com.liucai.permission.BuildConfig;
  * @description
  * @Date 2026/6/1
  */
-public class LcaiBaseApplication extends Application {
-
+public abstract class LcaiBaseApplication extends Application {
+    public abstract void init();
     @Override
     public void onCreate() {
         super.onCreate();
@@ -21,5 +21,6 @@ public class LcaiBaseApplication extends Application {
         if (BuildConfig.DEBUG) {
             Thread.setDefaultUncaughtExceptionHandler(new LcaiException());
         }
+        init();
     }
 }

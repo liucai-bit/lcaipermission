@@ -70,7 +70,7 @@ public class LcaiManager {
                                         builder.mActivity.startActivity(intent);
                                     }
                                 }
-                            }).bulid();
+                            }).build();
                         } else {
                             if (builder.result != null) {
                                 builder.result.onReqPermissionNoPass(permissions);

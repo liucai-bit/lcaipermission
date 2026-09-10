@@ -1,18 +1,23 @@
 package com.liucai.tipsdialog.core;
 
+import android.app.Dialog;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.image.ImageUtils;
@@ -30,18 +35,39 @@ import java.util.List;
  * @description
  * @Date 2026/5/27
  */
-public class LcaiTipsDialog extends BaseTipsDialog {
+public class LcaiTipsDialog extends Dialog {
+
     private LinearLayout defaultRoot;
     private TextView tvTitle, tvContent, tvCancel, tvConfirm;
     private ImageView ivImage, ivClose;
     private TextView tvRichTitle, tvRichCancel, tvRichConfirm;
     private LcaiBridgeWebview wbContent;
-    public LcaiTipsDialog(@NonNull LcaiTipsDialogBuilder builder) {
-        super(builder);
+
+    public LcaiTipsDialogBuilder builder;
+
+    public LcaiTipsDialog(LcaiTipsDialogBuilder builder) {
+        super(builder.mContext, R.style.LcaiDialogTheme);
+        this.builder = builder;
+        setContentView(getLayout());
+        setCanceledOnTouchOutside(builder.outSideCancal);
+        initWindow();
+        bindViewsAndData();
+        show();
     }
 
-    @Override
-    protected int getLayoutId() {
+    private void initWindow() {
+        Window window = getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.gravity = Gravity.CENTER;
+            lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            window.setAttributes(lp);
+        }
+    }
+
+    public int getLayout() {
         if (builder.mode == LcaiTipsMode.IMAGE_MODE) {
             return R.layout.lcai_tips_dialg_image_layout;
         } else if (builder.mode == LcaiTipsMode.RICH_TEXT_MODE) {
@@ -50,22 +76,22 @@ public class LcaiTipsDialog extends BaseTipsDialog {
         return R.layout.lcai_tips_dialg_default_layout;
     }
 
-    @Override
-    protected void bindViewsAndData(View rootView) {
+    private void bindViewsAndData() {
         if (builder.mode == LcaiTipsMode.DEFALUT_MODE || builder.mode == LcaiTipsMode.CONTENT_CLICK_MODE) {
-            bindDefaultMode(rootView);
+            bindDefaultMode();
         } else if (builder.mode == LcaiTipsMode.IMAGE_MODE) {
-            bindImageMode(rootView);
+            bindImageMode();
         } else if (builder.mode == LcaiTipsMode.RICH_TEXT_MODE) {
-            bindRichTextMode(rootView);
+            bindRichTextMode();
         }
     }
-    private void bindDefaultMode(View rootView) {
-        defaultRoot = rootView.findViewById(R.id.lcai_tips_dialog_default_l1);
-        tvTitle = rootView.findViewById(R.id.lcai_tips_dialog_default_t1);
-        tvContent = rootView.findViewById(R.id.lcai_tips_dialog_default_t2);
-        tvCancel = rootView.findViewById(R.id.lcai_tips_dialog_default_t3);
-        tvConfirm = rootView.findViewById(R.id.lcai_tips_dialog_default_t4);
+
+    private void bindDefaultMode() {
+        defaultRoot = findViewById(R.id.lcai_tips_dialog_default_l1);
+        tvTitle = findViewById(R.id.lcai_tips_dialog_default_t1);
+        tvContent = findViewById(R.id.lcai_tips_dialog_default_t2);
+        tvCancel = findViewById(R.id.lcai_tips_dialog_default_t3);
+        tvConfirm = findViewById(R.id.lcai_tips_dialog_default_t4);
         if (builder.popupBg != null) defaultRoot.setBackground(builder.popupBg);
         if (!TextUtils.isEmpty(builder.title)) {
             tvTitle.setVisibility(View.VISIBLE);
@@ -87,10 +113,51 @@ public class LcaiTipsDialog extends BaseTipsDialog {
                 });
         setupButton(tvConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
                 v -> {
+                    if (builder.dialogInterface != null)
+                        builder.dialogInterface.onConfirmListener();
+                    dismiss();
+                });
+    }
+
+    private void bindImageMode() {
+        ivImage = findViewById(R.id.lcai_tips_dialog_image_m1);
+        ivClose = findViewById(R.id.lcai_tips_dialog_image_m2);
+        ImageUtils.loadImage(builder.mContext, builder.content, ivImage);
+        ivClose.setOnClickListener(v -> {
+            if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
+            dismiss();
+        });
+    }
+
+    private void bindRichTextMode() {
+        tvRichTitle = findViewById(R.id.lcai_tips_dialog_richtext_t1);
+        wbContent = findViewById(R.id.lcai_tips_dialog_richtext_w1);
+        tvRichCancel = findViewById(R.id.lcai_tips_dialog_richtext_t2);
+        tvRichConfirm = findViewById(R.id.lcai_tips_dialog_richtext_t3);
+
+        if (!TextUtils.isEmpty(builder.title)) {
+            tvRichTitle.setVisibility(View.VISIBLE);
+            tvRichTitle.setText(builder.title);
+            tvRichTitle.setTextColor(builder.titleColor);
+        }
+
+        if (!TextUtils.isEmpty(builder.content)) {
+            wbContent.loadDataWithBaseURL(null, builder.content, "text/html", "UTF-8", null);
+        }
+
+        setupButton(tvRichCancel, builder.cancelText, builder.cancelColor, builder.cancelSize, builder.cancelBg,
+                v -> {
+                    if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
+                    dismiss();
+                });
+
+        setupButton(tvRichConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
+                v -> {
                     if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
                     dismiss();
                 });
     }
+
     private void handleSimpleContent() {
         if (!TextUtils.isEmpty(builder.content)) {
             tvContent.setVisibility(View.VISIBLE);
@@ -136,48 +203,7 @@ public class LcaiTipsDialog extends BaseTipsDialog {
         }
     }
 
-    private void bindImageMode(View rootView) {
-        ivImage = rootView.findViewById(R.id.lcai_tips_dialog_image_m1);
-        ivClose = rootView.findViewById(R.id.lcai_tips_dialog_image_m2);
-
-        ImageUtils.loadImage(builder.mContext, builder.content, ivImage);
-
-        ivClose.setOnClickListener(v -> {
-            if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
-            dismiss();
-        });
-    }
-
-    private void bindRichTextMode(View rootView) {
-        tvRichTitle = rootView.findViewById(R.id.lcai_tips_dialog_richtext_t1);
-        wbContent = rootView.findViewById(R.id.lcai_tips_dialog_richtext_w1);
-        tvRichCancel = rootView.findViewById(R.id.lcai_tips_dialog_richtext_t2);
-        tvRichConfirm = rootView.findViewById(R.id.lcai_tips_dialog_richtext_t3);
-
-        if (!TextUtils.isEmpty(builder.title)) {
-            tvRichTitle.setVisibility(View.VISIBLE);
-            tvRichTitle.setText(builder.title);
-            tvRichTitle.setTextColor(builder.titleColor);
-        }
-
-        if (!TextUtils.isEmpty(builder.content)) {
-            wbContent.loadDataWithBaseURL(null, builder.content, "text/html", "UTF-8", null);
-        }
-
-        setupButton(tvRichCancel, builder.cancelText, builder.cancelColor, builder.cancelSize, builder.cancelBg,
-                v -> {
-                    if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
-                    dismiss();
-                });
-
-        setupButton(tvRichConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
-                v -> {
-                    if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
-                    dismiss();
-                });
-    }
-
-    private void setupButton(TextView btn, String text, Integer color, Integer size, @Nullable android.graphics.drawable.Drawable bg, View.OnClickListener clickListener) {
+    private void setupButton(TextView btn, String text, Integer color, Integer size, Drawable bg, View.OnClickListener clickListener) {
         if (btn == null) return;
         if (!TextUtils.isEmpty(text)) {
             btn.setVisibility(View.VISIBLE);

@@ -1,6 +1,7 @@
 package com.liucai.tipsdialog.bulider;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 
 import androidx.annotation.ColorInt;
@@ -23,23 +24,24 @@ public class LcaiTipsDialogBuilder {
 
     /** 上下文对象 */
     public Context mContext;
-    /** 弹窗模式 */
-    public LcaiTipsMode mode;
+    /**
+     * 弹窗模式
+     */
+    public LcaiTipsMode mode = LcaiTipsMode.DEFALUT_MODE;
     /** 弹窗背景颜色/Drawable */
     public Drawable popupBg;
     /** 弹窗标题 */
     public String title;
     /** 标题文字颜色 */
-    @ColorInt
-    public int titleColor;
+    public int titleColor= Color.parseColor("#1C1C1C");
     /** 标题文字大小 (sp) */
-    public int titleSize;
+    public int titleSize=18;
     /** 弹窗内容 */
     public String content;
     /** 内容文字颜色 */
-    @ColorInt public int contentColor;
+    public int contentColor= Color.parseColor("#1C1C1C");
     /** 内容文字大小 (sp) */
-    public int contentSize;
+    public int contentSize=16;
     /** 点击内容是否关闭 */
     public boolean contentClickDismiss;
     /** 是否分段显示 (用于富文本协议) */
@@ -51,17 +53,17 @@ public class LcaiTipsDialogBuilder {
     /** 取消按钮文字 */
     public String cancelText;
     /** 取消按钮文字颜色 */
-    @ColorInt public int cancelColor;
+    @ColorInt public int cancelColor= Color.parseColor("#1C1C1C");
     /** 取消按钮文字大小 (sp) */
-    public int cancelSize;
+    public int cancelSize=16;
     /** 取消按钮背景 */
     public Drawable cancelBg;
     /** 确认按钮文字 */
     public String confirmText;
     /** 确认按钮文字颜色 */
-    @ColorInt public int confirmColor;
+    public int confirmColor= Color.parseColor("#1C1C1C");
     /** 确认按钮文字大小 (sp) */
-    public int confirmSize;
+    public int confirmSize=16;
     /** 确认按钮背景 */
     public Drawable confirmBg;
     /** 是否允许点击外部关闭 */
@@ -104,7 +106,7 @@ public class LcaiTipsDialogBuilder {
     /**
      * 设置标题文字颜色 (@ColorInt)
      */
-    public LcaiTipsDialogBuilder setTitleColor(@ColorInt int titleColor) {
+    public LcaiTipsDialogBuilder setTitleColor(int titleColor) {
         this.titleColor = titleColor;
         return this;
     }
@@ -128,7 +130,7 @@ public class LcaiTipsDialogBuilder {
     /**
      * 设置内容文字颜色 (@ColorInt)
      */
-    public LcaiTipsDialogBuilder setContentColor(@ColorInt int contentColor) {
+    public LcaiTipsDialogBuilder setContentColor(int contentColor) {
         this.contentColor = contentColor;
         return this;
     }
@@ -195,7 +197,7 @@ public class LcaiTipsDialogBuilder {
     /**
      * 设置取消按钮文字颜色 (@ColorInt)
      */
-    public LcaiTipsDialogBuilder setCancelColor(@ColorInt int cancelColor) {
+    public LcaiTipsDialogBuilder setCancelColor(int cancelColor) {
         this.cancelColor = cancelColor;
         return this;
     }
@@ -227,7 +229,7 @@ public class LcaiTipsDialogBuilder {
     /**
      * 设置确认按钮文字颜色 (@ColorInt)
      */
-    public LcaiTipsDialogBuilder setConfirmColor(@ColorInt int confirmColor) {
+    public LcaiTipsDialogBuilder setConfirmColor(int confirmColor) {
         this.confirmColor = confirmColor;
         return this;
     }
@@ -265,7 +267,7 @@ public class LcaiTipsDialogBuilder {
         return this;
     }
 
-    public LcaiTipsDialog bulid() {
-        return new LcaiTipsDialog(this);
+    public void build() {
+        new LcaiTipsDialog(this);
     }
 }

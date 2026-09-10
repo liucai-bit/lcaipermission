@@ -24,21 +24,17 @@
     </style>
 
     <style name="LcaiDialogTheme" parent="@android:style/Theme.Dialog">
-        <!-- 边框 -->
-        <item name="android:windowFrame">@null</item>
-        <!-- 是否浮现在activity之上 -->
-        <item name="android:windowIsFloating">true</item>
-        <!-- 半透明 -->
-        <item name="android:windowIsTranslucent">true</item>
-        <!-- 无标题 -->
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:background">@android:color/transparent</item>
-        <!-- 背景透明 -->
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <!-- 模糊 -->
+        <!-- 1. 背景变暗 (0.0 到 1.0，0.5 表示半透明黑色遮罩) -->
         <item name="android:backgroundDimEnabled">true</item>
-        <!-- 遮罩层 -->
-        <item name="android:backgroundDimAmount">0.5</item>
-        <item name="android:layout_width">match_parent</item>
+        <item name="android:backgroundDimAmount">0.1</item>
+        <!-- 2. 窗口属性 -->
+        <!-- 无标题栏 -->
+        <item name="android:windowNoTitle">true</item>
+        <!-- 悬浮窗口 -->
+        <item name="android:windowIsFloating">true</item>
+        <!-- 窗口背景透明 (为了让自定义的圆角背景生效，必须设为透明) -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 点击外部不消失 (代码中控制，这里默认设为false允许点击外部) -->
+        <item name="android:windowCloseOnTouchOutside">true</item>
     </style>
 </resources>

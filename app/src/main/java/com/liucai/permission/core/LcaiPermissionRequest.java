@@ -14,7 +14,6 @@ import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.view.LcaiPermissionActivity;
-import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
 import java.util.ArrayList;
@@ -90,7 +89,7 @@ public class LcaiPermissionRequest {
                             public void onConfirmListener() {
                                 reqPermission(stringList);
                             }
-                        }).bulid();
+                        }).build();
                     }
                 } else {
 

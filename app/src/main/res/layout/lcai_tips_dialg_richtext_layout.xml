@@ -2,7 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:layout_margin="20dp"
     android:padding="20dp"
+    android:background="@drawable/lcai_tips_dialog_bg"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -14,6 +16,7 @@
     <com.liucai.jsbridge.web.LcaiBridgeWebview
         android:id="@+id/lcai_tips_dialog_richtext_w1"
         android:layout_width="match_parent"
+        android:background="@color/white"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:scrollbars="none"

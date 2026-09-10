@@ -4,20 +4,19 @@
     android:orientation="vertical"
     android:id="@+id/lcai_tips_dialog_default_l1"
     android:background="@drawable/lcai_tips_dialog_bg"
-    android:padding="20dp"
+    android:layout_margin="20dp"
+    android:padding="10dp"
     android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/lcai_tips_dialog_default_t1"
         android:gravity="center"
-        android:text="标题"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <TextView
         android:id="@+id/lcai_tips_dialog_default_t2"
         android:layout_marginTop="10dp"
-        android:text="内容"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
@@ -31,7 +30,6 @@
             android:id="@+id/lcai_tips_dialog_default_t3"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="取消"
             android:paddingVertical="8dp"
             android:layout_marginRight="5dp"
             android:layout_width="match_parent"
@@ -42,7 +40,6 @@
             android:layout_weight="1"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="取消"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>
