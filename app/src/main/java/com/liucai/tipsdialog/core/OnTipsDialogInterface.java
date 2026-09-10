@@ -1,5 +1,7 @@
 package com.liucai.tipsdialog.core;
 
+import android.view.View;
+
 /**
  * @author liucai
  * @program lcpermission
@@ -15,6 +17,10 @@ public interface OnTipsDialogInterface {
     }
 
     default void onContentListener(String result) {
+
+    }
+
+    default void onBindView(View bindView) {
 
     }
 }

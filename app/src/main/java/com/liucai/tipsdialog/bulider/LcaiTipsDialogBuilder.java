@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 
 import androidx.annotation.ColorInt;
 
+import com.liucai.component.base.BaseRecycleAdapter;
 import com.liucai.tipsdialog.core.LcaiTipsDialog;
 import com.liucai.tipsdialog.core.LcaiTipsMode;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
@@ -20,7 +21,7 @@ import java.util.List;
  * @description
  * @Date 2026/5/27
  */
-public class LcaiTipsDialogBuilder {
+public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
 
     /** 上下文对象 */
     public Context mContext;
@@ -28,6 +29,8 @@ public class LcaiTipsDialogBuilder {
      * 弹窗模式
      */
     public LcaiTipsMode mode = LcaiTipsMode.DEFALUT_MODE;
+    /** 自定义弹窗layout*/
+    public int customLayout;
     /** 弹窗背景颜色/Drawable */
     public Drawable popupBg;
     /** 弹窗标题 */
@@ -36,6 +39,12 @@ public class LcaiTipsDialogBuilder {
     public int titleColor= Color.parseColor("#1C1C1C");
     /** 标题文字大小 (sp) */
     public int titleSize=18;
+    /**LIST模式适配器*/
+    public T adapter;
+    /**列表是否纵向模式*/
+    public boolean vertical;
+    /**列表横向，每行多少个数据*/
+    public int listCloumns;
     /** 弹窗内容 */
     public String content;
     /** 内容文字颜色 */
@@ -88,6 +97,16 @@ public class LcaiTipsDialogBuilder {
     }
 
     /**
+     * 设置自定义弹窗内容
+     * @param customLayout
+     * @return
+     */
+    public LcaiTipsDialogBuilder setCustomLayout(int customLayout) {
+        this.customLayout = customLayout;
+        return this;
+    }
+
+    /**
      * 设置弹窗背景
      */
     public LcaiTipsDialogBuilder setPopupBg(Drawable popupBg) {
@@ -116,6 +135,36 @@ public class LcaiTipsDialogBuilder {
      */
     public LcaiTipsDialogBuilder setTitleSize(int titleSize) {
         this.titleSize = titleSize;
+        return this;
+    }
+
+    /**
+     * 设置列表适配器
+     * @param adapter
+     * @return
+     */
+    public LcaiTipsDialogBuilder<T> setAdapter(T adapter) {
+        this.adapter = adapter;
+        return this;
+    }
+
+    /**
+     * 设置list是否纵向模式
+     * @param vertical
+     * @return
+     */
+    public LcaiTipsDialogBuilder setListVertical(boolean vertical) {
+        this.vertical = vertical;
+        return this;
+    }
+
+    /**
+     * 设置列表横向显示多少个
+     * @param cloumns
+     * @return
+     */
+    public LcaiTipsDialogBuilder setListCloumns(int cloumns) {
+        this.listCloumns = cloumns;
         return this;
     }
 

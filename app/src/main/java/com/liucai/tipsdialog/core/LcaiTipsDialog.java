@@ -10,6 +10,7 @@ import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -18,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.image.ImageUtils;
@@ -36,19 +38,22 @@ import java.util.List;
  * @Date 2026/5/27
  */
 public class LcaiTipsDialog extends Dialog {
-
-    private LinearLayout defaultRoot,richTextRoot;
+    private View mContentView;
+    private LinearLayout defaultRoot,richTextRoot,listRoot;
     private TextView tvTitle, tvContent, tvCancel, tvConfirm;
     private ImageView ivImage, ivClose;
     private TextView tvRichTitle, tvRichCancel, tvRichConfirm;
     private LcaiBridgeWebview wbContent;
+    private TextView tvListTitle,tvListCancel, tvListComfirm;
+    private RecyclerView mList;
 
     public LcaiTipsDialogBuilder builder;
 
     public LcaiTipsDialog(LcaiTipsDialogBuilder builder) {
         super(builder.mContext, R.style.LcaiDialogTheme);
         this.builder = builder;
-        setContentView(getLayout());
+        mContentView = LayoutInflater.from(builder.mContext).inflate(getLayout(), null);
+        setContentView(mContentView);
         setCanceledOnTouchOutside(builder.outSideCancal);
         initWindow();
         bindViewsAndData();
@@ -72,6 +77,10 @@ public class LcaiTipsDialog extends Dialog {
             return R.layout.lcai_tips_dialg_image_layout;
         } else if (builder.mode == LcaiTipsMode.RICH_TEXT_MODE) {
             return R.layout.lcai_tips_dialg_richtext_layout;
+        } else if (builder.mode == LcaiTipsMode.LIST_MODE) {
+            return R.layout.lcai_tips_dialg_list_layout;
+        } else if (builder.mode == LcaiTipsMode.CUSTOM_MODE) {
+            return builder.customLayout;
         }
         return R.layout.lcai_tips_dialg_default_layout;
     }
@@ -83,6 +92,12 @@ public class LcaiTipsDialog extends Dialog {
             bindImageMode();
         } else if (builder.mode == LcaiTipsMode.RICH_TEXT_MODE) {
             bindRichTextMode();
+        } else if (builder.mode == LcaiTipsMode.LIST_MODE) {
+            bindListMode();
+        } else if (builder.mode == LcaiTipsMode.CUSTOM_MODE) {
+            if (builder.dialogInterface != null) {
+                builder.dialogInterface.onBindView(mContentView);
+            }
         }
     }
 
@@ -153,6 +168,42 @@ public class LcaiTipsDialog extends Dialog {
                 });
 
         setupButton(tvRichConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
+                v -> {
+                    if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
+                    dismiss();
+                });
+    }
+
+    private void bindListMode() {
+        listRoot = findViewById(R.id.lcai_tips_dialog_list_l1);
+        tvListTitle = findViewById(R.id.lcai_tips_dialog_list_t1);
+        tvListCancel = findViewById(R.id.lcai_tips_dialog_list_t2);
+        tvListComfirm = findViewById(R.id.lcai_tips_dialog_list_t3);
+        mList = findViewById(R.id.lcai_tips_dialog_list_r1);
+        if (builder.popupBg != null) listRoot.setBackground(builder.popupBg);
+        if (!TextUtils.isEmpty(builder.title)) {
+            tvListTitle.setVisibility(View.VISIBLE);
+            tvListTitle.setText(builder.title);
+            tvListTitle.setTextColor(builder.titleColor);
+        }
+
+        if (builder.adapter != null) {
+            mList.setVisibility(View.VISIBLE);
+            if (builder.vertical) {
+                mList.setLayoutManager(builder.adapter.getLineManager());
+            } else {
+                mList.setLayoutManager(builder.adapter.getGridManager(builder.listCloumns>0 ? builder.listCloumns : 0));
+            }
+            mList.setAdapter(builder.adapter);
+        }
+
+        setupButton(tvListCancel, builder.cancelText, builder.cancelColor, builder.cancelSize, builder.cancelBg,
+                v -> {
+                    if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
+                    dismiss();
+                });
+
+        setupButton(tvListComfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
                 v -> {
                     if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
                     dismiss();

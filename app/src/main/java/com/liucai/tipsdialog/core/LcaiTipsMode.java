@@ -20,6 +20,10 @@ public enum LcaiTipsMode {
      */
     IMAGE_MODE,
     /**
+     * 列表模式
+     */
+    LIST_MODE,
+    /**
      * 富文本弹窗
      */
     RICH_TEXT_MODE,
