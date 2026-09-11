@@ -25,6 +25,16 @@
         <attr name="itemTextColor" format="color"/>
         <!--背景-->
         <attr name="barBackground" format="reference|color"/>
+        <!--角标文字大小-->
+        <attr name="badgeSize" format="integer"/>
+        <!--角标文字颜色-->
+        <attr name="badgeColor" format="color"/>
+        <!--角标背景-->
+        <attr name="badgeBackground" format="reference"/>
+        <!--角标最大显示数量-->
+        <attr name="maxNumber" format="integer"/>
+        <!--是否支持最大+显示-->
+        <attr name="isMax" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="ViewFlipperCarousel">
@@ -63,6 +73,21 @@
         <attr name="fontColor" format="reference"/>
         <attr name="checkColor" format="color"/>
         <attr name="uncheckColor" format="reference"/>
+    </declare-styleable>
+
+    <declare-styleable name="BadgeView">
+        <!--背景配置-->
+        <attr name="bBackground" format="reference"/>
+        <!--字体大小配置-->
+        <attr name="bTextSize" format="integer"/>
+        <!--文字颜色配置-->
+        <attr name="bTextColor" format="color"/>
+        <!--最大显示数量,超出最大显示数量将显示99+-->
+        <attr name="bMaxNumber" format="integer"/>
+        <!--是否支持最大显示-->
+        <attr name="bIsMax" format="boolean"/>
+        <!--角标数字-->
+        <attr name="bBadge" format="integer"/>
     </declare-styleable>
 
     <declare-styleable name="HorizonalBreadBar">

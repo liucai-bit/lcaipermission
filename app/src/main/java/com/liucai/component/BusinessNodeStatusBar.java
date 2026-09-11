@@ -70,6 +70,11 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         title = mTa.getString(R.styleable.BusinessNodeStatusBar_title);
         barBackground = mTa.getDrawable(R.styleable.BusinessNodeStatusBar_barBackground);
         statusItemConfig = (BusinessNodeStatusItemConfig) new BusinessNodeStatusItemConfig()
+                .setBadgeSize(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeSize, 12))
+                .setBadgeColor(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeColor, R.color.text_1c1c1c))
+                .setBadgeBackground(mTa.getDrawable(R.styleable.BusinessNodeStatusBar_badgeBackground))
+                .setMaxNumber(mTa.getInt(R.styleable.BusinessNodeStatusBar_maxNumber, 99))
+                .setIsMax(mTa.getBoolean(R.styleable.BusinessNodeStatusBar_isMax, false))
                 .setIconHeight(mTa.getInt(R.styleable.BusinessNodeStatusBar_iconWidth, 25))
                 .setIconWidth(mTa.getInt(R.styleable.BusinessNodeStatusBar_iconWidth, 25))
                 .setItemSpace(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemSpace, 0))
@@ -168,6 +173,10 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         if (titleSize > 0) {
             mTitle.setTextSize(titleSize);
         }
+    }
+
+    public BusinessNodeStatusItemConfig getStatusItemConfig() {
+        return this.statusItemConfig;
     }
 
     public void setStatusItemConfig(@NonNull BusinessNodeStatusItemConfig statusItemConfig) {

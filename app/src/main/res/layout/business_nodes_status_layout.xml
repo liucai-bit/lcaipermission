@@ -1,23 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/business_nodes_status"
+        android:layout_centerInParent="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <LinearLayout
             android:id="@+id/business_nodes_status_item"
             android:layout_width="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:gravity="center_horizontal"
             android:paddingVertical="5dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:ignore="MissingConstraints">
             <ImageView
                 android:id="@+id/business_nodes_status_icon"
+                android:scaleType="fitCenter"
                 android:layout_width="30dp"
                 android:layout_height="30dp" />
             <TextView
@@ -31,17 +38,13 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <TextView
+        <com.liucai.component.BadgeView
             android:id="@+id/business_nodes_status_point"
             android:visibility="gone"
-            android:textColor="#ffffff"
-            android:gravity="center"
-            android:background="@drawable/business_nodes_point_bg"
-            android:textSize="10sp"
-            android:text="22"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_width="15dp"
-            android:layout_height="15dp"/>
-    </RelativeLayout>
+            app:layout_constraintLeft_toRightOf="@+id/business_nodes_status_item"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:ignore="MissingConstraints" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </RelativeLayout>

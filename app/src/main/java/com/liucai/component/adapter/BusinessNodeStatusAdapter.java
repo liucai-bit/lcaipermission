@@ -12,10 +12,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bumptech.glide.Glide;
+import com.liucai.component.BadgeView;
 import com.liucai.component.base.BaseRecycleAdapter;
 import com.liucai.component.base.BaseViewHolder;
 import com.liucai.component.bean.BusinessNodeStatusItemConfig;
@@ -47,8 +49,18 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
     @Override
     public void onBindView(int position, View mConvertView, BaseViewHolder holder, BusinessNodesStatusBean bean) {
         ImageView imageView = holder.getView(R.id.business_nodes_status_icon);
-        ViewGroup.LayoutParams imageParams = new LinearLayout.LayoutParams(CommonUtils.dip2px(mContext,config.iconWidth), CommonUtils.dip2px(mContext,config.iconHeight));
-        imageView.setLayoutParams(imageParams);
+
+        ViewGroup.LayoutParams existingParams = imageView.getLayoutParams();
+        if (existingParams == null ||
+                existingParams.width != CommonUtils.dip2px(mContext, config.iconWidth) ||
+                existingParams.height != CommonUtils.dip2px(mContext, config.iconHeight)) {
+
+            ViewGroup.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                    CommonUtils.dip2px(mContext, config.iconWidth),
+                    CommonUtils.dip2px(mContext, config.iconHeight)
+            );
+            imageView.setLayoutParams(imageParams);
+        }
         ImageUtils.loadImage(mContext, bean.getIcon(), imageView);
 
         TextView textView = holder.getView(R.id.business_nodes_status_string);
@@ -56,19 +68,13 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         textView.setTextColor(config.titleColor);
         textView.setText(bean.getLabel());
 
-        TextView point = holder.getView(R.id.business_nodes_status_point);
-        if (bean.getSubscript() > 0) {
-            point.setVisibility(VISIBLE);
-            point.setText(String.valueOf(bean.getSubscript()));
-        } else {
-            point.setVisibility(GONE);
-        }
-
-        RelativeLayout relativeLayout = holder.getView(R.id.business_nodes_status);
-        RelativeLayout.LayoutParams relativeLayoutParams = new RelativeLayout.LayoutParams(MP, WC);
-        relativeLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT,RelativeLayout.TRUE);
-        relativeLayoutParams.setMargins(0, 0, 0, CommonUtils.dip2px(mContext,config.itemSpace));
-        relativeLayout.setLayoutParams(relativeLayoutParams);
+        BadgeView point = holder.getView(R.id.business_nodes_status_point);
+        point.setBTextColor(config.badgeColor);
+        point.setBTextSize(config.badgeSize);
+        point.setBBackground(config.badgeBackground);
+        point.setMaxNumber(config.maxNumber);
+        point.setMax(config.isMax);
+        point.setEadge(bean.getSubscript());
         holder.getView(R.id.business_nodes_status).setOnClickListener(v -> {
             if (clickListener != null) {
                 clickListener.onItemClickListener(position, bean.getData());
