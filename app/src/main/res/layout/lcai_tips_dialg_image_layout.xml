@@ -2,22 +2,30 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:gravity="center"
-    android:layout_margin="20dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <ImageView
-        android:id="@+id/lcai_tips_dialog_image_m1"
-        android:scaleType="fitCenter"
+    <LinearLayout
+        android:padding="20dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_margin="30dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/lcai_tips_dialog_image_m1"
+            android:scaleType="fitCenter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-    <ImageView
-        android:id="@+id/lcai_tips_dialog_image_m2"
-        android:layout_marginTop="20dp"
-        android:src="@mipmap/lcai_cancel"
-        android:layout_width="25dp"
-        android:layout_height="25dp"/>
+        <ImageView
+            android:id="@+id/lcai_tips_dialog_image_m2"
+            android:layout_marginTop="20dp"
+            android:src="@mipmap/lcai_cancel"
+            android:layout_width="25dp"
+            android:layout_height="25dp"/>
+    </LinearLayout>
+
 
 
 </LinearLayout>

@@ -161,6 +161,7 @@ public class LcaiTipsDialog extends Dialog {
         }
 
         if (!TextUtils.isEmpty(builder.content)) {
+            wbContent.setVisibility(View.VISIBLE);
             wbContent.loadDataWithBaseURL(null, builder.content, "text/html", "UTF-8", null);
         }
 

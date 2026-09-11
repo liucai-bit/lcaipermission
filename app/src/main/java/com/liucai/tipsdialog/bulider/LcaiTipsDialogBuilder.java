@@ -22,7 +22,8 @@ import java.util.List;
  * @Date 2026/5/27
  */
 public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
-
+    /** 弹窗对象*/
+    private LcaiTipsDialog dialog;
     /** 上下文对象 */
     public Context mContext;
     /**
@@ -42,7 +43,7 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
     /**LIST模式适配器*/
     public T adapter;
     /**列表是否纵向模式*/
-    public boolean vertical;
+    public boolean vertical=true;
     /**列表横向，每行多少个数据*/
     public int listCloumns;
     /** 弹窗内容 */
@@ -316,7 +317,18 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         return this;
     }
 
-    public void build() {
-        new LcaiTipsDialog(this);
+    /**
+     * 管不弹窗
+     */
+    public void dismiss() {
+        if (dialog != null) {
+            dialog.dismiss();
+        }
     }
+
+    public void build() {
+        dialog=new LcaiTipsDialog(this);
+    }
+
+
 }
