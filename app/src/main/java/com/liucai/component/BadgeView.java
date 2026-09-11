@@ -66,7 +66,7 @@ public class BadgeView extends BaseLinearLayout {
 
     @Override
     public void initView() {
-        setPadding(dip2px(2),dip2px(2),dip2px(2),dip2px(2));
+        setPadding(dip2px(1),dip2px(1),dip2px(1),dip2px(1));
         //设置背景颜色
         if (background != null) {
             setBackground(background);

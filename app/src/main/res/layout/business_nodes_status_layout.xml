@@ -9,39 +9,32 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/business_nodes_status"
         android:layout_centerInParent="true"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content">
-        <LinearLayout
-            android:id="@+id/business_nodes_status_item"
-            android:layout_width="wrap_content"
+        <ImageView
+            android:id="@+id/business_nodes_status_icon"
+            android:scaleType="fitCenter"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            tools:ignore="MissingConstraints" />
+        <TextView
+            android:id="@+id/business_nodes_status_string"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/business_nodes_status_icon"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:gravity="center_horizontal"
-            android:paddingVertical="5dp"
-            android:orientation="vertical"
-            tools:ignore="MissingConstraints">
-            <ImageView
-                android:id="@+id/business_nodes_status_icon"
-                android:scaleType="fitCenter"
-                android:layout_width="30dp"
-                android:layout_height="30dp" />
-            <TextView
-                android:id="@+id/business_nodes_status_string"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_marginTop="5dp"
-                android:singleLine="true"
-                android:textColor="@color/text_1c1c1c"
-                android:textSize="12sp" />
-        </LinearLayout>
+            android:gravity="center"
+            android:layout_marginTop="5dp"
+            android:singleLine="true"
+            android:textColor="@color/text_1c1c1c"
+            android:textSize="12sp"
+            tools:ignore="MissingConstraints" />
 
         <com.liucai.component.BadgeView
             android:id="@+id/business_nodes_status_point"
             android:visibility="gone"
-            app:layout_constraintLeft_toRightOf="@+id/business_nodes_status_item"
+            app:layout_constraintLeft_toRightOf="@+id/business_nodes_status_icon"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
