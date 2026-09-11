@@ -2,6 +2,8 @@ package com.liucai.tipsdialog.core;
 
 import android.view.View;
 
+import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
+
 /**
  * @author liucai
  * @program lcpermission
@@ -20,7 +22,7 @@ public interface OnTipsDialogInterface {
 
     }
 
-    default void onBindView(View bindView) {
+    default void onBindView(View bindView, LcaiTipsDialogBuilder builder) {
 
     }
 }

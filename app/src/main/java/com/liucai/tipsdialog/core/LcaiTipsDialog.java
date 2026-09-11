@@ -21,6 +21,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.image.ImageUtils;
 import com.liucai.jsbridge.web.LcaiBridgeWebview;
@@ -95,9 +96,10 @@ public class LcaiTipsDialog extends Dialog {
         } else if (builder.mode == LcaiTipsMode.LIST_MODE) {
             bindListMode();
         } else if (builder.mode == LcaiTipsMode.CUSTOM_MODE) {
-            if (builder.dialogInterface != null) {
-                builder.dialogInterface.onBindView(mContentView);
+            if (builder.dialogInterface == null) {
+                throw new LcaiHttpException("使用LcaiTipsMode.CUSTOM_MODE模式，需要先实现OnTipsDialogInterface.onBindView");
             }
+            builder.dialogInterface.onBindView(mContentView,builder);
         }
     }
 
@@ -155,6 +157,7 @@ public class LcaiTipsDialog extends Dialog {
             tvRichTitle.setVisibility(View.VISIBLE);
             tvRichTitle.setText(builder.title);
             tvRichTitle.setTextColor(builder.titleColor);
+            tvRichTitle.setTextSize(builder.titleSize);
         }
 
         if (!TextUtils.isEmpty(builder.content)) {
@@ -185,6 +188,7 @@ public class LcaiTipsDialog extends Dialog {
             tvListTitle.setVisibility(View.VISIBLE);
             tvListTitle.setText(builder.title);
             tvListTitle.setTextColor(builder.titleColor);
+            tvListTitle.setTextSize(builder.titleSize);
         }
 
         if (builder.adapter != null) {
