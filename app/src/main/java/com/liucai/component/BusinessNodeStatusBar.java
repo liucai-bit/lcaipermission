@@ -18,7 +18,6 @@ import com.liucai.component.base.BaseLinearLayout;
 import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.bean.BusinessNodeStatusItemConfig;
 import com.liucai.component.bean.BusinessNodesStatusBean;
-import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.R;
 

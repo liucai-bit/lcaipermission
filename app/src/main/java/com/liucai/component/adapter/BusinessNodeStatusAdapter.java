@@ -51,16 +51,11 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         ImageView imageView = holder.getView(R.id.business_nodes_status_icon);
 
         ViewGroup.LayoutParams existingParams = imageView.getLayoutParams();
-        if (existingParams == null ||
-                existingParams.width != CommonUtils.dip2px(mContext, config.iconWidth) ||
-                existingParams.height != CommonUtils.dip2px(mContext, config.iconHeight)) {
-
-            ViewGroup.LayoutParams imageParams = new LinearLayout.LayoutParams(
-                    CommonUtils.dip2px(mContext, config.iconWidth),
-                    CommonUtils.dip2px(mContext, config.iconHeight)
-            );
-            imageView.setLayoutParams(imageParams);
+        if (existingParams != null) {
+            existingParams.width = CommonUtils.dip2px(mContext, config.iconWidth);
+            existingParams.height = CommonUtils.dip2px(mContext, config.iconHeight);
         }
+        imageView.setLayoutParams(existingParams);
         ImageUtils.loadImage(mContext, bean.getIcon(), imageView);
 
         TextView textView = holder.getView(R.id.business_nodes_status_string);
