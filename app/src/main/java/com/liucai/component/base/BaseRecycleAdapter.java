@@ -2,10 +2,12 @@ package com.liucai.component.base;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.TypedValue;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,9 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSONArray;
+import com.liucai.permission.R;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,10 +29,7 @@ import java.util.List;
  * @description
  * @Date 2026/7/23
  */
-public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends RecyclerView.Adapter<VH> {
-
-    public static final int MP = ViewGroup.LayoutParams.MATCH_PARENT;
-    public static final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
+public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends RecyclerView.Adapter<VH> {
 
     @NonNull
     public Context mContext;
@@ -38,9 +39,42 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
     private JSONArray arrays;
     private final int layoutId;
     private final Type tActualType;
+    private String endTips = "已加载完全部数据";
+    private String loadingTips = "正在加载...";
+    private String errorTips = "加载失败，点击重试";
+    private boolean loading = false;
+    private int viewType = RecycleViewType.DEFAULT;
+    private int startPosition = 0;
     @Nullable
     public ItemClickListener clickListener;
+    public boolean openMultiMode() {
+        return true;
+    }
+
+    public boolean loadOver() {
+        return false;
+    }
+
+    public void loadMore() {
+
+    }
+
     public abstract void onBindView(int position, View mConvertView, VH holder, T object);
+
+    public int getMultiLayout() {
+        return R.layout.lcai_adapter_multi_layout;
+    }
+
+    public void setLoadState(int state) {
+        this.viewType = state;
+        if (state == RecycleViewType.LOADING) {
+            this.loading = true;
+        } else {
+            this.loading = false;
+        }
+        // 只刷新最后一个 item (Footer)
+        notifyItemChanged(getDataCount());
+    }
 
     @NonNull
     public RecyclerView.LayoutManager getLineManager() {
@@ -66,24 +100,58 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
         tActualType = typeArguments[1];
     }
 
+    public void appendData(@NonNull JSONArray arrays) {
+        if (arrays != null && !arrays.isEmpty()) {
+            if (this.arrays == null) {
+                this.arrays = new JSONArray();
+            }
+            int startPosition = getDataCount();
+            this.arrays.addAll(arrays);
+            notifyItemRangeInserted(startPosition, arrays.size());
+            setLoadState(RecycleViewType.DEFAULT);
+        }
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     public void setData(@NonNull JSONArray arrays) {
-        if (this.arrays==arrays) return;
+        if (this.arrays == arrays) return;
         this.arrays = arrays;
         this.datas = null;
         notifyDataSetChanged();
     }
 
+    public void appendData(@NonNull List<T> datas) {
+        if (datas != null && !datas.isEmpty()) {
+            if (this.datas == null) {
+                this.datas = new ArrayList<>();
+            }
+            this.startPosition = getDataCount();
+            this.datas.addAll(datas);
+            notifyItemRangeInserted(startPosition, datas.size());
+            setLoadState(RecycleViewType.DEFAULT);
+        }
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     public void setData(@NonNull List<T> datas) {
-        if (this.datas==datas) return;
+        if (this.datas == datas) return;
         this.datas = datas;
         this.arrays = null;
         notifyDataSetChanged();
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        if (position == getDataCount() && openMultiMode()){
+            return viewType;
+        }
+        return RecycleViewType.DEFAULT;
+    }
+
     public T getItem(int position) {
-        if (position < 0 || position >= getItemCount()) return null;
+        if (position < 0 || position >= getDataCount()) {
+            return null;
+        }
         if (datas != null) return datas.get(position);
         if (arrays != null) {
             return arrays.getJSONObject(position).toJavaObject(tActualType);
@@ -95,10 +163,34 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
         this.clickListener = clickListener;
     }
 
+    public BaseRecycleAdapter addRecyclerViewScrollListner(RecyclerView recyclerView) {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+                if (layoutManager instanceof LinearLayoutManager) {
+                    LinearLayoutManager lm = (LinearLayoutManager) layoutManager;
+                    int last = lm.findLastVisibleItemPosition();
+                    int total = lm.getItemCount();
+                    if (viewType!=RecycleViewType.ERROR && viewType != RecycleViewType.END && viewType != RecycleViewType.LOADING && last >= (total - 2)) {
+                        setLoadState(RecycleViewType.LOADING);
+                    }
+                }
+            }
+        });
+        return this;
+    }
+
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(layoutId, parent, false);
+        View view = null;
+        if (viewType == RecycleViewType.LOADING || viewType==RecycleViewType.END || viewType==RecycleViewType.ERROR) {
+            view = LayoutInflater.from(mContext).inflate(getMultiLayout(), parent,false);
+        } else {
+            view = LayoutInflater.from(mContext).inflate(layoutId, parent,false);
+        }
+
         VH viewHolder;
         try {
             viewHolder = (VH) new BaseViewHolder(view);
@@ -110,45 +202,59 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder,T> extends Re
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
-        if (datas != null) {
-            onBindView(position,holder.getmConvertView(),holder,datas.get(position));
-        } else if (arrays != null) {
-            onBindView(position,holder.getmConvertView(),holder,arrays.getJSONObject(position).toJavaObject(tActualType));
+        if (holder.getItemViewType() == RecycleViewType.LOADING) {
+            TextView tv = holder.getView(R.id.lcai_adapter_multi_t1);
+            if(tv != null) tv.setText(loadingTips);
+            if (!loadOver() && viewType == RecycleViewType.LOADING) {
+                holder.itemView.post(() -> {
+                    // 再次检查状态，防止重复加载
+                    if (viewType == RecycleViewType.LOADING && !loadOver()) {
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            loadMore();
+                        }, 100);
+                    }
+                });
+            } else {
+                this.viewType = RecycleViewType.END;
+            }
+            return;
+        }
+        if (holder.getItemViewType() == RecycleViewType.END) {
+            TextView tv = holder.getView(R.id.lcai_adapter_multi_t1);
+            if(tv != null) tv.setText(endTips);
+            return;
+        }
+        if (holder.getItemViewType() == RecycleViewType.ERROR) {
+            TextView tv = holder.getView(R.id.lcai_adapter_multi_t1);
+            if(tv != null) tv.setText(errorTips);
+            holder.itemView.setOnClickListener(v -> {
+                viewType = RecycleViewType.LOADING;
+                tv.setText(loadingTips);
+                loadMore();
+            });
+            return;
+        }
+        // 正常 Item 绑定
+        T item = getItem(position);
+        if (item != null) {
+            onBindView(position, holder.getmConvertView(), holder, item);
         }
     }
 
     @Override
     public int getItemCount() {
+        int size = 0;
+        if (datas != null) size = datas.size();
+        if (arrays != null) size = arrays.size();
+        if (openMultiMode()) {
+            return size + 1;
+        }
+        return size;
+    }
+
+    private int getDataCount() {
         if (datas != null) return datas.size();
         if (arrays != null) return arrays.size();
         return 0;
-    }
-
-    /**
-     * dp单位转px单位，自动适配当前设备屏幕密度
-     * @param dpValue 输入dp数值
-     * @return 转换后的像素值，非法输入默认返回0
-     */
-    public int dip2px(float dpValue) {
-        if (dpValue <= 0) return 0;
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dpValue,
-                mContext.getResources().getDisplayMetrics()
-        );
-    }
-
-    /**
-     * px单位转dp单位，适配不同屏幕密度下的数值还原
-     * @param pxValue 输入像素数值
-     * @return 转换后的dp数值，非法输入默认返回0
-     */
-    public int px2dip(float pxValue) {
-        if (pxValue <= 0) return 0;
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_PX,
-                pxValue,
-                mContext.getResources().getDisplayMetrics()
-        );
     }
 }
