@@ -1,7 +1,5 @@
 package com.liucai.component.base;
 
-import com.alibaba.fastjson.JSONObject;
-
 /**
  * @author liucai
  * @program lcpermission
@@ -11,4 +9,15 @@ import com.alibaba.fastjson.JSONObject;
 public interface ItemClickListener{
 
     void onItemClickListener(int position, Object entity);
+
+    default void loadMore() {
+
+    }
+
+    /**
+     * 暂未实现
+     */
+    default void onRefresh() {
+
+    }
 }

@@ -210,7 +210,9 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
                     // 再次检查状态，防止重复加载
                     if (viewType == RecycleViewType.LOADING && !loadOver()) {
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            loadMore();
+                            if (clickListener != null) {
+                                clickListener.loadMore();
+                            }
                         }, 100);
                     }
                 });
@@ -230,7 +232,9 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
             holder.itemView.setOnClickListener(v -> {
                 viewType = RecycleViewType.LOADING;
                 tv.setText(loadingTips);
-                loadMore();
+                if (clickListener != null) {
+                    clickListener.loadMore();
+                }
             });
             return;
         }
