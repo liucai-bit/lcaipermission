@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSONArray;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.permission.R;
 
 import java.lang.reflect.ParameterizedType;
@@ -42,7 +43,6 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
     private String endTips = "已加载完全部数据";
     private String loadingTips = "正在加载...";
     private String errorTips = "加载失败，点击重试";
-    private boolean loading = false;
     private int viewType = RecycleViewType.DEFAULT;
     private int startPosition = 0;
     @Nullable
@@ -55,10 +55,6 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
         return false;
     }
 
-    public void loadMore() {
-
-    }
-
     public abstract void onBindView(int position, View mConvertView, VH holder, T object);
 
     public int getMultiLayout() {
@@ -67,11 +63,6 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
 
     public void setLoadState(int state) {
         this.viewType = state;
-        if (state == RecycleViewType.LOADING) {
-            this.loading = true;
-        } else {
-            this.loading = false;
-        }
         // 只刷新最后一个 item (Footer)
         notifyItemChanged(getDataCount());
     }
@@ -109,6 +100,8 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
             this.arrays.addAll(arrays);
             notifyItemRangeInserted(startPosition, arrays.size());
             setLoadState(RecycleViewType.DEFAULT);
+            LcaiLogUtils.d("数据加载完，重置item状态");
+
         }
     }
 
@@ -167,7 +160,7 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = null;
-        if (viewType == RecycleViewType.LOADING || viewType== RecycleViewType.END || viewType== RecycleViewType.ERROR) {
+        if (viewType == RecycleViewType.LOADING || viewType==RecycleViewType.END || viewType==RecycleViewType.ERROR) {
             view = LayoutInflater.from(mContext).inflate(getMultiLayout(), parent,false);
         } else {
             view = LayoutInflater.from(mContext).inflate(layoutId, parent,false);
@@ -242,5 +235,9 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
         if (datas != null) return datas.size();
         if (arrays != null) return arrays.size();
         return 0;
+    }
+
+    public int getViewType() {
+        return viewType;
     }
 }

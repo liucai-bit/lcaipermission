@@ -10,9 +10,9 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.liucai.component.base.BaseRecycleAdapter;
 import com.liucai.component.base.BaseRecyclerView;
 import com.liucai.component.base.RecycleViewType;
-import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.permission.R;
 
 /**
@@ -62,14 +62,18 @@ public class LcaiRecyclerView extends BaseRecyclerView {
 
     @Override
     public void initView() {
-        addOnScrollListener(new RecyclerView.OnScrollListener() {
+        addOnScrollListener(new OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
+                LayoutManager lm = recyclerView.getLayoutManager();
                 if (!(lm instanceof LinearLayoutManager)) return;
                 LinearLayoutManager llm = (LinearLayoutManager) lm;
                 int lastVisible = llm.findLastVisibleItemPosition();
                 int total = llm.getItemCount();
+                viewType = RecycleViewType.DEFAULT;
+                if (recyclerView.getAdapter() instanceof BaseRecycleAdapter) {
+                    viewType = ((BaseRecycleAdapter) recyclerView.getAdapter()).getViewType();
+                }
                 //上拉加载更多
                 boolean reachedEnd = lastVisible >= total - 1 && !recyclerView.canScrollVertically(1);
                 if (isLoadMore && reachedEnd && viewType != RecycleViewType.ERROR && viewType != RecycleViewType.END && viewType != RecycleViewType.LOADING) {
@@ -109,7 +113,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
                 boolean canScrollUp   = canScrollVertically(-1);   // 还能往上滑(内容在下)
                 boolean canScrollDown = canScrollVertically(1);    // 还能往下滑(内容在上)
                 if (dy > dx) {
-                    LcaiLogUtils.i("滑动方向", ev.getY() > startY ? "向下滑动":"向上动" ,"是否还能上滑:" + canScrollUp,"是否还能下滑:"+canScrollDown);
                     if (ev.getY() > startY && canScrollUp) {
                         //向下滑动
                         setDisallowIntercept(true); // 能滚，自己处理
@@ -139,7 +142,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
      * getParent() 可能为 null（未 attach 时），做判空
      */
     private void setDisallowIntercept(boolean disallow) {
-        LcaiLogUtils.d("是否拦截父布局:" + disallow);
         ViewParent parent = getParent();
         if (parent != null) {
             parent.requestDisallowInterceptTouchEvent(disallow);
