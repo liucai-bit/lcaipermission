@@ -102,4 +102,29 @@
         <!--是否开启上拉加载-->
         <attr name="isLoadMore" format="boolean"/>
     </declare-styleable>
+
+    <declare-styleable name="HorizonalLabelBar">
+        <!--是否允许换行-->
+        <attr name="labelWrap" format="enum">
+            <enum name="NOWRAP" value="0"/>
+            <enum name="WRAP" value="1"/>
+            <enum name="WRAP_REVERSE" value="2"/>
+        </attr>
+
+        <attr name="labelDirection" format="enum">
+            <enum name="ROW" value="0"/>
+            <enum name="ROW_REVERSE" value="1"/>
+            <enum name="COLUMN" value="2"/>
+            <enum name="COLUMN_REVERSE" value="3"/>
+        </attr>
+
+        <attr name="labelAlign" format="enum">
+            <enum name="START" value="0"/>
+            <enum name="END" value="1"/>
+            <enum name="CENTER" value="2"/>
+            <enum name="SPACE_BETWEEN" value="3"/>
+            <enum name="SPACE_AROUND" value="4"/>
+            <enum name="STRETCH" value="5"/>
+        </attr>
+    </declare-styleable>
 </resources>
