@@ -48,7 +48,7 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
     @Nullable
     public ItemClickListener clickListener;
     public boolean openMultiMode() {
-        return true;
+        return false;
     }
 
     public boolean loadOver() {
