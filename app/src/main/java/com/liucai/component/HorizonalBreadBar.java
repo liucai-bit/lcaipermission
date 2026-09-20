@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.liucai.component.base.BaseLinearLayout;
+import com.liucai.core.util.common.CommonUtils;
 import com.liucai.permission.R;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class HorizonalBreadBar extends BaseLinearLayout {
     private int textSize;
     private int textColor;
     private Drawable background;
-    private int minWidth = dip2px(60);
+    private int minWidth = CommonUtils.dip2px(mContext,60);
 
     public HorizonalBreadBar(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -78,13 +79,13 @@ public class HorizonalBreadBar extends BaseLinearLayout {
             textView.setTextSize(textSize);
             textView.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-            int textContentWidth = textView.getMeasuredWidth()+dip2px(20);
-            int textContentHeight = textView.getMeasuredHeight()+dip2px(10);
+            int textContentWidth = textView.getMeasuredWidth()+CommonUtils.dip2px(mContext,20);
+            int textContentHeight = textView.getMeasuredHeight()+CommonUtils.dip2px(mContext,10);
             LayoutParams params = new LayoutParams(textContentWidth> minWidth ? textContentWidth: WC,textContentHeight);
-            params.setMargins(dip2px(5),0,dip2px(5),0);
+            params.setMargins(CommonUtils.dip2px(mContext,5),0,CommonUtils.dip2px(mContext,5),0);
             textView.setLayoutParams(params);
             textView.setBackground(background);
-            textView.setPadding(dip2px(10),dip2px(5),dip2px(10),dip2px(5));
+            textView.setPadding(CommonUtils.dip2px(mContext,10),CommonUtils.dip2px(mContext,5),CommonUtils.dip2px(mContext,10),CommonUtils.dip2px(mContext,5));
             addView(textView);
         }
     }

@@ -113,24 +113,6 @@ public abstract class BaseLinearLayout extends LinearLayout {
     }
 
     /**
-     * dp单位转px单位，自动适配当前设备屏幕密度
-     * @param dpValue 输入dp数值
-     * @return 转换后的像素值，非法输入默认返回0
-     */
-    public int dip2px(int dpValue) {
-        return CommonUtils.dip2px(mContext, dpValue);
-    }
-
-    /**
-     * px单位转dp单位，适配不同屏幕密度下的数值还原
-     * @param pxValue 输入像素数值
-     * @return 转换后的dp数值，非法输入默认返回0
-     */
-    public int px2dip(int pxValue) {
-        return CommonUtils.px2dip(mContext,pxValue);
-    }
-
-    /**
      * 生命周期回调，组件销毁时自动释放所有持有的资源
      */
     @Override

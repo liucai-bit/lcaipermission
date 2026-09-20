@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.liucai.component.adapter.HorizontalNavigationAdapter;
 import com.liucai.component.base.BaseLinearLayout;
 import com.liucai.component.base.ItemClickListener;
+import com.liucai.core.util.common.CommonUtils;
 import com.liucai.core.util.log.LcaiLogUtils;
 
 import java.util.List;
@@ -71,7 +72,7 @@ public class HorizontalNavigationBar extends BaseLinearLayout {
 
         //底部边框线
         View view = new View(mContext);
-        LayoutParams lineParams = new LayoutParams(MP, dip2px(1));
+        LayoutParams lineParams = new LayoutParams(MP, CommonUtils.dip2px(mContext,1));
         view.setLayoutParams(lineParams);
         view.setBackgroundColor(Color.parseColor("#999999"));
         addView(view);

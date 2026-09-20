@@ -20,6 +20,7 @@ import com.liucai.component.base.ViewFlipperCarouseInterface;
 import com.liucai.component.bean.ViewFlipperCarouselBean;
 import com.liucai.component.bean.ViewFlipperCarouselItemConfig;
 import com.liucai.core.exception.LcaiHttpException;
+import com.liucai.core.util.common.CommonUtils;
 import com.liucai.image.ImageUtils;
 import com.liucai.permission.R;
 import java.util.ArrayList;
@@ -349,8 +350,8 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
         }
         pointLayout.setLayoutParams(pointParams);
         pointLayout.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
-        cricleParams.setMargins(dip2px(5),dip2px(5),dip2px(5),dip2px(5));
+        LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(CommonUtils.dip2px(mContext,POINT_CEICLE_WIDTH), CommonUtils.dip2px(mContext,POINT_HEIGHT));
+        cricleParams.setMargins(CommonUtils.dip2px(mContext,5),CommonUtils.dip2px(mContext,5),CommonUtils.dip2px(mContext,5),CommonUtils.dip2px(mContext,5));
         int realPointCount = Math.min(datas.size(), maxPointSize);
         for (int i = 0; i < realPointCount; i++) {
             TextView textView = new TextView(mContext);
@@ -367,10 +368,10 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
         if (points == null || points.isEmpty() || position <0 || position >= points.size()) {
             return;
         }
-        LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(dip2px(POINT_CEICLE_WIDTH), dip2px(POINT_HEIGHT));
-        cricleParams.setMargins(dip2px(5), dip2px(5), dip2px(5), dip2px(5));
-        LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(dip2px(POINT_LINE_WIDTH), dip2px(POINT_HEIGHT));
-        lineParams.setMargins(dip2px(5), dip2px(5), dip2px(5), dip2px(5));
+        LinearLayout.LayoutParams cricleParams = new LinearLayout.LayoutParams(CommonUtils.dip2px(mContext,POINT_CEICLE_WIDTH), CommonUtils.dip2px(mContext,POINT_HEIGHT));
+        cricleParams.setMargins(CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,5));
+        LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(CommonUtils.dip2px(mContext,POINT_LINE_WIDTH), CommonUtils.dip2px(mContext,POINT_HEIGHT));
+        lineParams.setMargins(CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,5));
         TextView textView = points.get(position);
         for (TextView textView1 : points) {
             if (textView == textView1) {

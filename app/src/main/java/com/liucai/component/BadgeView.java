@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.liucai.component.base.BaseLinearLayout;
+import com.liucai.core.util.common.CommonUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.R;
 
@@ -59,14 +60,14 @@ public class BadgeView extends BaseLinearLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int minSize = dip2px(18);
+        int minSize = CommonUtils.dip2px(mContext,18);
         int size = Math.max(minSize, Math.max(getMeasuredWidth(), getMeasuredHeight()));
         setMeasuredDimension(size, size);
     }
 
     @Override
     public void initView() {
-        setPadding(dip2px(1),dip2px(1),dip2px(1),dip2px(1));
+        setPadding(CommonUtils.dip2px(mContext,1),CommonUtils.dip2px(mContext,1),CommonUtils.dip2px(mContext,1),CommonUtils.dip2px(mContext,1));
         //设置背景颜色
         if (background != null) {
             setBackground(background);

@@ -95,4 +95,11 @@
         <attr name="textColor" format="color"/>
         <attr name="breadBackground" format="reference"/>
     </declare-styleable>
+
+    <declare-styleable name="LcaiRecyclerView">
+        <!--是否开启下拉刷新-->
+        <attr name="isPullRefresh" format="boolean"/>
+        <!--是否开启上拉加载-->
+        <attr name="isLoadMore" format="boolean"/>
+    </declare-styleable>
 </resources>

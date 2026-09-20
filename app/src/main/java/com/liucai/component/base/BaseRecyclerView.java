@@ -3,57 +3,78 @@ package com.liucai.component.base;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatTextView;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.liucai.core.util.common.CommonUtils;
+import com.liucai.component.bean.BaseComponentConfig;
 
 /**
  * @author HUAWEI
- * @program lctipsdialog
+ * @program lcpermission
  * @description
- * @Date 2026/9/11
+ * @Date 2026/9/18
  */
-public abstract class BaseTextView extends AppCompatTextView {
+public abstract class BaseRecyclerView extends RecyclerView {
+
+    public static final int MP = ViewGroup.LayoutParams.MATCH_PARENT;
+    public static final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 
     public abstract void init();
 
     public abstract void initView();
 
     @NonNull
-    protected Context mContext;
+    protected final Context mContext;
     @Nullable
     protected TypedArray mTa;
+
+    public BaseComponentConfig config;
+
+    /**
+     * 子类可重写此方法，返回自身定义的styleable属性数组
+     * @return 自定义属性ID数组，基类自动完成属性初始化
+     */
     @NonNull
     public int[] setAttrs() {
         return new int[]{};
     }
 
-    public BaseTextView(@NonNull Context context) {
+    public BaseRecyclerView(@NonNull Context context) {
         super(context);
         this.mContext = context;
+        config = new BaseComponentConfig();
+        initLayout();
         init();
         initView();
     }
 
-    public BaseTextView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public BaseRecyclerView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.mContext = context;
+        config = new BaseComponentConfig();
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
         initView();
     }
 
-    public BaseTextView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public BaseRecyclerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
+        config = new BaseComponentConfig();
+        initLayout();
         initAttr(attrs);
         init();
         autoRecycleTypedArray();
         initView();
+    }
+    private void initLayout() {
+        setLayoutParams(new LinearLayout.LayoutParams(MP, WC));
     }
 
     /**

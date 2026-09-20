@@ -163,29 +163,11 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
         this.clickListener = clickListener;
     }
 
-    public BaseRecycleAdapter addRecyclerViewScrollListner(RecyclerView recyclerView) {
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-                if (layoutManager instanceof LinearLayoutManager) {
-                    LinearLayoutManager lm = (LinearLayoutManager) layoutManager;
-                    int last = lm.findLastVisibleItemPosition();
-                    int total = lm.getItemCount();
-                    if (viewType!=RecycleViewType.ERROR && viewType != RecycleViewType.END && viewType != RecycleViewType.LOADING && last >= (total - 2)) {
-                        setLoadState(RecycleViewType.LOADING);
-                    }
-                }
-            }
-        });
-        return this;
-    }
-
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = null;
-        if (viewType == RecycleViewType.LOADING || viewType==RecycleViewType.END || viewType==RecycleViewType.ERROR) {
+        if (viewType == RecycleViewType.LOADING || viewType== RecycleViewType.END || viewType== RecycleViewType.ERROR) {
             view = LayoutInflater.from(mContext).inflate(getMultiLayout(), parent,false);
         } else {
             view = LayoutInflater.from(mContext).inflate(layoutId, parent,false);

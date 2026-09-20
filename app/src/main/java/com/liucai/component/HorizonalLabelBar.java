@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import com.liucai.component.base.BaseLinearLayout;
 import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.bean.HorizonalLabelBean;
+import com.liucai.core.util.common.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +66,7 @@ public class HorizonalLabelBar extends BaseLinearLayout {
             LinearLayout.LayoutParams params = new LayoutParams(WC, WC);
             params.setMargins(0, 0, 10, 0);
             textView.setLayoutParams(params);
-            textView.setPadding(dip2px(5), dip2px(3), dip2px(5), dip2px(3));
+            textView.setPadding(CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,3), CommonUtils.dip2px(mContext,5), CommonUtils.dip2px(mContext,3));
             textView.setOnClickListener(v->{
                 if (clickListener != null) {
                     clickListener.onItemClickListener(0,data);

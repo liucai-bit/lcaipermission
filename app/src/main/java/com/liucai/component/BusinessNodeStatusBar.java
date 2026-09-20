@@ -18,6 +18,7 @@ import com.liucai.component.base.BaseLinearLayout;
 import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.bean.BusinessNodeStatusItemConfig;
 import com.liucai.component.bean.BusinessNodesStatusBean;
+import com.liucai.core.util.common.CommonUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.R;
 
@@ -56,7 +57,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         super(context, attrs);
         setOrientation(VERTICAL);
         // 转换dp为px，避免硬编码像素值适配不同屏幕密度
-        int paddingPx = dip2px(10);
+        int paddingPx = CommonUtils.dip2px(mContext,10);
         setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
     }
 
@@ -108,7 +109,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
     public void initTitle() {
         mTitle = new TextView(mContext);
         LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        int marginBottomPx = dip2px(10);
+        int marginBottomPx = CommonUtils.dip2px(mContext,10);
         params.setMargins(0, 0, 0, marginBottomPx);
         mTitle.setLayoutParams(params);
         mTitle.setTextColor(config.titleColor);
