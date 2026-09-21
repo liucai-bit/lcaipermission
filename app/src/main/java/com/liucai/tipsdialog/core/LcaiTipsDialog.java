@@ -150,8 +150,7 @@ public class LcaiTipsDialog extends Dialog {
         richTextRoot = findViewById(R.id.lcai_tips_dialog_richtext_l1);
         tvRichTitle = findViewById(R.id.lcai_tips_dialog_richtext_t1);
         wbContent = findViewById(R.id.lcai_tips_dialog_richtext_w1);
-        tvRichCancel = findViewById(R.id.lcai_tips_dialog_richtext_t2);
-        tvRichConfirm = findViewById(R.id.lcai_tips_dialog_richtext_t3);
+        ivClose = findViewById(R.id.lcai_tips_dialog_richtext_m1);
         if (builder.popupBg != null) richTextRoot.setBackground(builder.popupBg);
         if (!TextUtils.isEmpty(builder.title)) {
             tvRichTitle.setVisibility(View.VISIBLE);
@@ -164,18 +163,10 @@ public class LcaiTipsDialog extends Dialog {
             wbContent.setVisibility(View.VISIBLE);
             wbContent.loadDataWithBaseURL(null, builder.content, "text/html", "UTF-8", null);
         }
-
-        setupButton(tvRichCancel, builder.cancelText, builder.cancelColor, builder.cancelSize, builder.cancelBg,
-                v -> {
-                    if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
-                    dismiss();
-                });
-
-        setupButton(tvRichConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
-                v -> {
-                    if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
-                    dismiss();
-                });
+        ivClose.setOnClickListener(v -> {
+            if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
+            dismiss();
+        });
     }
 
     private void bindListMode() {
