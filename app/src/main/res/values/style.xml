@@ -14,7 +14,7 @@
         <!--标题-->
         <attr name="title" format="string"/>
         <!--文字显示规则-->
-        <attr name="ellipsize" format="enum">
+        <attr name="itemTextEllipsize" format="enum">
             <enum name="DEFAULT" value="0"/>
             <enum name="SINGLELINE" value="1"/>
             <enum name="END" value="2"/>
