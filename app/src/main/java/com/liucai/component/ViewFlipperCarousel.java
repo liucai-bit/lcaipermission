@@ -11,8 +11,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import androidx.annotation.Nullable;
-import com.bumptech.glide.Glide;
+
 import com.liucai.component.base.BaseRelativeLayout;
 import com.liucai.component.base.BaseViewFlipper;
 import com.liucai.component.base.ItemClickListener;
@@ -23,6 +24,7 @@ import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.core.util.common.CommonUtils;
 import com.liucai.image.ImageUtils;
 import com.liucai.permission.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -179,9 +181,8 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
                 throw new LcaiHttpException("view 模式，必须实现ViewFlipperCarouseInterface接口");
             }
         }
-        if (this.datas != null && this.datas.size() < 2) {
+        if (this.datas != null && this.datas.size() ==1) {
             if(viewFlipper != null) {
-                viewFlipper.setSupportGesture(false);
                 viewFlipper.stopFlipping();
                 viewFlipper.setAutoStart(false);
             }
