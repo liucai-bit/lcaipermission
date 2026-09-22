@@ -28,7 +28,6 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_marginTop="5dp"
-            android:singleLine="true"
             android:textColor="@color/text_1c1c1c"
             android:textSize="12sp"
             tools:ignore="MissingConstraints" />

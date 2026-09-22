@@ -13,6 +13,17 @@
         <attr name="columns" format="integer"/>
         <!--标题-->
         <attr name="title" format="string"/>
+        <!--文字显示规则-->
+        <attr name="ellipsize" format="enum">
+            <!--默认-->
+            <enum name="DEFAULT" value="0"/>
+            <!--只显示一行-->
+            <enum name="SINGLELINE" value="1"/>
+            <!--超出显示省略号-->
+            <enum name="END" value="2"/>
+            <!--跑马灯-->
+            <enum name="MARQUEE " value="3"/>
+        </attr>
         <!--图标宽度-->
         <attr name="iconWidth" format="integer"/>
         <!--图标高度-->

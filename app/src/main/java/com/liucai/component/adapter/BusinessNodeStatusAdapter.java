@@ -5,6 +5,7 @@ import static android.view.View.VISIBLE;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -63,6 +64,17 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         TextView textView = holder.getView(R.id.business_nodes_status_string);
         textView.setTextSize(config.titleSize);
         textView.setTextColor(config.titleColor);
+        if (config.ellipsize == 1) {
+            textView.setSingleLine(true);
+        } else if (config.ellipsize==2) {
+            textView.setSingleLine(true);
+            textView.setEllipsize(TextUtils.TruncateAt.END);
+        } else if (config.ellipsize==3) {
+            textView.setSingleLine(true);
+            textView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            textView.setSelected(true);
+            textView.setMarqueeRepeatLimit(-1);
+        }
         textView.setText(bean.getLabel());
 
         BadgeView point = holder.getView(R.id.business_nodes_status_point);

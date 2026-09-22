@@ -20,6 +20,7 @@ public class BusinessNodeStatusItemConfig extends BaseComponentConfig{
     public Drawable badgeBackground;
     public int maxNumber;
     public boolean isMax;
+    public int ellipsize;
 
     public BusinessNodeStatusItemConfig setIconWidth(int iconWidth) {
         this.iconWidth = iconWidth;
@@ -60,6 +61,11 @@ public class BusinessNodeStatusItemConfig extends BaseComponentConfig{
 
     public BusinessNodeStatusItemConfig setIsMax(boolean isMax) {
         this.isMax = isMax;
+        return this;
+    }
+
+    public BusinessNodeStatusItemConfig setEllipsize(int ellipsize) {
+        this.ellipsize = ellipsize;
         return this;
     }
 }

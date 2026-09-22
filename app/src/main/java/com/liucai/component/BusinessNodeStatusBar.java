@@ -71,6 +71,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         barBackground = mTa.getDrawable(R.styleable.BusinessNodeStatusBar_barBackground);
         statusItemConfig = (BusinessNodeStatusItemConfig) new BusinessNodeStatusItemConfig()
                 .setBadgeSize(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeSize, 12))
+                .setEllipsize(mTa.getInt(R.styleable.BusinessNodeStatusBar_ellipsize,1))
                 .setBadgeColor(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeColor, R.color.text_1c1c1c))
                 .setBadgeBackground(mTa.getDrawable(R.styleable.BusinessNodeStatusBar_badgeBackground))
                 .setMaxNumber(mTa.getInt(R.styleable.BusinessNodeStatusBar_maxNumber, 99))
