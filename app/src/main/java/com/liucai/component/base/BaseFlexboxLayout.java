@@ -13,7 +13,7 @@ import com.google.android.flexbox.FlexboxLayout;
 import com.liucai.component.bean.BaseComponentConfig;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/9/20

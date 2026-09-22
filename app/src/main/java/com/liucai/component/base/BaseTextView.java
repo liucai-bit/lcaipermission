@@ -11,8 +11,8 @@ import androidx.appcompat.widget.AppCompatTextView;
 import com.liucai.core.util.common.CommonUtils;
 
 /**
- * @author HUAWEI
- * @program lctipsdialog
+ * @author liucai
+ * @program lcpermission
  * @description
  * @Date 2026/9/11
  */
