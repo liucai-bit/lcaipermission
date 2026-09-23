@@ -35,6 +35,8 @@ public final class GlobalAppUtil {
     private static volatile String sVersionName;
     private static volatile int sVersionCode = -1;
     private static volatile boolean sSaveLog;
+    private static volatile boolean sDebug;
+    private static File sCacheDir;
 
     private static volatile WeakReference<Activity> sCurrentActivityRef;
 
@@ -46,6 +48,7 @@ public final class GlobalAppUtil {
 
     public static void init(@NonNull Application application) {
         sApplication = application;
+        sCacheDir = application.getExternalCacheDir(); // 可能为 null
         LcaiPreferenceUtils.init();
         registerActivityLifecycleCallback(application);
     }
@@ -127,6 +130,10 @@ public final class GlobalAppUtil {
 
     @Nullable
     public static File getCacheFile() {
+        return sCacheDir;
+    }
+
+    public static File getCacheFile2() {
         return getApplicationContext().getExternalCacheDir();
     }
 
@@ -136,6 +143,14 @@ public final class GlobalAppUtil {
 
     public static boolean isSaveLog() {
         return sSaveLog;
+    }
+
+    public static void setIsDebug(boolean debug) {
+        sDebug = debug;
+    }
+
+    public static boolean isDebug() {
+        return sDebug;
     }
 
     // ---------------- 全局运行时存储 ----------------
