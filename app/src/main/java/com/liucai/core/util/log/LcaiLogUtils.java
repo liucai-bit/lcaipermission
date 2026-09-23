@@ -3,7 +3,7 @@ package com.liucai.core.util.log;
 import android.util.Log;
 
 import com.liucai.core.apputils.GlobalAppUtil;
-import com.liucai.core.apputils.GlobalModleString;
+import com.liucai.core.apputils.GlobalModelString;
 import com.liucai.http.thread.GlobalThreadPool;
 
 import java.io.File;
@@ -70,7 +70,7 @@ public class LcaiLogUtils {
     }
 
     private static boolean isDebug() {
-        boolean debug = (boolean) GlobalAppUtil.globalGetObject(GlobalModleString.GLOBAL_DEBUG_MODE, false);
+        boolean debug = (boolean) GlobalAppUtil.globalGetObject(GlobalModelString.GLOBAL_DEBUG_MODE, false);
         return debug;
     }
 

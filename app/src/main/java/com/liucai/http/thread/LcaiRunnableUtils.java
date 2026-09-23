@@ -1,10 +1,8 @@
 package com.liucai.http.thread;
 
 /**
- * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/4
+ * @deprecated 直接使用 {@link Runnable}。
  */
+@Deprecated
 public abstract class LcaiRunnableUtils implements Runnable {
 }

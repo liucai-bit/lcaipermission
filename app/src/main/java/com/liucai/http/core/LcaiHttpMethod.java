@@ -1,27 +1,15 @@
 package com.liucai.http.core;
 
 /**
+ * HTTP 请求方法。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/5
  */
-public class LcaiHttpMethod {
-    /**
-     * GET请求
-     */
-   public static final String GET = "GET";
-    /**
-     * POST请求
-     */
-    public static final String POST = "POST";
-    /**
-     * 下载请求
-     */
-    public static final String DOWNLOAD = "DOWNLOAD";
-
-    /**
-     * 上传请求
-     */
-    public static final String PUT = "PUT";
+public enum LcaiHttpMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    /** 下载（内部会转成 GET）。 */
+    DOWNLOAD
 }

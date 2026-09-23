@@ -3,7 +3,7 @@ package com.liucai.core.base;
 import android.app.Application;
 
 import com.liucai.core.apputils.GlobalAppUtil;
-import com.liucai.core.exception.LcaiException;
+import com.liucai.core.exception.LcaiUncaughtExceptionHandler;
 import com.liucai.permission.BuildConfig;
 
 /**
@@ -19,7 +19,7 @@ public abstract class LcaiBaseApplication extends Application {
         super.onCreate();
         GlobalAppUtil.init(this);
         if (BuildConfig.DEBUG) {
-            Thread.setDefaultUncaughtExceptionHandler(new LcaiException());
+            Thread.setDefaultUncaughtExceptionHandler(LcaiUncaughtExceptionHandler.getInstance());
         }
         init();
     }

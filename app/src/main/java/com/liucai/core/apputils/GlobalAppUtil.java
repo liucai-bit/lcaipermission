@@ -14,43 +14,46 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.liucai.core.exception.LcaiHttpException;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.system.SystemUtils;
 import com.liucai.preference.LcaiPreferenceUtils;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 /**
+ * 全局应用上下文与运行时信息工具。
+ *
+ * <p>使用前必须先在 {@link Application#onCreate()} 中调用 {@link #init(Application)}。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/7/14
  */
-public class GlobalAppUtil {
-    private static volatile GlobalModle modle;
-    private static File CACHE_DIR;
-    private static boolean saveLog;
+public final class GlobalAppUtil {
 
-    public static void init(Application application) {
-        modle = new GlobalModle();
-        modle.setModle(GlobalModleString.GLOBAL_APPLICATION, application);
-        LcaiPreferenceUtils.getModle().init();
-        registerActivityLifecycelCallback();
-        CACHE_DIR = application.getApplicationContext().getExternalCacheDir();
+    private static volatile Application sApplication;
+    private static volatile String sVersionName;
+    private static volatile int sVersionCode = -1;
+    private static volatile boolean sSaveLog;
+
+    private static volatile WeakReference<Activity> sCurrentActivityRef;
+
+    private GlobalAppUtil() {
+        // no instance
     }
 
-    public static void setIsDebug(boolean isDebug) {
-        verifyModle();
-        modle.setModle(GlobalModleString.GLOBAL_DEBUG_MODE, isDebug);
+    // ---------------- 初始化 ----------------
+
+    public static void init(@NonNull Application application) {
+        sApplication = application;
+        LcaiPreferenceUtils.init();
+        registerActivityLifecycleCallback(application);
     }
 
-    private static void registerActivityLifecycelCallback() {
-        getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+    private static void registerActivityLifecycleCallback(@NonNull Application app) {
+        app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-
             }
 
             @Override
@@ -59,12 +62,12 @@ public class GlobalAppUtil {
 
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
-                modle.setModle(GlobalModleString.CLIENT_ACTIVITY, activity);
+                sCurrentActivityRef = new WeakReference<>(activity);
             }
 
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
-                modle.remove(GlobalModleString.CLIENT_ACTIVITY);
+                clearCurrentActivityIfMatch(activity);
             }
 
             @Override
@@ -77,367 +80,252 @@ public class GlobalAppUtil {
 
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
-                modle.remove(GlobalModleString.CLIENT_ACTIVITY);
+                clearCurrentActivityIfMatch(activity);
             }
         });
     }
 
-    /**
-     * 获取application
-     * @return
-     */
+    private static void clearCurrentActivityIfMatch(@NonNull Activity activity) {
+        WeakReference<Activity> ref = sCurrentActivityRef;
+        if (ref != null && ref.get() == activity) {
+            sCurrentActivityRef = null;
+        }
+    }
+
+    // ---------------- Application / Context / Activity ----------------
+
+    @NonNull
     public static Application getApplication() {
-        verifyModle();
-        return (Application) modle.getModle(GlobalModleString.GLOBAL_APPLICATION,null);
+        Application app = sApplication;
+        if (app == null) {
+            throw new IllegalStateException("GlobalAppUtil has not been initialized, call init() first.");
+        }
+        return app;
     }
 
-    /**
-     * 获取applicationContext
-     * @return
-     */
+    @NonNull
     public static Context getApplicationContext() {
-        verifyModle();
-        Application application = (Application) modle.getModle(GlobalModleString.GLOBAL_APPLICATION,null);
-        return application.getApplicationContext();
+        return getApplication().getApplicationContext();
     }
 
-    /**
-     * 获取当前的activity
-     * @return
-     */
+    @Nullable
     public static Activity getActivity() {
-        verifyModle();
-        Activity activity = (Activity) modle.getModle(GlobalModleString.CLIENT_ACTIVITY,null);
-        return activity;
+        WeakReference<Activity> ref = sCurrentActivityRef;
+        return ref == null ? null : ref.get();
     }
 
     /**
-     * 判断当前activity是否存在
-     * @param mActivity
-     * @return
+     * Activity 是否仍然存活（未 finishing 且未 destroyed）。
      */
-    public static boolean isRuning(Activity mActivity) {
-        return !mActivity.isFinishing() || !mActivity.isDestroyed();
+    public static boolean isRunning(@Nullable Activity activity) {
+        return activity != null
+                && !activity.isFinishing()
+                && !activity.isDestroyed();
     }
 
-    /**
-     * 获取缓存文件
-     * @return
-     */
+    // ---------------- 缓存目录 / 日志开关 ----------------
+
+    @Nullable
     public static File getCacheFile() {
-        return CACHE_DIR;
+        return getApplicationContext().getExternalCacheDir();
     }
 
-    /**
-     * 打开日志存储
-     * @return
-     */
-    public static void openSaveLog(boolean saveLog) {
-        GlobalAppUtil.saveLog = saveLog;
+    public static void setSaveLog(boolean save) {
+        sSaveLog = save;
     }
 
     public static boolean isSaveLog() {
-        return GlobalAppUtil.saveLog;
+        return sSaveLog;
     }
 
-    /**
-     * 存储参数
-     * @param key
-     * @param value
-     */
-    public static void globalSetObject(String key, Object value) {
-        verifyModle();
-        modle.setModle(key, value);
+    // ---------------- 全局运行时存储 ----------------
+
+    private static final GlobalModel GLOBAL = new GlobalModel();
+
+    public static void globalSetObject(@NonNull String key, @Nullable Object value) {
+        GLOBAL.set(key, value);
     }
 
-    /**
-     * 获取存储的值
-     * @param key
-     * @return
-     */
-    public static Object globalGetObject(String key,Object defaultValue) {
-        verifyModle();
-        return modle.getModle(key,defaultValue);
+    @Nullable
+    public static <T> T globalGetObject(@NonNull String key, @Nullable T defaultValue) {
+        return GLOBAL.get(key, defaultValue);
     }
 
-    /**
-     * 删除指定缓存
-     * @param key
-     */
-    public static void globalRemoveObject(String key) {
-        verifyModle();
-        modle.remove(key);
+    public static void globalRemoveObject(@NonNull String key) {
+        GLOBAL.remove(key);
     }
 
-    /**
-     * 清除存储的值
-     */
     public static void globalClearObject() {
-        verifyModle();
-        modle.clearModle();
+        GLOBAL.clear();
     }
 
-    /**
-     * 获取状态栏高度
-     * @return
-     */
+    // ---------------- 屏幕尺寸相关 ----------------
+
     public static int getStatusBarHeight() {
-        Context context = getApplicationContext();
-        Resources resources = context.getResources();
-        int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId != 0) {
-            int height = resources.getDimensionPixelSize(resourceId);
-            return height;
-        }
-        LcaiLogUtils.w("获取status_bar_height失败");
-        return 0;
+        return getSystemDimen("status_bar_height");
     }
 
-    /**
-     * 获取底部导航栏高度
-     * @return
-     */
     public static int getNavigationBarHeight() {
-        Context context = getApplicationContext();
-        Resources resources = context.getResources();
-        int resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+        return getSystemDimen("navigation_bar_height");
+    }
+
+    private static int getSystemDimen(@NonNull String name) {
+        Resources resources = getApplicationContext().getResources();
+        int resourceId = resources.getIdentifier(name, "dimen", "android");
         if (resourceId != 0) {
-            int height = resources.getDimensionPixelSize(resourceId);
-            return height;
+            return resources.getDimensionPixelSize(resourceId);
         }
-        LcaiLogUtils.w("获取navigation_bar_height失败");
+        LcaiLogUtils.w("获取 " + name + " 失败");
         return 0;
     }
 
-    /**
-     * 获取系统全局字体缩放倍数
-     * @return
-     */
+    // ---------------- 字体缩放 ----------------
+
     public static float getSystemFontScale() {
-        Float fontScale = (Float) LcaiPreferenceUtils.getModle().get(GlobalModleString.GLOBAL_FONT_SCALE, 1.0f);
-        return fontScale;
+        return LcaiPreferenceUtils.getFloat(GlobalModelString.GLOBAL_FONT_SCALE, 1.0f);
     }
 
-    /**
-     * 设置系统全局字体缩放倍数
-     * @param fontScale
-     */
     public static void setSystemFontScale(float fontScale) {
-        verifyModle();
-        if (!LcaiPreferenceUtils.isInit()) {
-            LcaiPreferenceUtils.getModle().init();
+        float old = LcaiPreferenceUtils.getFloat(GlobalModelString.GLOBAL_FONT_SCALE, 1.0f);
+        if (Float.compare(old, fontScale) == 0) {
+            return;
         }
-        float fScale = (float) LcaiPreferenceUtils.getModle().get(GlobalModleString.GLOBAL_FONT_SCALE, 1.0f);
-        if (fScale != fontScale) {
-            LcaiPreferenceUtils.getModle().put(GlobalModleString.GLOBAL_FONT_SCALE, fontScale);
-        }
+        LcaiPreferenceUtils.put(GlobalModelString.GLOBAL_FONT_SCALE, fontScale);
         Activity activity = getActivity();
-        if (activity != null) {
-            //设置后需要重启
+        if (isRunning(activity)) {
+            // 设置后需要重建 Activity 让配置生效
             activity.recreate();
         }
     }
 
-    /**
-     * 获取应用私有目录存储地址
-     */
+    // ---------------- 应用信息 ----------------
+
+    @NonNull
     public static String getDataDir() {
-        verifyModle();
-        Context context = getApplicationContext();
-        return context.getApplicationInfo().dataDir;
+        return getApplicationContext().getApplicationInfo().dataDir;
     }
 
-    /**
-     * 获取当前应用版本名称
-     * 1.0
-     * @return
-     */
+    @NonNull
     public static String getAppVersionName() {
-        verifyModle();
-        Context context = getApplicationContext();
-        String mVersionName = "1.0";
+        if (sVersionName != null) {
+            return sVersionName;
+        }
+        String name = "1.0";
         try {
-            PackageManager packageManager = context.getPackageManager();
-            // 获取当前应用的包名
-            String packageName = context.getPackageName();
-            // 通过包名获取包信息
-            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
-            // 获取版本名称 (例如：1.0)
-            mVersionName = packageInfo.versionName;
-        } catch (Exception e) {
+            Context ctx = getApplicationContext();
+            PackageInfo info = ctx.getPackageManager()
+                    .getPackageInfo(ctx.getPackageName(), 0);
+            if (info.versionName != null) {
+                name = info.versionName;
+            }
+        } catch (PackageManager.NameNotFoundException e) {
             LcaiLogUtils.i("获取版本名称信息失败");
         }
-
-        return mVersionName;
+        sVersionName = name;
+        return name;
     }
 
-    /**
-     * 获取版本号
-     * @return
-     */
     public static int getAppVersionCode() {
-        verifyModle();
-        int versionCode = 1;
-        Context context = getApplicationContext();
+        if (sVersionCode != -1) {
+            return sVersionCode;
+        }
+        int code = 1;
         try {
-            PackageManager packageManager = context.getPackageManager();
-            // 获取当前应用的包名
-            String packageName = context.getPackageName();
-            // 通过包名获取包信息
-            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
-            // 获取版本号 (例如：1)
-            versionCode = packageInfo.versionCode;
-        } catch (Exception e) {
+            Context ctx = getApplicationContext();
+            PackageInfo info = ctx.getPackageManager()
+                    .getPackageInfo(ctx.getPackageName(), 0);
+            code = info.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
             LcaiLogUtils.i("获取版本号信息失败");
         }
-        return versionCode;
+        sVersionCode = code;
+        return code;
     }
 
-    /**
-     * 获取手机型号
-     * @return
-     */
-    public static String getSystemModle() {
+    // ---------------- 设备信息 ----------------
+
+    public static String getSystemModel() {
         return Build.MODEL;
     }
 
-    /**
-     * 获取手机厂商
-     *
-     * @return 手机厂商
-     */
     public static String getDeviceBrand() {
         return Build.BRAND;
     }
 
-    /**
-     * 获取厂商名
-     **/
     public static String getDeviceManufacturer() {
         return Build.MANUFACTURER;
     }
 
-    /**
-     * 获取产品名
-     **/
     public static String getDeviceProduct() {
         return Build.PRODUCT;
     }
 
-    /**
-     * 获取手机主板名
-     */
     public static String getDeviceBoard() {
         return Build.BOARD;
     }
 
-    /**
-     * 设备名
-     **/
     public static String getDeviceDevice() {
         return Build.DEVICE;
     }
 
-    /**
-     * fingerprit 信息
-     **/
     public static String getDeviceFingerprint() {
         return Build.FINGERPRINT;
     }
 
-    /**
-     * 硬件名
-     **/
     public static String getDeviceHardware() {
         return Build.HARDWARE;
     }
 
-    /**
-     * 主机
-     **/
     public static String getDeviceHost() {
         return Build.HOST;
     }
 
-    /**
-     * 显示ID
-     **/
     public static String getDeviceDisplay() {
         return Build.DISPLAY;
     }
 
-    /**
-     * ID
-     **/
     public static String getDeviceId() {
         return Build.ID;
     }
 
-    /**
-     * 获取用户名
-     **/
     public static String getDeviceUser() {
         return Build.USER;
     }
 
     /**
-     * 获取手机 硬件序列号
-     **/
+     * @deprecated Android 10+ 已不可用，始终返回 "unknown"。
+     */
     @Deprecated
     public static String getDeviceSerial() {
         return Build.SERIAL;
     }
 
-    /**
-     * 获取手机Android 系统SDK
-     *
-     * @return
-     */
     public static int getDeviceSDK() {
         return Build.VERSION.SDK_INT;
     }
 
-    /**
-     * 获取手机Android 版本
-     *
-     * @return
-     */
     public static String getDeviceAndroidVersion() {
         return Build.VERSION.RELEASE;
     }
 
-    /**
-     * 获取当前手机系统语言。
-     */
     public static String getDeviceDefaultLanguage() {
         return Locale.getDefault().getLanguage();
     }
 
-    /**
-     * 是否连接网络
-     * @return
-     */
-    public static boolean isNetWorkConnected() {
-        ConnectivityManager cm = (ConnectivityManager) GlobalAppUtil.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (cm == null) return false;
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    // ---------------- 网络 / 模拟器 ----------------
+
+    public static boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager)
+                getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) {
+            return false;
+        }
+        NetworkInfo info = cm.getActiveNetworkInfo();
+        return info != null && info.isConnectedOrConnecting();
     }
 
-    /**
-     * 检测是否是模拟器
-     * @return
-     */
     public static boolean isEmulator() {
         return SystemUtils.CheckEmulatorFiles()
                 || SystemUtils.CheckEmulatorBuild();
-    }
-
-
-
-    private static void verifyModle(){
-        if (modle == null) {
-            throw new LcaiHttpException("必须先初始化GloabalAppUtil");
-        }
     }
 }

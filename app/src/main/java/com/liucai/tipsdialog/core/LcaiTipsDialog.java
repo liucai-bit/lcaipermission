@@ -43,7 +43,7 @@ public class LcaiTipsDialog extends Dialog {
     private LinearLayout defaultRoot,richTextRoot,listRoot;
     private TextView tvTitle, tvContent, tvCancel, tvConfirm;
     private ImageView ivImage, ivClose;
-    private TextView tvRichTitle, tvRichCancel, tvRichConfirm;
+    private TextView tvRichTitle;
     private LcaiBridgeWebview wbContent;
     private TextView tvListTitle,tvListCancel, tvListComfirm;
     private RecyclerView mList;
@@ -127,12 +127,14 @@ public class LcaiTipsDialog extends Dialog {
                 v -> {
                     if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
                     dismiss();
+                    builder.release();
                 });
         setupButton(tvConfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
                 v -> {
                     if (builder.dialogInterface != null)
                         builder.dialogInterface.onConfirmListener();
                     dismiss();
+                    builder.release();
                 });
     }
 
@@ -143,6 +145,7 @@ public class LcaiTipsDialog extends Dialog {
         ivClose.setOnClickListener(v -> {
             if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
             dismiss();
+            builder.release();
         });
     }
 
@@ -166,6 +169,7 @@ public class LcaiTipsDialog extends Dialog {
         ivClose.setOnClickListener(v -> {
             if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
             dismiss();
+            builder.release();
         });
     }
 
@@ -197,12 +201,14 @@ public class LcaiTipsDialog extends Dialog {
                 v -> {
                     if (builder.dialogInterface != null) builder.dialogInterface.onCancelListener();
                     dismiss();
+                    builder.release();
                 });
 
         setupButton(tvListComfirm, builder.confirmText, builder.confirmColor, builder.confirmSize, builder.confirmBg,
                 v -> {
                     if (builder.dialogInterface != null) builder.dialogInterface.onConfirmListener();
                     dismiss();
+                    builder.release();
                 });
     }
 
@@ -231,7 +237,10 @@ public class LcaiTipsDialog extends Dialog {
                     spanStr.setSpan(new ClickableSpan() {
                         @Override
                         public void onClick(@NonNull View widget) {
-                            if (builder.contentClickDismiss) dismiss();
+                            if (builder.contentClickDismiss) {
+                                dismiss();
+                                builder.release();
+                            }
                             if (builder.dialogInterface != null)
                                 builder.dialogInterface.onContentListener(module.clickIndex);
                         }

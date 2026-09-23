@@ -1,22 +1,13 @@
 package com.liucai.http.core;
 
 /**
- * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/5
+ * 响应体解析方式。
  */
 public enum LcaiHttpCall {
-    /**
-     * 返回JSON格式
-     */
+    /** 以字符串（JSON/XML）形式返回。 */
     JSON,
-    /**
-     * 返回RESPONDE对象
-     */
+    /** 以 {@link java.io.InputStream} 形式返回。 */
     RESPONSE,
-    /**
-     * 返回下载格式
-     */
+    /** 下载到本地文件。 */
     DOWNLOAD
 }

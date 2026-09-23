@@ -6,7 +6,7 @@ package com.liucai.core.apputils;
  * @description
  * @Date 2026/7/14
  */
-public class GlobalModleString {
+public class GlobalModelString {
     public static String GLOBAL_PREFERENCE = "__preference";
     public static String GLOBAL_APPLICATION = "__application";
     public static String CLIENT_ACTIVITY = "__activity";

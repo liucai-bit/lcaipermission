@@ -17,7 +17,7 @@ import com.liucai.core.util.text.TextUtils;
  */
 public class ImageUtils {
     public static void loadImage(Context mContext, String imageUrl, ImageView mImage) {
-        if (GlobalAppUtil.isRuning((Activity) mContext) && mImage != null && !TextUtils.isEmpty(imageUrl)) {
+        if (GlobalAppUtil.isRunning((Activity) mContext) && mImage != null && !TextUtils.isEmpty(imageUrl)) {
             Glide.with(mContext).load(imageUrl).into(mImage);
             return;
         }

@@ -1,11 +1,11 @@
 package com.liucai.http.thread;
 
-import android.os.Process;
-import android.util.Log;
+import androidx.annotation.NonNull;
 
 import com.liucai.core.util.log.LcaiLogUtils;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
@@ -14,93 +14,67 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 全局线程池管理器
- * 用于统一管理 HTTP 请求及其他异步任务
+ * 全局 HTTP 线程池。
+ *
+ * <p>线程数按 IO 密集型任务配置（HTTP 请求大部分时间在等 IO），
+ * 与 CPU 核心数关系不大，因此核心/最大线程数直接固定，避免低端设备任务被饿死。
+ *
+ * @author liucai
  */
-public class GlobalThreadPool {
+public final class GlobalThreadPool {
 
     private static final String TAG = "GlobalThreadPool";
 
-    // CPU 核心数
-    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-
-    // 核心线程数：CPU核心数 + 1
-    private static final int CORE_POOL_SIZE = CPU_COUNT + 1;
-
-    // 最大线程数：CPU核心数 * 2 + 1
-    private static final int MAXIMUM_POOL_SIZE = CPU_COUNT * 2 + 1;
-
-    // 非核心线程空闲存活时间
+    private static final int CORE_POOL_SIZE = 8;
+    private static final int MAXIMUM_POOL_SIZE = 16;
     private static final int KEEP_ALIVE_SECONDS = 30;
-
-    // 任务队列容量
-    private static final int BLOCKING_QUEUE_CAPACITY = 128;
+    private static final int QUEUE_CAPACITY = 128;
 
     private static volatile ThreadPoolExecutor sExecutor;
-    private static final Object sLock = new Object();
 
-    /**
-     * 获取单例线程池实例
-     * 双重检查锁定保证线程安全
-     */
+    private GlobalThreadPool() {
+    }
+
     public static ThreadPoolExecutor getInstance() {
         if (sExecutor == null) {
-            synchronized (sLock) {
-                if (sExecutor == null) {
-                    // 创建阻塞队列
-                    BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(BLOCKING_QUEUE_CAPACITY);
-
-                    // 创建线程工厂
-                    ThreadFactory threadFactory = new DefaultThreadFactory();
-
-                    // 创建拒绝策略：当队列满且线程达到最大值时，由调用线程执行任务（防止任务丢失）
-                    RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
-
-                    sExecutor = new ThreadPoolExecutor(
-                            CORE_POOL_SIZE,
-                            MAXIMUM_POOL_SIZE,
-                            KEEP_ALIVE_SECONDS,
-                            TimeUnit.SECONDS,
-                            workQueue,
-                            threadFactory,
-                            handler
-                    );
-
-                    // 允许核心线程超时回收，节省资源
-                    sExecutor.allowCoreThreadTimeOut(true);
-
-                    LcaiLogUtils.d(TAG, "GlobalThreadPool initialized. Core: " + CORE_POOL_SIZE + ", Max: " + MAXIMUM_POOL_SIZE);
+            synchronized (GlobalThreadPool.class) {
+                if (sExecutor == null || sExecutor.isShutdown()) {
+                    sExecutor = createExecutor();
                 }
             }
         }
         return sExecutor;
     }
 
-    /**
-     * 执行 Runnable 任务
-     * @param runnable 任务对象
-     */
-    public static void execute(Runnable runnable) {
-        if (runnable == null) {
-            return;
-        }
+    private static ThreadPoolExecutor createExecutor() {
+        BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
+        ThreadFactory factory = new DefaultThreadFactory();
+
+        // 队列满时不阻塞调用线程（可能是主线程），直接丢弃并记录日志
+        RejectedExecutionHandler handler = (r, executor) ->
+                LcaiLogUtils.e(TAG, "Task rejected: queue full, active=" + executor.getActiveCount());
+
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                CORE_POOL_SIZE,
+                MAXIMUM_POOL_SIZE,
+                KEEP_ALIVE_SECONDS,
+                TimeUnit.SECONDS,
+                queue,
+                factory,
+                handler);
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
+    }
+
+    public static void execute(@NonNull Runnable task) {
         try {
-            getInstance().execute(runnable);
+            getInstance().execute(task);
         } catch (Exception e) {
             LcaiLogUtils.e(TAG, "Execute task failed", e);
         }
     }
 
-    /**
-     * 提交 Callable 或 Runnable 任务，返回 Future
-     * 用于需要获取返回值或取消任务的场景
-     * @param task 任务对象
-     * @return Future 对象
-     */
-    public static java.util.concurrent.Future<?> submit(Runnable task) {
-        if (task == null) {
-            return null;
-        }
+    public static Future<?> submit(@NonNull Runnable task) {
         try {
             return getInstance().submit(task);
         } catch (Exception e) {
@@ -109,71 +83,41 @@ public class GlobalThreadPool {
         }
     }
 
-    /**
-     * 移除未执行的任务
-     * @param task 任务对象
-     * @return 是否移除成功
-     */
-    public static boolean remove(Runnable task) {
-        if (task == null || sExecutor == null) {
-            return false;
-        }
-        return sExecutor.getQueue().remove(task);
+    public static boolean remove(@NonNull Runnable task) {
+        ThreadPoolExecutor e = sExecutor;
+        return e != null && e.getQueue().remove(task);
     }
 
-    /**
-     * 关闭线程池
-     * 通常在应用退出时调用
-     */
     public static void shutdown() {
-        if (sExecutor != null && !sExecutor.isShutdown()) {
-            sExecutor.shutdown();
-            LcaiLogUtils.d(TAG, "GlobalThreadPool shutdown");
+        ThreadPoolExecutor e = sExecutor;
+        if (e != null && !e.isShutdown()) {
+            e.shutdown();
         }
+        sExecutor = null;
     }
 
-    /**
-     * 立即关闭线程池
-     * 尝试停止所有正在执行的任务
-     */
     public static void shutdownNow() {
-        if (sExecutor != null && !sExecutor.isShutdown()) {
-            sExecutor.shutdownNow();
-            LcaiLogUtils.d(TAG, "GlobalThreadPool shutdownNow");
+        ThreadPoolExecutor e = sExecutor;
+        if (e != null && !e.isShutdown()) {
+            e.shutdownNow();
         }
+        sExecutor = null;
     }
 
-    /**
-     * 默认线程工厂
-     * 设置线程名称优先级，便于调试和性能优化
-     */
-    private static class DefaultThreadFactory implements ThreadFactory {
-        private static final AtomicInteger poolNumber = new AtomicInteger(1);
-        private final ThreadGroup group;
+    private static final class DefaultThreadFactory implements ThreadFactory {
+        private static final AtomicInteger POOL = new AtomicInteger(1);
         private final AtomicInteger threadNumber = new AtomicInteger(1);
-        private final String namePrefix;
+        private final String prefix;
 
         DefaultThreadFactory() {
-            SecurityManager s = System.getSecurityManager();
-            group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-            namePrefix = "LcaiHttp-Pool-" + poolNumber.getAndIncrement() + "-Thread-";
+            prefix = "LcaiHttp-" + POOL.getAndIncrement() + "-";
         }
 
         @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-
-            // 设置线程优先级为后台线程，避免占用主线程资源
-            if (t.isDaemon()) {
-                t.setDaemon(false);
-            }
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-            }
-
-            // 设置线程所属进程优先级（Android特有优化）
-            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-
+        public Thread newThread(@NonNull Runnable r) {
+            Thread t = new Thread(r, prefix + threadNumber.getAndIncrement());
+            t.setDaemon(false);
+            t.setPriority(Thread.NORM_PRIORITY);
             return t;
         }
     }

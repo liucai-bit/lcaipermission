@@ -1,19 +1,13 @@
 package com.liucai.http.core;
 
 /**
- * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/5
+ * 请求体发送格式。
  */
 public enum LcaiHttpSend {
-    /**
-     * 上传JSON格式
-     */
+    /** JSON body。 */
     JSON,
-    /**
-     * 上传MAP格式
-     */
+    /** form-urlencoded body。 */
     MAP,
+    /** multipart/form-data body（文件上传）。 */
     FORM_DATA
 }

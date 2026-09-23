@@ -323,7 +323,12 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
     public void dismiss() {
         if (dialog != null) {
             dialog.dismiss();
+            release();
         }
+    }
+
+    public void release() {
+        this.mContext = null;
     }
 
     public void build() {

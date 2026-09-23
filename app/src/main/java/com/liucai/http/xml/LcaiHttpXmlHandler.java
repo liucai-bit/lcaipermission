@@ -1,7 +1,9 @@
 package com.liucai.http.xml;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.ArrayList;
@@ -10,50 +12,43 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 解析指定根标签下每一个同级元素的属性。
+ *
  * @author liucai
- * @program lcpermission
- * @description RxHttpXmlHandler
- * @Date 2025-08-26 14:39
- **/
+ */
 public class LcaiHttpXmlHandler extends DefaultHandler {
 
-    private String xmlName;
-    Map<String, String> map;
-    List<Map<String, String>> maps;
+    private final String targetName;
+    private final List<Map<String, String>> maps = new ArrayList<>();
 
-    public LcaiHttpXmlHandler(String xmlName) {
-        this.xmlName =xmlName;
-        this.map = new HashMap();
+    @Nullable
+    private Map<String, String> current;
+
+    public LcaiHttpXmlHandler(@NonNull String targetName) {
+        this.targetName = targetName;
     }
 
+    @NonNull
     public List<Map<String, String>> getMaps() {
-        return this.maps;
+        return maps;
     }
 
-    public void startDocument() throws SAXException {
-        this.maps = new ArrayList();
-    }
-
-    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        this.map = new HashMap();
-        if (this.xmlName.equals(qName)) {
-            for(int i = 0; i < attributes.getLength(); ++i) {
-                String qname = attributes.getQName(i);
-                String value = attributes.getValue(qname);
-                this.map.put(qname, value);
+    @Override
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        if (targetName.equals(qName)) {
+            Map<String, String> map = new HashMap<>();
+            for (int i = 0; i < attributes.getLength(); i++) {
+                map.put(attributes.getQName(i), attributes.getValue(i));
             }
+            current = map;
         }
-
     }
 
-    public void characters(char[] ch, int start, int length) throws SAXException {
-    }
-
-    public void endElement(String uri, String localName, String qName) throws SAXException {
-        if (this.map != null) {
-            this.maps.add(this.map);
+    @Override
+    public void endElement(String uri, String localName, String qName) {
+        if (targetName.equals(qName) && current != null) {
+            maps.add(current);
+            current = null;
         }
-
-        this.map = null;
     }
 }

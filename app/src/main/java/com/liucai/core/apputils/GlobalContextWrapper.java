@@ -22,7 +22,7 @@ public class GlobalContextWrapper extends ContextWrapper {
     }
 
     public ContextWrapper wrap() {
-        float fontScale = (float) LcaiPreferenceUtils.getModle().get(GlobalModleString.GLOBAL_FONT_SCALE, 1.0);
+        float fontScale = LcaiPreferenceUtils.getFloat(GlobalModelString.GLOBAL_FONT_SCALE, 1.0f);
         if (fontScale > 0) {
             Configuration config = mContext.getResources().getConfiguration();
 
