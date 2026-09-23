@@ -13,9 +13,9 @@ import com.liucai.core.util.text.TextUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier; // 用于过滤 static 方法
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap; // 优化：使用 HashMap 替代 ConcurrentHashMap 以提升性能
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 /**
  * @author liucai
  * @description 轻量型基于事件ID的事件总线
+ * 订阅者使用 WeakReference 持有，避免忘记 unRegister 导致的内存泄漏。
  */
 public class LcaiEventBus {
     private static volatile LcaiEventBus instance;
@@ -104,11 +105,9 @@ public class LcaiEventBus {
         List<Method> methodList = new ArrayList<>();
         Class<?> current = clazz;
 
-        // 向上遍历直到 Object
         while (current != null && current != Object.class) {
             Method[] declaredMethods = current.getDeclaredMethods();
             for (Method m : declaredMethods) {
-                // 过滤掉 static 方法，防止内存泄漏或调用错误
                 if (!Modifier.isStatic(m.getModifiers()) && m.isAnnotationPresent(Subscribe.class)) {
                     methodList.add(m);
                 }
@@ -131,13 +130,15 @@ public class LcaiEventBus {
                 CopyOnWriteArraySet<Subscription> subscriptions = entry.getValue();
 
                 if (subscriptions != null) {
-                    // 使用迭代器安全移除
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        subscriptions.removeIf(subscription -> subscription.subscriber == subscriber);
+                        // 关键改动：WeakReference 版本，需要用 getSubscriber() 判等
+                        subscriptions.removeIf(subscription -> {
+                            Object sub = subscription.getSubscriber();
+                            return sub == null || sub == subscriber;
+                        });
                     }
                 }
 
-                // 如果该事件ID下没有订阅者了，移除该Key以节省内存
                 if (subscriptions == null || subscriptions.isEmpty()) {
                     iterator.remove();
                 }
@@ -158,14 +159,44 @@ public class LcaiEventBus {
             targetSubscriptions = eventMap.get(event.msgId);
         }
 
-        if (targetSubscriptions != null && !targetSubscriptions.isEmpty()) {
-            for (Subscription subscription : targetSubscriptions) {
-                if (subscription.threadMode == ThreadMode.POSTING) {
-                    invokeMethod(subscription.subscriber, subscription.subscribeMethod, event.msgContent);
-                } else if (subscription.threadMode == ThreadMode.MAIN) {
-                    invokeMainMethod(subscription.subscriber, subscription.subscribeMethod, event.msgContent);
+        if (targetSubscriptions == null || targetSubscriptions.isEmpty()) {
+            return;
+        }
+
+        // 遍历过程中收集已失效的订阅者，遍历结束后统一清理（避免 CopyOnWriteArraySet 迭代中修改）
+        List<Subscription> deadSubscriptions = null;
+
+        for (Subscription subscription : targetSubscriptions) {
+            Object subscriber = subscription.getSubscriber();
+            if (subscriber == null) {
+                // 订阅者已被 GC，收集以便后续清理
+                if (deadSubscriptions == null) {
+                    deadSubscriptions = new ArrayList<>();
+                }
+                deadSubscriptions.add(subscription);
+                continue;
+            }
+
+            if (subscription.threadMode == ThreadMode.POSTING) {
+                invokeMethod(subscriber, subscription.subscribeMethod, event.msgContent);
+            } else if (subscription.threadMode == ThreadMode.MAIN) {
+                invokeMainMethod(subscriber, subscription.subscribeMethod, event.msgContent);
+            }
+        }
+
+        // 统一清理失效的订阅者
+        if (deadSubscriptions != null && !deadSubscriptions.isEmpty()) {
+            synchronized (eventMap) {
+                CopyOnWriteArraySet<Subscription> current = eventMap.get(event.msgId);
+                if (current != null) {
+                    current.removeAll(deadSubscriptions);
+                    if (current.isEmpty()) {
+                        eventMap.remove(event.msgId);
+                    }
                 }
             }
+            LcaiLogUtils.d("LcaiEventBus: cleaned " + deadSubscriptions.size()
+                    + " dead subscriptions for event: " + event.msgId);
         }
     }
 
@@ -188,14 +219,41 @@ public class LcaiEventBus {
             method.invoke(subscriber, msgContent);
         } catch (InvocationTargetException e) {
             LcaiLogUtils.e("Event dispatch failed in method: " + method.getName());
-            e.getCause().printStackTrace();
+            if (e.getCause() != null) {
+                e.getCause().printStackTrace();
+            }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }
 
     private void invokeMainMethod(@NonNull Object subscriber, @NonNull Method method, @Nullable String msgContent) {
-        mainHandler.post(() -> invokeMethod(subscriber, method, msgContent));
+        mainHandler.post(() -> {
+            // 二次检查：post 到主线程执行时，subscriber 可能已被 GC
+            // 由于这里捕获了 subscriber 强引用（参数），只要进入方法，引用就是有效的
+            invokeMethod(subscriber, method, msgContent);
+        });
+    }
+
+    /**
+     * 主动清理所有失效的订阅者（可选，也可由外部定期调用）
+     */
+    public void purgeDeadSubscriptions() {
+        synchronized (eventMap) {
+            Iterator<Map.Entry<String, CopyOnWriteArraySet<Subscription>>> iterator = eventMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, CopyOnWriteArraySet<Subscription>> entry = iterator.next();
+                CopyOnWriteArraySet<Subscription> subscriptions = entry.getValue();
+                if (subscriptions != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        subscriptions.removeIf(Subscription::isSubscriberGone);
+                    }
+                }
+                if (subscriptions == null || subscriptions.isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        }
     }
 
     public void clearAll() {
