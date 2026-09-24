@@ -6,10 +6,14 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.View;
+import android.view.WindowInsets;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -177,11 +181,70 @@ public final class GlobalAppUtil {
     // ---------------- 屏幕尺寸相关 ----------------
 
     public static int getStatusBarHeight() {
-        return getSystemDimen("status_bar_height");
+        return getStatusBarHeight(getApplicationContext());
     }
 
     public static int getNavigationBarHeight() {
-        return getSystemDimen("navigation_bar_height");
+        return getRealNavigationBarHeight(getApplicationContext());
+    }
+
+    public static int getStatusBarHeight(Context context) {
+        if (context instanceof Activity) {
+            View decor = ((Activity) context).getWindow().getDecorView();
+            WindowInsets insets = decor.getRootWindowInsets();
+            if (insets != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    return insets.getInsets(WindowInsets.Type.statusBars()).top;
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+                    return insets.getSystemWindowInsetTop();
+                }
+            }
+            // 兜底
+            Rect rect = new Rect();
+            decor.getWindowVisibleDisplayFrame(rect);
+            return rect.top;
+        }
+        // 最后才用资源值
+        return getSystemDimen("status_bar_height");
+    }
+
+    private static int getRealNavigationBarHeight(Context context) {
+        if (context == null) return 0;
+        // 1) API 30+ 用 WindowInsets.Type.navigationBars()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowInsets insets = getRootInsets(context);
+            if (insets != null) {
+                return insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+            }
+        }
+        // 2) API 20~29 用 getSystemWindowInsetBottom()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+            WindowInsets insets = getRootInsets(context);
+            if (insets != null) {
+                return insets.getSystemWindowInsetBottom();
+            }
+        }
+        // 3) 兜底：屏幕高度 - 可见区域底部
+        return getNavigationBarHeightByFrame(context);
+    }
+
+    private static WindowInsets getRootInsets(Context context) {
+        if (context instanceof Activity) {
+            View decor = ((Activity) context).getWindow().getDecorView();
+            return decor.getRootWindowInsets();
+        }
+        return null;
+    }
+
+    private static int getNavigationBarHeightByFrame(Context context) {
+        if (context instanceof Activity) {
+            Activity a = (Activity) context;
+            Rect rect = new Rect();
+            a.getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+            DisplayMetrics dm = a.getResources().getDisplayMetrics();
+            return Math.max(dm.heightPixels - rect.bottom, 0);
+        }
+        return 0;
     }
 
     private static int getSystemDimen(@NonNull String name) {
