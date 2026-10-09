@@ -1,5 +1,4 @@
 jdk:
     - openjdk17
-
-    before_install:
-    - unset JAVA_HOME
+install:
+- ./gradlew :app:publishToMavenLocal
