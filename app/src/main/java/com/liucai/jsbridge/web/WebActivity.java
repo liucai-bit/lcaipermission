@@ -1,41 +1,48 @@
 package com.liucai.jsbridge.web;
 
+import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.ViewGroup;
+import android.view.View;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 
-import com.alibaba.fastjson.JSONObject;
-import com.liucai.core.LcaiManager;
+import androidx.annotation.Nullable;
+
 import com.liucai.core.base.LcaiBaseActivity;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.jsbridge.bridge.LcaiCallbackFunction;
 import com.liucai.jsbridge.bridge.LcaiDefaultHandler;
 import com.liucai.permission.R;
-import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
-import com.liucai.permission.core.LcaiReqPermissionResult;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author liucai
- * @program lcpermission
- * @description
  * @Date 2026/7/7
  */
 public class WebActivity extends LcaiBaseActivity {
+
+    private static final String TAG = "WebActivity";
     public static final String BACK_METHOD = "__back";
     public static final String PERMISSION_METHOD = "__permission";
+
     private WebActivityConfig config;
-    private LcaiBridgeWebview mWebActivityWebview;
-    private Handler handler;
+    private LcaiBridgeWebview webView;
+    private LcaiWebCallbackAdapter callbackAdapter;
+    private LcaiJsBridgeDispatcher dispatcher;
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private volatile boolean destroyed = false;
+    private volatile boolean finishing = false;
+
     @Override
     public int getLayout() {
         return R.layout.web_activity_layout;
@@ -44,149 +51,157 @@ public class WebActivity extends LcaiBaseActivity {
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled"})
     @Override
     public void initView() {
-        config = WebActivityConfig.getConfig();
-        handler = new Handler(Looper.getMainLooper());
-        TextView mWebActivityTitleText = findViewById(R.id.web_activity_title_text);
-        mWebActivityWebview = findViewById(R.id.web_activity_webview);
+        // 1. 从 Intent 取 config
+        config = getIntent().getParcelableExtra(LcaiWebActivityRouter.EXTRA_CONFIG);
+        if (config == null || !config.isValid()) {
+            LcaiLogUtils.e(TAG, "WebActivityConfig 为空或无效，直接关闭");
+            safeFinish();
+            return;
+        }
+        // 2. 绑定 callback / pageListener（从静态暂存取回）
+        config.attachCallback();
 
-        if (!TextUtils.isEmpty(config.title)) {
-            mWebActivityTitleText.setVisibility(VISIBLE);
-            mWebActivityTitleText.setText(config.title);
+        webView = findViewById(R.id.web_activity_webview);
+        if (webView == null) {
+            LcaiLogUtils.e(TAG, "WebView 未找到，直接关闭");
+            safeFinish();
+            return;
         }
 
-        findViewById(R.id.web_activity_back).setOnClickListener(v-> verifyMethod(null, BACK_METHOD, ""));
+        // 3. WebView 初始化
+        LcaiWebViewInitializer.applyDefaults(webView);
+        webView.setDefaultHandler(new LcaiDefaultHandler());
+        webView.setWebViewClient(webView.generateBridgeWebViewClient());
+        webView.setWebChromeClient(createChromeClient());
 
-        mWebActivityWebview.setDefaultHandler(new LcaiDefaultHandler());
+        // 4. 回调适配器
+        callbackAdapter = new LcaiWebCallbackAdapter(
+                config.getCallback() == null ? null :
+                        (cb, payload, act) -> config.getCallback()
+                                .onMethodBack(cb, payload, act));
 
-        WebSettings settings = mWebActivityWebview.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(true);
-        settings.setGeolocationEnabled(true);
-        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setMediaPlaybackRequiresUserGesture(false);
+        // 5. JS 方法注册
+        dispatcher = new LcaiJsBridgeDispatcher(webView,
+                (cb, method, data) -> verifyMethod(cb, method, data));
+        dispatcher.register(config.getMethodArrays());
 
-        settings.setAllowFileAccessFromFileURLs(false);
-        settings.setAllowUniversalAccessFromFileURLs(false);
+        // 6. JS 接口注入
+        registerJavascriptInterfaces();
 
-        mWebActivityWebview.setWebChromeClient(new WebChromeClient() {
+        // 7. UI
+        setupTitle();
+        setupBackButton();
+
+        // 8. 加载
+        LcaiLogUtils.d(TAG, "WebView 初始化完成，开始加载:", config.getUrl());
+        webView.loadUrl(config.getUrl());
+    }
+
+    private WebChromeClient createChromeClient() {
+        return new WebChromeClient() {
             @Override
             public void onPermissionRequest(PermissionRequest request) {
-                LcaiManager.getInstance().permissionReq(new LcaiPermissionRequestBulider()
-                        .with(WebActivity.this)
-                        .addPermission(config.permissionArray)
-                        .check(true)
-                        .addResult(new LcaiReqPermissionResult() {
-                            @Override
-                            public void onReqPermissionPass() {
-                                LcaiLogUtils.d("系统权限已授予，直接授权webview");
-                                request.grant(request.getResources());
-                            }
-
-                            @Override
-                            public void onReqPermissionNoPass(Map<String, Boolean> permissions) {
-                                request.deny();
-                                LcaiLogUtils.d("系统权限未授权，返回失败","未授权权限:"+permissions);
-                                verifyMethod(null, PERMISSION_METHOD, "");
-                            }
-                        }));
+                LcaiPermissionBridge.handle(
+                        WebActivity.this,
+                        request,
+                        config == null ? null : config.getPermissionArray(),
+                        permissions -> verifyMethod(null, PERMISSION_METHOD, "")
+                );
             }
-        });
 
-        if (config.methodArrays != null) {
-            for (String method : config.methodArrays) {
-                LcaiLogUtils.d("增加JSBridge方法", method);
-                mWebActivityWebview.registerHandler(method, (data, function) -> verifyMethod(function,method,data));
-            }
-        }
-
-        if (config.callback != null) {
-            if (config.callback.createJsMethod() != null && !config.callback.createJsMethod().isEmpty()) {
-                for (JsInterface jsInterface : config.callback.createJsMethod()) {
-                    LcaiLogUtils.d("增加Javascript", jsInterface.methodName);
-                    mWebActivityWebview.addJavascriptInterface(jsInterface,jsInterface.methodName);
+            @Override
+            public void onProgressChanged(android.webkit.WebView view, int newProgress) {
+                if (config != null && config.getPageListener() != null) {
+                    config.getPageListener().onProgressChanged(newProgress);
                 }
             }
-        }
 
-        LcaiLogUtils.d("webview 初始化完成！");
-        if (!TextUtils.isEmpty(config.url)) {
-            LcaiLogUtils.d("开始加载地址", config.url);
-            mWebActivityWebview.loadUrl(config.url);
+            @Override
+            public void onReceivedTitle(android.webkit.WebView view, String title) {
+                if (config != null && config.getPageListener() != null) {
+                    config.getPageListener().onTitleReceived(title);
+                }
+            }
+        };
+    }
+
+    @SuppressLint("JavascriptInterface")
+    private void registerJavascriptInterfaces() {
+        if (config.getCallback() == null) return;
+        List<JsInterface> jsInterfaces = config.getCallback().createJsMethod();
+        if (jsInterfaces == null || jsInterfaces.isEmpty()) return;
+        for (JsInterface js : jsInterfaces) {
+            if (js == null || TextUtils.isEmpty(js.methodName)) continue;
+            LcaiLogUtils.d(TAG, "增加 JavascriptInterface:", js.methodName);
+            webView.addJavascriptInterface(js, js.methodName);
         }
     }
 
-    private void verifyMethod(LcaiCallbackFunction jsBridgeCallback,String method, String data) {
-        LcaiLogUtils.d("处理回调", "method:" + method, "data:", data);
-        WebActivityCallback callback = config.getCallback();
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("method", method);
-        jsonObject.put("data", data);
-        if (callback != null) {
-            LcaiLogUtils.d("回调原生数据",jsonObject.toJSONString());
-            callback.onMethodBack(jsBridgeCallback,jsonObject,this);
-            handler.postDelayed(this::safeFinish, 300);
+    private void setupTitle() {
+        TextView titleView = findViewById(R.id.web_activity_title_text);
+        if (titleView == null) return;
+        if (!config.isShowTitleBar()) {
+            titleView.setVisibility(GONE);
+            return;
         }
+        if (!TextUtils.isEmpty(config.getTitle())) {
+            titleView.setVisibility(VISIBLE);
+            titleView.setText(config.getTitle());
+        }
+    }
+
+    private void setupBackButton() {
+        View back = findViewById(R.id.web_activity_back);
+        if (back == null) return;
+        if (!config.isShowBackButton()) {
+            back.setVisibility(GONE);
+            return;
+        }
+        back.setOnClickListener(v -> verifyMethod(null, BACK_METHOD, ""));
+    }
+
+    private void verifyMethod(@Nullable LcaiCallbackFunction cb,
+                              @Nullable String method,
+                              @Nullable String data) {
+        if (callbackAdapter == null) {
+            LcaiLogUtils.w(TAG, "callbackAdapter 为空，直接关闭");
+            safeFinish();
+            return;
+        }
+        callbackAdapter.dispatch(cb, method, data, this, this::safeFinish);
+    }
+
+    private void safeFinish() {
+        if (finishing || isFinishing()) return;
+        finishing = true;
+        LcaiLogUtils.i(TAG, "安全退出");
+        destroyWebView();
+        finish();
+    }
+
+    private void destroyWebView() {
+        if (destroyed) return;
+        destroyed = true;
+        LcaiWebViewLifecycle.safeDestroy(webView);
+        webView = null;
     }
 
     @Override
     protected void onDestroy() {
-        // 清理 WebView
-        if (mWebActivityWebview != null) {
-            mWebActivityWebview.removeAllViews();
-            mWebActivityWebview.destroy();
-            mWebActivityWebview = null;
+        mainHandler.removeCallbacksAndMessages(null);
+        if (callbackAdapter != null) {
+            callbackAdapter.release();
+            callbackAdapter = null;
+        }
+        if (dispatcher != null) {
+            dispatcher.unregisterAll();
+            dispatcher = null;
+        }
+        destroyWebView();
+        if (config != null) {
             config.clear();
+            config = null;
         }
         super.onDestroy();
-    }
-
-    /**
-     * 关闭页面
-     * 清除webview
-     */
-    private void safeFinish() {
-        LcaiLogUtils.i( "安全退出");
-        try {
-            destroyWebView();
-            finish();
-        } catch (Exception e) {
-            LcaiLogUtils.e( "安全退出异常: " + e.getMessage(), e);
-            finish();
-        }
-    }
-
-    /**
-     * 清除webview
-     */
-    private void destroyWebView() {
-        LcaiLogUtils.i( "开始销毁WebView");
-        if (mWebActivityWebview != null) {
-            try {
-                LcaiLogUtils.i( "加载空白页");
-                mWebActivityWebview.loadUrl("about:blank");
-
-                if (mWebActivityWebview.getParent() != null) {
-                    ((ViewGroup) mWebActivityWebview.getParent()).removeView(mWebActivityWebview);
-                    LcaiLogUtils.i( "从父视图移除WebView");
-                }
-
-                mWebActivityWebview.stopLoading();
-                mWebActivityWebview.setWebChromeClient(null);
-                mWebActivityWebview.setWebViewClient(null);
-                mWebActivityWebview.destroy();
-                mWebActivityWebview = null;
-                LcaiLogUtils.i( "WebView销毁完成");
-            } catch (Exception e) {
-                LcaiLogUtils.e( "销毁WebView异常: " + e.getMessage(), e);
-            }
-        } else {
-            LcaiLogUtils.w( "WebView为空或未初始化，无需销毁");
-        }
     }
 }
