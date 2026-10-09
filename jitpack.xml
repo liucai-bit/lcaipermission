@@ -1,4 +1,9 @@
 jdk:
     - openjdk17
-install:
-- ./gradlew :app:publishToMavenLocal
+
+    before_install:
+    - sdk install java 17.0.9-open
+    - sdk use java 17.0.9-open
+
+    install:
+    - ./gradlew -Pgroup=com.github.liucai-bit -Pversion=$VERSION publishToMavenLocal
