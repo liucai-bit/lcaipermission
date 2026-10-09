@@ -40,7 +40,7 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
     private JSONArray arrays;
     private final int layoutId;
     private final Type tActualType;
-    private String endTips = "已加载完全部数据";
+    private String endTips = "已全部加载";
     private String loadingTips = "正在加载...";
     private String errorTips = "加载失败，点击重试";
     private int viewType = RecycleViewType.DEFAULT;
