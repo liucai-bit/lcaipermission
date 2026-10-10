@@ -79,13 +79,13 @@ public class HorizonalBreadBar extends BaseLinearLayout {
             textView.setTextSize(textSize);
             textView.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-            int textContentWidth = textView.getMeasuredWidth()+CommonUtils.dip2px(mContext,20);
-            int textContentHeight = textView.getMeasuredHeight()+CommonUtils.dip2px(mContext,10);
+            int textContentWidth = textView.getMeasuredWidth()+CommonUtils.dip2px(mContext,5);
+            int textContentHeight = textView.getMeasuredHeight()+CommonUtils.dip2px(mContext,3);
             LayoutParams params = new LayoutParams(textContentWidth> minWidth ? textContentWidth: WC,textContentHeight);
-            params.setMargins(CommonUtils.dip2px(mContext,5),0,CommonUtils.dip2px(mContext,5),0);
+            params.setMargins(CommonUtils.dip2px(mContext,3),0,CommonUtils.dip2px(mContext,3),0);
             textView.setLayoutParams(params);
             textView.setBackground(background);
-            textView.setPadding(CommonUtils.dip2px(mContext,10),CommonUtils.dip2px(mContext,5),CommonUtils.dip2px(mContext,10),CommonUtils.dip2px(mContext,5));
+            textView.setPadding(CommonUtils.dip2px(mContext,3),CommonUtils.dip2px(mContext,1),CommonUtils.dip2px(mContext,3),CommonUtils.dip2px(mContext,1));
             addView(textView);
         }
     }
