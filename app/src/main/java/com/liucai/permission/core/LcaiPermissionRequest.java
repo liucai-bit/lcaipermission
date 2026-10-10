@@ -92,7 +92,7 @@ public class LcaiPermissionRequest {
                         }).build();
                     }
                 } else {
-
+                    reqPermission(stringList);
                 }
             }
         } else {
