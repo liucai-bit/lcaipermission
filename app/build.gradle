@@ -54,15 +54,13 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                artifact("$buildDir/outputs/aar/${project.name}-release.aar")
+                artifact("$buildDir/outputs/aar/lcaipermission-release-v-${android.defaultConfig.versionName}.aar")
                 groupId = 'com.github.liucai-bit'
-                artifactId = 'lcaipermission' // 这里是你依赖时的名字
+                artifactId = 'lcaipermission'
                 version = project.findProperty('version') ?: '1.0.0-SNAPSHOT'
             }
         }
     }
-
-    // 确保发布任务在打包任务之后执行
     tasks.named('publishReleasePublicationToMavenLocal') {
         mustRunAfter tasks.named('bundleReleaseAar')
     }
