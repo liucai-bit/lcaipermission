@@ -1,6 +1,7 @@
 package com.liucai.component;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
@@ -11,6 +12,7 @@ import com.google.android.flexbox.FlexboxLayout;
 import com.liucai.component.base.BaseFlexboxLayout;
 import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.bean.HorizonalLabelBean;
+import com.liucai.component.mode.TextViewMode;
 import com.liucai.core.util.common.CommonUtils;
 import com.liucai.permission.R;
 
@@ -88,6 +90,7 @@ public class HorizonalLabelBar extends BaseFlexboxLayout {
             textView.setText(data.getLabel());
             textView.setTextSize(data.getTextSize());
             textView.setTextColor(data.getTextColor());
+            textView.setTypeface(Typeface.defaultFromStyle(TextViewMode.getTypeface(data.getFontStyle())));
             if (data.getBorder() > 0) {
                 textView.setBackground(mContext.getDrawable(data.getBorder()));
             }

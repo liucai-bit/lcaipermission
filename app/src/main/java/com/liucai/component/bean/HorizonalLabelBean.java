@@ -2,6 +2,8 @@ package com.liucai.component.bean;
 
 import android.graphics.Color;
 
+import com.liucai.component.mode.TextViewMode;
+
 /**
  * @author liucai
  * @program lcpermission
@@ -16,6 +18,8 @@ public class HorizonalLabelBean {
     public int textSize=10;
 
     public int border;
+
+    public TextViewMode.TextFontStyle fontStyle = TextViewMode.TextFontStyle.DEFALUT;
 
     public String getLabel() {
         return label;
@@ -47,5 +51,13 @@ public class HorizonalLabelBean {
 
     public void setBorder(int border) {
         this.border = border;
+    }
+
+    public TextViewMode.TextFontStyle getFontStyle() {
+        return fontStyle;
+    }
+
+    public void setFontStyle(TextViewMode.TextFontStyle fontStyle) {
+        this.fontStyle = fontStyle;
     }
 }
