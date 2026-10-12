@@ -10,8 +10,8 @@ android {
     defaultConfig {
         minSdk 23
         targetSdk 34
-        versionCode 26
-        versionName "2.0.26"
+        versionCode 30
+        versionName "2.0.30"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,31 +36,21 @@ android {
     buildFeatures {
         buildConfig = true
     }
-
-    android.libraryVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName "lcaipermission.aar"
-            if (variant.buildType.name.equals('debug')) {
-                outputFileName = "lcaipermission-${variant.buildType.name}-v-${android.defaultConfig.versionName}.aar"
-            }
-            if (variant.buildType.name.equals('release')) {
-                outputFileName = "lcaipermission-${variant.buildType.name}-v-${android.defaultConfig.versionName}.aar"
-            }
-        }
-    }
 }
 
 afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                artifact("$buildDir/outputs/aar/lcaipermission-release-v-${android.defaultConfig.versionName}.aar")
+                artifact("$buildDir/outputs/aar/${project.name}-release.aar")
                 groupId = 'com.github.liucai-bit'
-                artifactId = 'lcaipermission'
+                artifactId = 'lcaipermission' // 这里是你依赖时的名字
                 version = project.findProperty('version') ?: '1.0.0-SNAPSHOT'
             }
         }
     }
+
+    // 确保发布任务在打包任务之后执行
     tasks.named('publishReleasePublicationToMavenLocal') {
         mustRunAfter tasks.named('bundleReleaseAar')
     }
