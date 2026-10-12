@@ -27,17 +27,15 @@ public class CommonUtils {
     }
 
     /**
-     * px单位转dp单位，适配不同屏幕密度下的数值还原
-     * @param pxValue 输入像素数值
-     * @param mContext 上下文对象
-     * @return 转换后的dp数值，非法输入默认返回0
+     * px单位转dp单位
+     * 注意：TypedValue.applyDimension 无法直接用于 px->dp，需手动除以 density
      */
-    public static int px2dip(Context mContext,float pxValue) {
+    public static int px2dip(Context mContext, float pxValue) {
         if (pxValue <= 0) return 0;
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_PX,
-                pxValue,
-                mContext.getResources().getDisplayMetrics()
-        );
+        // 获取当前设备的屏幕密度系数
+        float density = mContext.getResources().getDisplayMetrics().density;
+        // 公式：dp = px / density
+        // + 0.5f 是为了实现四舍五入，避免强制类型转换造成的精度丢失
+        return (int) (pxValue / density + 0.5f);
     }
 }

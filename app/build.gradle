@@ -10,8 +10,8 @@ android {
     defaultConfig {
         minSdk 23
         targetSdk 34
-        versionCode 1
-        versionName "1.0.1"
+        versionCode 25
+        versionName "2.0.25"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,6 +35,18 @@ android {
 
     buildFeatures {
         buildConfig = true
+    }
+
+    android.libraryVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName "lcaipermission.aar"
+            if (variant.buildType.name.equals('debug')) {
+                outputFileName = "lcaipermission-${variant.buildType.name}-v-${android.defaultConfig.versionName}.aar"
+            }
+            if (variant.buildType.name.equals('release')) {
+                outputFileName = "lcaipermission-${variant.buildType.name}-v-${android.defaultConfig.versionName}.aar"
+            }
+        }
     }
 }
 
