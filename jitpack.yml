@@ -1,4 +1,4 @@
 jdk:
     - openjdk17
 install:
-    - ./gradlew clean :app:publishToMavenLocal --no-build-cache --rerun-tasks
+    - ./gradlew clean :app:assembleRelease :app:publishToMavenLocal --no-build-cache --rerun-tasks
