@@ -37,6 +37,8 @@ public class LcaiPermissionRequest {
         checkSelPermission();
     }
 
+    private LcaiPermissionRequest() {}
+
     /**
      * 校验权限是否授权，如果没有授权就去申请权限
      *
@@ -106,6 +108,7 @@ public class LcaiPermissionRequest {
         if (TextUtils.isEmpty(permission) || !permission.startsWith("android.permission.")) {
             throw new LcaiHttpException("请传入正常的权限字符串，例如: android.permission.CAMERA");
         }
+
         int i = ContextCompat.checkSelfPermission(builder.mActivity, permission);
         if (i== PermissionChecker.PERMISSION_GRANTED) {
             return true;

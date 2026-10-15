@@ -3,7 +3,7 @@ package com.liucai.component.mode;
 import android.graphics.Typeface;
 
 /**
- * @author HUAWEI
+ * @author liucai
  * @program lcpermission
  * @description
  * @Date 2026/10/12

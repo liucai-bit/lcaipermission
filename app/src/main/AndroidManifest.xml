@@ -10,7 +10,7 @@
         <activity android:name=".view.LcaiPermissionActivity"
             android:exported="false"
             android:theme="@style/LcaiTransparentTheme"
-            android:launchMode="singleInstance"/>
+            android:launchMode="standard"/>
 
         <activity android:name="com.liucai.camera_photo.view.LcaiCamearPhtoActivity"
             android:exported="false"

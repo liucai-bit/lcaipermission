@@ -7,6 +7,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author liucai
  * @program lcpermission
@@ -111,6 +115,18 @@ public class JSONUtils{
             LcaiLogUtils.d("对象转换失败",data);
         }
         return jsonArray;
+    }
+
+    public static <T> List<T> parsrArray(String data, Class<T> aClass) {
+        List<T> tList = Collections.emptyList();
+        try {
+            if (isJson(data)) {
+                tList = JSON.parseArray(data, aClass);
+            }
+        } catch (Exception e) {
+            tList = new ArrayList<>();
+        }
+        return tList;
     }
 
     public static int getInt(JSONObject jsonObject,String key, int defaultValue) {

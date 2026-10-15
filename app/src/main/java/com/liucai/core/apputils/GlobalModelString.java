@@ -12,4 +12,5 @@ public class GlobalModelString {
     public static String CLIENT_ACTIVITY = "__activity";
     public static String GLOBAL_FONT_SCALE = "__font_scale";
     public static String GLOBAL_DEBUG_MODE = "__debug_mode";
+    public static String PERMISSION_APPLIED="__permission_applied";
 }
