@@ -10,74 +10,87 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
+ * DELETE 语句生成器。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/8
  */
 public class Delete<T extends LcaiTableInfo> extends BaseCRUD<T> {
-
 
     public Delete(Class<?> aClass) {
         super(aClass);
     }
 
     /**
-     * 根据ID删除数据
-     * 但数据，多数据皆可删除
-     * @param idList
-     * @return sql 语句
+     * 按主键集合删除。idList 为空时返回空字符串（调用方应处理）。
      */
     public String deleteById(Collection<Serializable> idList) {
         if (idList == null || idList.isEmpty()) {
             return "";
         }
-        String s1 = "";
+        StringBuilder sb = new StringBuilder();
         for (Serializable s : idList) {
-            s1 += s + ",";
+            if (s == null) continue;
+            if (sb.length() > 0) sb.append(",");
+            // 字符串 id 需要加单引号，数字不需要
+            if (s instanceof Number || s instanceof Boolean) {
+                sb.append(s);
+            } else {
+                sb.append(format(STRING, s));
+            }
         }
-        return format(DELETE_BYID, getTableName(entity.getClass()), getTableId(entity.getClass()), s1.substring(0, s1.length() - 1));
+        if (sb.length() == 0) return "";
+        return format(DELETE_BYID,
+                getTableName(entity.getClass()),
+                getTableId(entity.getClass()),
+                sb.toString());
     }
 
     /**
-     * 根据条件删除
-     * @param condition
-     * Map<列名,条件>
-     * Map<id,1>
-     * @return sql 语句
+     * 按条件 Map 删除。value 为 null 的项会被跳过。
      */
     public String deleteByParams(Map<String, Object> condition) {
         StringBuilder builder = new StringBuilder();
-        int position = 0;
+        boolean first = true;
         for (Map.Entry<String, Object> entry : condition.entrySet()) {
-            builder.append(entry.getKey()).append("=").append(entry.getValue()).append(SPACE);
-            if (position < condition.size() - 1) {
-                builder.append(AND).append(SPACE);
+            Object value = entry.getValue();
+            if (value == null) continue;
+
+            if (!first) builder.append(SPACE).append(AND).append(SPACE);
+            builder.append(entry.getKey()).append("=");
+            if (value instanceof String) {
+                builder.append(format(STRING, value));
+            } else {
+                builder.append(value);
             }
-            position++;
+            first = false;
         }
         return format(DELETE_BY_PARAMS, getTableName(entity.getClass()), builder.toString());
     }
 
     /**
-     * 根据实体删除
-     * @return
+     * 按实体非空字段生成删除条件。
      */
     public String deleteByEntity(T entity) {
+        if (entity == null) return "";
         StringBuilder builder = new StringBuilder();
-        String builderString = builder.toString();
-        Map<String, Object> deleteByEntity = new DBUtils<>().getEntityMap(entity);
-        for (Map.Entry<String, Object> entry : deleteByEntity.entrySet()) {
-            if (TextUtils.isEmpty(builderString)) {
-                builder.append(AND).append(SPACE);
-            }
-            String name = entry.getKey();
+        Map<String, Object> fieldMap = new DBUtils<>().getEntityMap(entity);
+        boolean first = true;
+        for (Map.Entry<String, Object> entry : fieldMap.entrySet()) {
             Object value = entry.getValue();
-            if (!TextUtils.isEmpty(value + "")) {
-                builder.append(name).append("=").append(value).append(SPACE);
+            if (value == null) continue;
+            if (value instanceof CharSequence && TextUtils.isEmpty(value.toString())) continue;
+
+            if (!first) builder.append(SPACE).append(AND).append(SPACE);
+            // 字段名统一转下划线，和表列名对齐
+            builder.append(com.liucai.core.util.lcaidb.CamelCaseConverter
+                    .toUnderscore(entry.getKey())).append("=");
+            if (value instanceof String) {
+                builder.append(format(STRING, value));
+            } else {
+                builder.append(value);
             }
+            first = false;
         }
         return format(DELETE_BY_PARAMS, getTableName(entity.getClass()), builder.toString());
-
     }
 }

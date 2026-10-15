@@ -2,9 +2,9 @@ package com.liucai.lcaidb.crud;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
-import android.text.TextUtils;
 
 import com.liucai.core.util.lcaidb.CamelCaseConverter;
+import com.liucai.core.util.text.TextUtils;
 import com.liucai.lcaidb.base.BaseCRUD;
 import com.liucai.lcaidb.base.module.LcaiTableInfo;
 import com.liucai.lcaidb.enu.OrderTypeEnum;
@@ -13,10 +13,9 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
+ * SELECT 语句生成器 + Cursor 到实体的映射。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/8
  */
 public class Query<T extends LcaiTableInfo> extends BaseCRUD<T> {
 
@@ -25,109 +24,102 @@ public class Query<T extends LcaiTableInfo> extends BaseCRUD<T> {
     }
 
     /**
-     * 获取实体类
-     * @param cursor
-     * @param aClass
-     * @return
+     * 将 Cursor 当前行映射为实体对象。
+     * 注意：调用方负责 cursor 的生命周期与关闭。
      */
     @SuppressLint("Range")
     public T getEntity(Cursor cursor, Class<?> aClass) {
         try {
-            entity = (T) aClass.newInstance();
-            Field[] fields = aClass.getDeclaredFields();
-            for (Field field : fields) {
-                field.setAccessible(true);
-                String fileName = CamelCaseConverter.toUnderscore(field.getName());
-                Object fileValue = null;
-                Class<?> type = field.getType();
-                if (type.equals(String.class)) {
-                    fileValue = cursor.getString(cursor.getColumnIndex(fileName));
-                } else if (type.equals(Integer.class)) {
-                    fileValue = cursor.getInt(cursor.getColumnIndex(fileName));
-                } else if (type.equals(Double.class)) {
-                    fileValue = cursor.getDouble(cursor.getColumnIndex(fileName));
-                } else if (type.equals(Float.class)) {
-                    fileValue = cursor.getFloat(cursor.getColumnIndex(fileName));
-                } else if (type.equals(Long.class)) {
-                    fileValue = cursor.getLong(cursor.getColumnIndex(fileName));
-                } else if (type.equals(Short.class)) {
-                    fileValue = cursor.getShort(cursor.getColumnIndex(fileName));
+            T instance = (T) aClass.getDeclaredConstructor().newInstance();
+            for (Field field : aClass.getDeclaredFields()) {
+                // 跳过 static / transient
+                int modifiers = field.getModifiers();
+                if (java.lang.reflect.Modifier.isStatic(modifiers)
+                        || java.lang.reflect.Modifier.isTransient(modifiers)) {
+                    continue;
                 }
-                if (!TextUtils.isEmpty(fileValue+"")) {
-                    field.set(entity, fileValue);
+                field.setAccessible(true);
+                String column = CamelCaseConverter.toUnderscore(field.getName());
+                int index = cursor.getColumnIndex(column);
+                if (index < 0) continue; // 列不存在跳过
+
+                Class<?> type = field.getType();
+                Object value = null;
+                if (type.equals(String.class)) {
+                    value = cursor.getString(index);
+                } else if (type.equals(Integer.class) || type.equals(int.class)) {
+                    value = cursor.getInt(index);
+                } else if (type.equals(Long.class) || type.equals(long.class)) {
+                    value = cursor.getLong(index);
+                } else if (type.equals(Double.class) || type.equals(double.class)) {
+                    value = cursor.getDouble(index);
+                } else if (type.equals(Float.class) || type.equals(float.class)) {
+                    value = cursor.getFloat(index);
+                } else if (type.equals(Short.class) || type.equals(short.class)) {
+                    value = cursor.getShort(index);
+                } else if (type.equals(byte[].class)) {
+                    value = cursor.getBlob(index);
+                }
+
+                // 只处理 null 判断，避免 fileValue+"" == "null" 的误判
+                if (value != null) {
+                    field.set(instance, value);
                 }
             }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            entity = null;
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-            entity = null;
+            return instance;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(
+                    "Failed to map cursor to " + aClass.getName(), e);
         }
-        return (T) entity;
     }
 
-    /**
-     * 查询全部
-     * @return
-     */
     public String queryList() {
         return format(QUERYLIST, getTableName(entity.getClass()));
     }
 
     /**
-     * 按照条件查询
-     * @param condition
-     * @return
+     * 按条件查询。Map 的 key 为 Java 字段名（转下划线后作为列名），value 为 null 时跳过。
      */
     public String queryByParams(Map<String, Object> condition) {
-        String sql = "";
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
         for (Map.Entry<String, Object> entry : condition.entrySet()) {
-            if (!TextUtils.isEmpty(sql)) {
-                sql += AND + SPACE;
+            Object value = entry.getValue();
+            if (value == null) continue;
+
+            if (!first) builder.append(SPACE).append(AND).append(SPACE);
+            builder.append(CamelCaseConverter.toUnderscore(entry.getKey())).append("=");
+            if (value instanceof String) {
+                builder.append(format(STRING, value));
+            } else {
+                builder.append(value);
             }
-            sql += CamelCaseConverter.toUnderscore(entry.getKey()) + "=" + ((entry.getValue() instanceof String) ? format(STRING,entry.getValue().toString()) : entry.getValue())+ SPACE;
+            first = false;
         }
-        return format(TABLE_QUERY, getTableName(entity.getClass()),sql);
+        return format(TABLE_QUERY, getTableName(entity.getClass()), builder.toString());
     }
 
-    /**
-     * 分页查询
-     * @param start
-     * @param end
-     * @param order
-     * @param typeEnum
-     * @return
-     */
-    public String queryByPage(long start, long end, String order, OrderTypeEnum typeEnum) {
+    public String queryByPage(long start, long end, String order, OrderTypeEnum orderType) {
         StringBuilder builder = new StringBuilder();
-        builder.append(format(QUERYLIST, getTableName(entity.getClass())));
-        builder.append(SPACE);
-        builder.append(format(LIMIT_FOR, start + "", end + "")).append(SPACE);
-        if (!TextUtils.isEmpty(order)) {
-            builder.append(format(ORDER_BY_FOR, order, typeEnum));
+        builder.append(format(QUERYLIST, getTableName(entity.getClass())))
+                .append(SPACE)
+                .append(format(LIMIT_FOR, String.valueOf(start), String.valueOf(end)));
+        if (!TextUtils.isEmpty(order) && orderType != null) {
+            builder.append(SPACE).append(format(ORDER_BY_FOR, order, orderType.getValue()));
         }
-        return format(builder.toString());
+        return builder.toString();
     }
 
-    /**
-     * 分页查询+条件查询
-     * @param start
-     * @param end
-     * @param order
-     * @param ordertype
-     * @param condition
-     * @return
-     */
-    public String queryByPageParams(long start, long end, String order, OrderTypeEnum ordertype, Map<String, Object> condition) {
+    public String queryByPageParams(long start, long end, String order,
+                                    OrderTypeEnum orderType, Map<String, Object> condition) {
         StringBuilder builder = new StringBuilder();
-        builder.append(queryByParams(condition));
-        builder.append(SPACE);
-        builder.append(format(LIMIT_FOR, start + "", end + "")).append(SPACE);
-        if (!TextUtils.isEmpty(order)) {
-            builder.append(format(ORDER_BY_FOR, order, ordertype));
+        builder.append(queryByParams(condition))
+                .append(SPACE)
+                .append(format(LIMIT_FOR, String.valueOf(start), String.valueOf(end)));
+        if (!TextUtils.isEmpty(order) && orderType != null) {
+            builder.append(SPACE).append(format(ORDER_BY_FOR, order, orderType.getValue()));
         }
-        return format(builder.toString());
+        return builder.toString();
     }
 
     public String queryCount() {

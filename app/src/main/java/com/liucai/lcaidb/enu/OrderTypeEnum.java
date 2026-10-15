@@ -1,15 +1,22 @@
 package com.liucai.lcaidb.enu;
 
 /**
+ * SQL 排序方向。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/9
  */
 public enum OrderTypeEnum {
+
     ASC("ASC"),
     DESC("DESC");
 
-    OrderTypeEnum(String desc) {
+    private final String value;
+
+    OrderTypeEnum(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
     }
 }

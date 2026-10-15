@@ -10,103 +10,93 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
+ * UPDATE 语句生成器。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/8
  */
 public class Update<T extends LcaiTableInfo> extends BaseCRUD<T> {
+
     public Update(Class<?> aClass) {
         super(aClass);
     }
 
     /**
-     * 通过ID更新数据
-     * @param entity
-     * @return
+     * 按主键更新。主键值从 entity 中提取，其余非空字段作为 SET 内容。
      */
     public String updateById(T entity) {
-        if (entity == null) {
-            return "";
-        }
+        if (entity == null) return "";
 
         Map<String, Object> entityMap = new DBUtils<>().getEntityMap(entity);
-        String tableId = getTableId(aClass);
-        String key = CamelCaseConverter.underscoreToCamel(tableId);
-        Object tid = entityMap.get(key);
-        if (TextUtils.isEmpty(tid+"")) {
-            tid = entityMap.get(tableId);
-        }else{
-            tableId = key;
-        }
+        String rawTableId = getTableId(aClass);                        // 注解原值（可能是 id 或 user_id）
+        String camelId = CamelCaseConverter.underscoreToCamel(rawTableId); // 驼峰名（userId）
 
-        if (TextUtils.isEmpty(tid + "")) {
+        // 找到实体中的主键字段名
+        String idFieldName = entityMap.containsKey(camelId) ? camelId : rawTableId;
+        Object idValue = entityMap.get(idFieldName);
+        if (idValue == null || TextUtils.isEmpty(String.valueOf(idValue))) {
             return "";
         }
 
-        StringBuilder builder = new StringBuilder();
-        Field[] fields = aClass.getDeclaredFields();
-        for (Field field : fields) {
-            if (!field.getName().equals(tid)) {
-                if (entityMap.get(field.getName())!=null) {
-                    String buliderString = builder.toString();
-                    if (!TextUtils.isEmpty(buliderString)) {
-                        builder.append(",");
-                    }
-                    Object value = entityMap.get(field.getName());
-                    if (!TextUtils.isEmpty(value+"")) {
-                        builder.append(CamelCaseConverter.toUnderscore(field.getName())).append("=");
-                        if (value instanceof String) {
-                            builder.append(format(STRING, value));
-                        } else{
-                            builder.append(value);
-                        }
-                    }
-                }
+        // SET 子句（跳过主键字段）
+        StringBuilder setBuilder = new StringBuilder();
+        for (Field field : aClass.getDeclaredFields()) {
+            String name = field.getName();
+            if (name.equals(idFieldName)) continue;
 
+            Object value = entityMap.get(name);
+            if (value == null) continue;
+            if (value instanceof CharSequence && TextUtils.isEmpty(value.toString())) continue;
+
+            if (setBuilder.length() > 0) setBuilder.append(",");
+            setBuilder.append(CamelCaseConverter.toUnderscore(name)).append("=");
+            if (value instanceof String) {
+                setBuilder.append(format(STRING, value));
+            } else {
+                setBuilder.append(value);
             }
         }
-        return format(UPDATE_BY_ID, getTableName(entity.getClass()), builder.toString(),tableId, tid);
+        if (setBuilder.length() == 0) return "";
+
+        // WHERE 子句统一用下划线列名
+        String whereColumn = CamelCaseConverter.toUnderscore(idFieldName);
+        return format(UPDATE_BY_ID,
+                getTableName(entity.getClass()),
+                setBuilder.toString(),
+                whereColumn,
+                idValue);
     }
 
     /**
-     * 通过条件更新数据
-     * @param condition
-     * @param update
-     * @return
+     * 按条件更新。condition / update 的 key 为 Java 字段名，value 为 null 的项会被跳过。
      */
     public String updateByParams(Map<String, Object> condition, Map<String, Object> update) {
-        StringBuilder set = new StringBuilder();
-        int setposition=0;
-        for (Map.Entry<String, Object> entry : update.entrySet()) {
-            set.append(CamelCaseConverter.toUnderscore(entry.getKey())).append("=");
-            if (entry.getValue() instanceof String) {
-                set.append(format(STRING, entry.getValue().toString()));
-            } else {
-                set.append(entry.getValue());
-            }
-            if (setposition < update.size() - 1) {
-                set.append(",");
-            }
-            setposition++;
-        }
+        String setClause = buildAssignment(update, ",");
+        String whereClause = buildAssignment(condition, SPACE + AND + SPACE);
+        if (setClause.isEmpty() || whereClause.isEmpty()) return "";
+        return format(UPDATE_BY_PARAMS,
+                getTableName(entity.getClass()),
+                setClause,
+                whereClause);
+    }
 
-        int conposition = 0;
-        StringBuilder con = new StringBuilder();
-        for (Map.Entry<String, Object> entry : condition.entrySet()) {
-            con.append(CamelCaseConverter.toUnderscore(entry.getKey())).append("=");
-            if (entry.getValue() instanceof String) {
-                con.append(format(STRING, entry.getValue().toString()));
-            } else {
-                con.append(entry.getValue());
-            }
+    /**
+     * 拼接 col1=val1{sep}col2=val2...
+     */
+    private String buildAssignment(Map<String, Object> map, String separator) {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            Object value = entry.getValue();
+            if (value == null) continue;
+            if (value instanceof CharSequence && TextUtils.isEmpty(value.toString())) continue;
 
-            con.append(SPACE);
-            if (conposition < condition.size() - 1) {
-                con.append(AND).append(SPACE);
+            if (builder.length() > 0) builder.append(separator);
+            builder.append(CamelCaseConverter.toUnderscore(entry.getKey())).append("=");
+            if (value instanceof String) {
+                builder.append(format(STRING, value));
+            } else {
+                builder.append(value);
             }
-            conposition++;
         }
-        return format(UPDATE_BY_PARAMS,getTableName(entity.getClass()), set.toString(), con.toString());
+        return builder.toString();
     }
 }

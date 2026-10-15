@@ -4,41 +4,36 @@ import com.liucai.core.util.lcaidb.LcaiAspect;
 import com.liucai.lcaidb.base.sql.LcaiSql;
 
 /**
+ * 所有 CRUD 操作类的基类，持有实体 Class 与实例。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/8
  */
 public abstract class BaseCRUD<T> implements LcaiSql {
 
-    public Class aClass;
+    protected final Class<T> aClass;
+    protected T entity;
 
-    public T entity;
-
-    public BaseCRUD(Class<?> aClass){
-        this.aClass = aClass;
+    @SuppressWarnings("unchecked")
+    public BaseCRUD(Class<?> aClass) {
+        this.aClass = (Class<T>) aClass;
         try {
-            entity = (T) aClass.newInstance();
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
+            this.entity = this.aClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(
+                    "Cannot instantiate entity: " + aClass.getName()
+                            + ". Ensure it has a public no-arg constructor.", e);
         }
     }
 
     /**
-     * 获取注解表名
-     * @param aClass
-     * @return
+     * 获取实体上 @Table 注解指定的表名。
      */
     public String getTableName(Class<?> aClass) {
         return LcaiAspect.getTableNameValue(aClass);
     }
 
     /**
-     * 获取注解表主键
-     * @param aClass
-     * @return
+     * 获取实体上 @TableId 注解指定的主键列名。
      */
     public String getTableId(Class<?> aClass) {
         return LcaiAspect.getTableIdValue(aClass);

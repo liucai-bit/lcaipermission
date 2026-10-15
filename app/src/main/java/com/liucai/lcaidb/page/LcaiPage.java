@@ -1,25 +1,17 @@
 package com.liucai.lcaidb.page;
 
 import com.liucai.lcaidb.base.module.LcaiTableInfo;
+
 /**
+ * 分页参数默认实现。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/8
  */
-public class LcaiPage<T extends LcaiTableInfo> implements ILcaiPage<T>{
+public class LcaiPage<T extends LcaiTableInfo> implements ILcaiPage<T> {
 
     public T entity;
-
-    /**
-     * 一页多少条
-     */
     public long size;
-
-    /**
-     * 当前多少页
-     */
-    public long curren;
+    public long curren; // 保留旧字段名以兼容外部直接字段访问
 
     public LcaiPage(T entity, long size, long curren) {
         this.entity = entity;
