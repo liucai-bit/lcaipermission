@@ -26,9 +26,7 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
     private LcaiTipsDialog dialog;
     /** 上下文对象 */
     public Context mContext;
-    /**
-     * 弹窗模式
-     */
+    /**弹窗模式*/
     public LcaiTipsMode mode = LcaiTipsMode.DEFALUT_MODE;
     /** 自定义弹窗layout*/
     public int customLayout;
