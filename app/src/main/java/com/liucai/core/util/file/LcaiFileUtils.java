@@ -19,7 +19,6 @@ import android.util.Base64;
 import androidx.core.os.EnvironmentCompat;
 
 import com.alibaba.fastjson.JSONObject;
-import com.liucai.camera_photo.core.LcaiPhotoLib;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.http.thread.GlobalThreadPool;
 import com.liucai.http.thread.LcaiRunnableUtils;
@@ -41,6 +40,7 @@ import java.util.Locale;
  * @Date 2025-08-28
  */
 public class LcaiFileUtils {
+    private static String HEADER = "data:image/%s;base64,";
 
     /**
      * 创建保存图片的文件
@@ -62,7 +62,7 @@ public class LcaiFileUtils {
     }
 
     public static File createCameraImageFile(Activity activity) {
-        File imageFile=null;
+        File imageFile = null;
         try {
             String imageName = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             File storageDir = activity.getExternalCacheDir();
@@ -77,7 +77,7 @@ public class LcaiFileUtils {
         if (file != null && file.exists()) {
             String path = file.getAbsolutePath();
             boolean delete = file.delete();
-            LcaiLogUtils.d("删除图片:"+path,delete ? "SUCCESS":"FAILURE");
+            LcaiLogUtils.d("删除图片:" + path, delete ? "SUCCESS" : "FAILURE");
         }
     }
 
@@ -93,7 +93,7 @@ public class LcaiFileUtils {
             jsonObject.put("fileSize", sizeInMb);
             String base64 = bitmapToBase64(bitmap, needCompress);
             if (addHeader) {
-                base64 = String.format(LcaiPhotoLib.HEADER, "jpeg") + base64;
+                base64 = String.format(HEADER, "jpeg") + base64;
             }
             jsonObject.put("content", base64);
         }
@@ -129,7 +129,7 @@ public class LcaiFileUtils {
             jsonObject.put("fileType", "image");
 
             if (addHeader) {
-                base64 = String.format(LcaiPhotoLib.HEADER, "jpeg") + base64;
+                base64 = String.format(HEADER, "jpeg") + base64;
             }
             jsonObject.put("content", base64);
         } catch (IOException e) {
@@ -156,7 +156,7 @@ public class LcaiFileUtils {
             String content = bitmapToBase64(bitmap, needCompress);
             jsonObject.put("fileSize", fileSizeMB);
             if (addHeader) {
-                content = String.format(LcaiPhotoLib.HEADER, "jpeg") + content;
+                content = String.format(HEADER, "jpeg") + content;
             }
             jsonObject.put("content", content);
         }
@@ -265,7 +265,7 @@ public class LcaiFileUtils {
         return null;
     }
 
-    public static void saveImageToGallery(Context mContext,final File sourceFile,LcaiFileInterface fileInterface) {
+    public static void saveImageToGallery(Context mContext, final File sourceFile, LcaiFileInterface fileInterface) {
         GlobalThreadPool.execute(new LcaiRunnableUtils() {
             @Override
             public void run() {
@@ -316,7 +316,7 @@ public class LcaiFileUtils {
                             mContext.getContentResolver().delete(savedUri, null, null);
                         }
                         LcaiLogUtils.d("图片插入图库失败");
-                    }finally {
+                    } finally {
                         try {
                             if (out != null) out.close();
                             if (in != null) in.close();

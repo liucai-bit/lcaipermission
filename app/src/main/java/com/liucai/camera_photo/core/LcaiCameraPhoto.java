@@ -1,10 +1,13 @@
 package com.liucai.camera_photo.core;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 
 import com.liucai.camera_photo.bulider.LcaiCameraPhotoBulider;
 import com.liucai.camera_photo.view.LcaiCamearPhtoActivity;
+import com.liucai.core.base.LcaiActivityManager;
+import com.liucai.core.util.log.LcaiLogUtils;
 
 /**
  * @author liucai
@@ -14,23 +17,28 @@ import com.liucai.camera_photo.view.LcaiCamearPhtoActivity;
  */
 public class LcaiCameraPhoto {
 
-    public LcaiCameraPhotoBulider bulider;
+    public LcaiCameraPhotoBulider builder;
 
-    public LcaiCameraPhoto(LcaiCameraPhotoBulider bulider) {
-        this.bulider = bulider;
-        init();
+    public LcaiCameraPhoto(LcaiCameraPhotoBulider builder) {
+        this.builder = builder;
     }
 
-    private void init() {
-        Intent intent = new Intent();
-        Bundle bundle = new Bundle();
-        bundle.putString(LcaiCamearPhtoActivity.OPEN_KEY, bulider.checkType);
-        bundle.putString(LcaiCamearPhtoActivity.RESULT_KEY, bulider.resultTyp);
-        bundle.putBoolean(LcaiCamearPhtoActivity.SAVE_IMAGE_KEY,bulider.save);
-        bundle.putBoolean(LcaiCamearPhtoActivity.ADD_HEADER_KEY, bulider.addHeader);
-        intent.putExtras(bundle);
-        intent.setClass(bulider.mContext,LcaiCamearPhtoActivity.class);
-        bulider.mContext.startActivity(intent);
+    public void start() {
+        Activity activity = LcaiActivityManager.getInstance().getResumedActivity();
+        if (activity == null) {
+            LcaiLogUtils.d("LcaiCameraPhoto start failed: context is null");
+            return;
+        }
 
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            LcaiLogUtils.d("LcaiCameraPhoto start failed: activity is finishing or destroyed");
+            return;
+        }
+        Intent intent = new Intent(activity, LcaiCamearPhtoActivity.class);
+        intent.putExtra(LcaiCamearPhtoActivity.OPEN_KEY, builder.type.name());
+        intent.putExtra(LcaiCamearPhtoActivity.RESULT_KEY, builder.resultTyp.name());
+        intent.putExtra(LcaiCamearPhtoActivity.SAVE_IMAGE_KEY, builder.save);
+        intent.putExtra(LcaiCamearPhtoActivity.ADD_HEADER_KEY, builder.addHeader);
+        activity.startActivity(intent);
     }
 }

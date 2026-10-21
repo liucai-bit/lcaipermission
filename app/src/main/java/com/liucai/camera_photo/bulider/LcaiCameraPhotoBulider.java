@@ -2,9 +2,9 @@ package com.liucai.camera_photo.bulider;
 
 import android.content.Context;
 
-import com.liucai.camera_photo.core.LcaiCameraPhoto;
-import com.liucai.camera_photo.core.LcaiPhotoLib;
-import com.liucai.camera_photo.core.LcaiPhotoResult;
+import com.liucai.camera_photo.core.LcaiGalleryResult;
+import com.liucai.camera_photo.core.LcaiGalleryCheckType;
+import com.liucai.camera_photo.core.LcaiGalleryResultType;
 
 /**
  * @author liucai
@@ -14,70 +14,49 @@ import com.liucai.camera_photo.core.LcaiPhotoResult;
  */
 public class LcaiCameraPhotoBulider {
 
-    /**
-     * 上下文对象
-     */
-    public Context mContext;
+    public LcaiGalleryCheckType type = LcaiGalleryCheckType.PHOTO;
 
-    public LcaiCameraPhotoBulider with(Context mContext) {
-        this.mContext = mContext;
+    public LcaiCameraPhotoBulider addCheck(LcaiGalleryCheckType type) {
+        this.type = type;
         return this;
     }
 
-    /**
-     *选择照片类型
-     * 默认跳转相册选择
-     */
-    public String checkType = LcaiPhotoLib.CHECK_PHOTO;
+    public LcaiGalleryResultType resultTyp = LcaiGalleryResultType.URL;
 
-    public LcaiCameraPhotoBulider setCheckType(String checkType) {
-        this.checkType = checkType;
-        return this;
-    }
-
-    /**
-     * 返回类型
-     * 默认返回url
-     */
-    public String resultTyp = LcaiPhotoLib.BACK_URL;
-
-    public LcaiCameraPhotoBulider setResultType(String resultTyp) {
+    public LcaiCameraPhotoBulider addResult(LcaiGalleryResultType resultTyp) {
         this.resultTyp = resultTyp;
         return this;
     }
 
-    /**
-     * 是否添加头部
-     * 返回类型为base64时使用
-     */
     public boolean addHeader;
 
+    public LcaiCameraPhotoBulider setAddHeader(boolean addHeader) {
+        this.addHeader = addHeader;
+        return this;
+    }
+
+    // 保留原来的写法，兼容老代码
     public LcaiCameraPhotoBulider addHeader() {
         this.addHeader = true;
         return this;
     }
 
-    /**
-     * 是否保存照片
-     * 拍照时使用
-     */
     public boolean save;
+
+    public LcaiCameraPhotoBulider setSave(boolean save) {
+        this.save = save;
+        return this;
+    }
 
     public LcaiCameraPhotoBulider save() {
         this.save = true;
         return this;
     }
 
-    /**
-     * 返回回调
-     */
-    public LcaiPhotoResult result;
+    public LcaiGalleryResult result;
 
-    public LcaiCameraPhotoBulider setResult(LcaiPhotoResult result) {
+    public LcaiCameraPhotoBulider setResult(LcaiGalleryResult result) {
         this.result = result;
         return this;
     }
-
-
-
 }

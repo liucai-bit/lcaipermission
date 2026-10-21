@@ -8,8 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.liucai.camera_photo.bulider.LcaiCameraPhotoBulider;
 import com.liucai.camera_photo.core.LcaiCameraPhoto;
-import com.liucai.camera_photo.core.LcaiPhotoCameraActivityResult;
-import com.liucai.camera_photo.core.LcaiPhotoResult;
+import com.liucai.camera_photo.core.LcaiGalleryResult;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.bulider.LcaiPermissionRequestBulider;
 import com.liucai.permission.core.LcaiPermissionActivityResult;
@@ -19,29 +18,29 @@ import com.liucai.permission.core.LcaiReqPermissionResult;
 import com.liucai.permission.view.LcaiPermissionActivity;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class LcaiManager {
     private boolean pendingToSystem = false;
+
+    // ============ 权限回调 ============
     private final LcaiPermissionActivityResult permissionActivityResult = new LcaiPermissionActivityResult() {
         @Override
         public void onPermissionResult(boolean granted, Map<String, Boolean> permissions) {
-            LcaiPermissionRequestBulider builder = mBuilderRef != null ? mBuilderRef.get() : null;
+            // 改用强引用，避免传匿名对象时被GC提前回收
+            LcaiPermissionRequestBulider builder = currentPermissionBuilder;
             LcaiReqPermissionResult result = builder != null ? builder.result : null;
             if (result != null) {
                 if (granted) {
                     result.onReqPermissionPass();
                     pendingToSystem = false;
-                    // 权限回调完成后清理引用
                     clearPermissionReferences();
                 } else {
                     if (pendingToSystem) {
                         pendingToSystem = false;
                         result.onReqPermissionNoPass(permissions);
-                        // 权限回调完成后清理引用
                         clearPermissionReferences();
                         return;
                     }
@@ -52,57 +51,65 @@ public class LcaiManager {
                                 public void onCancelListener() {
                                     if (builder.result != null) {
                                         builder.result.onReqPermissionNoPass(permissions);
-                                        // 权限回调完成后清理引用
                                         clearPermissionReferences();
                                     }
                                 }
-
                                 @Override
                                 public void onConfirmListener() {
-                                    toSystem(permissions,builder.mActivity);
+                                    toSystem(permissions, builder.mActivity);
                                 }
                             }).build();
                         } else {
-                           toSystem(permissions,builder.mActivity);
+                            toSystem(permissions, builder.mActivity);
                         }
                     } else {
                         result.onReqPermissionNoPass(permissions);
-                        // 权限回调完成后清理引用
                         clearPermissionReferences();
                     }
                 }
             } else {
-                // 权限回调完成后清理引用
                 clearPermissionReferences();
             }
         }
     };
 
-    private final LcaiPhotoCameraActivityResult photoCameraActivityResult = new LcaiPhotoCameraActivityResult() {
+    private final LcaiGalleryResult photoCameraActivityResult = new LcaiGalleryResult() {
         @Override
         public void onUrl(String url) {
-            LcaiCameraPhotoBulider bulider = mBuilderPhotoRef != null ? mBuilderPhotoRef.get() : null;
-            LcaiPhotoResult result = bulider != null ? bulider.result : null;
-            if (result != null) result.onUrl(url);
+            LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+            if (builder != null && builder.result != null) {
+                builder.result.onUrl(url);
+            }
         }
 
         @Override
         public void onBase64(String base64) {
-            LcaiCameraPhotoBulider bulider = mBuilderPhotoRef != null ? mBuilderPhotoRef.get() : null;
-            LcaiPhotoResult result = bulider != null ? bulider.result : null;
-            if (result != null) result.onBase64(base64);
+            LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+            if (builder != null && builder.result != null) {
+                builder.result.onBase64(base64);
+            }
+        }
+
+        @Override
+        public void onCancel() {
+            LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+            if (builder != null && builder.result != null) {
+                builder.result.onCancel();
+            }
         }
 
         @Override
         public void onError(String error) {
-            LcaiCameraPhotoBulider bulider = mBuilderPhotoRef != null ? mBuilderPhotoRef.get() : null;
-            LcaiPhotoResult result = bulider != null ? bulider.result : null;
-            if (result != null) result.onError(error);
+            LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+            if (builder != null && builder.result != null) {
+                builder.result.onError(error);
+            }
         }
     };
 
-    private WeakReference<LcaiPermissionRequestBulider> mBuilderRef;
-    private WeakReference<LcaiCameraPhotoBulider> mBuilderPhotoRef;
+    // 使用强引用持有 Builder，防止业务方用匿名/局部变量传参时被系统提前 GC
+    private LcaiPermissionRequestBulider currentPermissionBuilder;
+    private LcaiCameraPhotoBulider currentPhotoBuilder;
 
     private LcaiManager() {}
 
@@ -117,7 +124,7 @@ public class LcaiManager {
             return getInstance().permissionActivityResult;
         }
 
-        public static LcaiPhotoCameraActivityResult getPhotoCameraResult() {
+        public static LcaiGalleryResult getPhotoCameraResult() {
             return getInstance().photoCameraActivityResult;
         }
     }
@@ -126,7 +133,13 @@ public class LcaiManager {
         return LcaiManagerHelper.INSTANCE;
     }
 
+    // ============ 核心跳转逻辑 ============
+
     private void toSystem(Map<String, Boolean> permissions, Activity mActivity) {
+        if (mActivity == null || mActivity.isFinishing() || mActivity.isDestroyed()) {
+            clearPermissionReferences();
+            return;
+        }
         if (!permissions.isEmpty()) {
             List<String> stringList = new ArrayList<>();
             boolean hasNotification = false;
@@ -139,7 +152,7 @@ public class LcaiManager {
             }
             Intent intent = new Intent();
             Bundle bundle = new Bundle();
-            bundle.putStringArray(LcaiPermissionString.PERMISSION_KEY, stringList.toArray(new String[stringList.size()]));
+            bundle.putStringArray(LcaiPermissionString.PERMISSION_KEY, stringList.toArray(new String[0]));
             bundle.putBoolean(LcaiPermissionString.HAS_NOTIFICATION, hasNotification);
             bundle.putBoolean(LcaiPermissionString.TO_SYSTEM, true);
             intent.putExtras(bundle);
@@ -152,20 +165,25 @@ public class LcaiManager {
     public void permissionReq(@NonNull LcaiPermissionRequestBulider bulider) {
         clearPermissionReferences();
         pendingToSystem = false;
-        mBuilderRef = new WeakReference<>(bulider);
+        currentPermissionBuilder = bulider; // 强引用
         new LcaiPermissionRequest(bulider);
     }
 
     public void openPhotoOrCamera(@NonNull LcaiCameraPhotoBulider bulider) {
-        clearPhotoReferences(); // 清理旧的相机引用
-        mBuilderPhotoRef = new WeakReference<>(bulider);
-        new LcaiCameraPhoto(bulider);
-    }
-    private void clearPermissionReferences() {
-        mBuilderRef = null;
+        clearPhotoReferences();
+        currentPhotoBuilder = bulider; // 强引用
+        // 调用我们重构后的 LcaiCameraPhoto.start()
+        new LcaiCameraPhoto(bulider).start();
     }
 
-    private void clearPhotoReferences() {
-        mBuilderPhotoRef = null;
+    /**
+     * 供 LcaiCamearPhtoActivity 在 onDestroy 中安全清理引用
+     */
+    public void clearPermissionReferences() {
+        currentPermissionBuilder = null;
+    }
+
+    public void clearPhotoReferences() {
+        currentPhotoBuilder = null;
     }
 }

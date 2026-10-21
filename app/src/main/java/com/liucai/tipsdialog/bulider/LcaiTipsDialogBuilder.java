@@ -1,12 +1,20 @@
 package com.liucai.tipsdialog.bulider;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.liucai.component.base.BaseRecycleAdapter;
+import com.liucai.core.apputils.GlobalAppUtil;
+import com.liucai.core.base.LcaiActivityManager;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.tipsdialog.core.LcaiTipsDialog;
 import com.liucai.tipsdialog.core.LcaiTipsMode;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
@@ -23,9 +31,12 @@ import java.util.List;
  */
 public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
     /** 弹窗对象*/
+    @Nullable
     private LcaiTipsDialog dialog;
     /** 上下文对象 */
+    @Nullable
     public Context mContext;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     /**
      * 弹窗模式
      */
@@ -80,14 +91,6 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
     public boolean outSideCancal;
     /** 点击回调接口 */
     public OnTipsDialogInterface dialogInterface;
-
-    /**
-     * 设置上下文
-     */
-    public LcaiTipsDialogBuilder setContext(Context context) {
-        this.mContext = context;
-        return this;
-    }
 
     /**
      * 设置弹窗模式
@@ -316,23 +319,153 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         this.dialogInterface = dialogInterface;
         return this;
     }
+    /**
+     * 显式指定宿主（<b>可选</b>）。
+     * <p>不调用此方法时，{@link #build()} 会自动从 {@link LcaiActivityManager} 获取
+     * 当前前台可见的 Activity。大多数场景无需调用本方法。
+     */
+    public LcaiTipsDialogBuilder<T> setContext(@NonNull Context context) {
+        this.mContext = context;
+        return this;
+    }
 
     /**
-     * 管不弹窗
+     * 显示弹窗（宿主无效时抛异常）。
+     *
+     * <p>适合开发期：快速暴露"在错误的时机弹窗"问题。
+     * <p>可在任意线程调用，内部自动切主线程。
+     *
+     * @throws IllegalStateException 宿主不可用
+     */
+    public void showOrThrow() {
+        if (!isMainThread()) {
+            mainHandler.post(this::showOrThrow);
+            return;
+        }
+        Activity host = resolveHost();
+        if (host == null) {
+            throw new IllegalStateException(
+                    "No resumed activity available to host the tips dialog");
+        }
+        dismissQuietly();
+        this.mContext = host;
+        dialog = new LcaiTipsDialog(this);
+    }
+
+    // ==================== 关闭 ====================
+
+    /**
+     * 关闭弹窗。可安全重复调用。
+     * <p>可在任意线程调用，内部自动切主线程。
      */
     public void dismiss() {
+        if (!isMainThread()) {
+            mainHandler.post(this::dismiss);
+            return;
+        }
+        dismissQuietly();
+    }
+
+    /**
+     * 是否正在显示。
+     */
+    public boolean isShowing() {
+        return dialog != null && dialog.isShowing();
+    }
+
+    /**
+     * 彻底释放 Builder 持有的外部引用。
+     * <p>Builder 用完后调用，调用后本实例不应再被复用。
+     */
+    public void release() {
         if (dialog != null) {
-            dialog.dismiss();
-            release();
+            dialog.builder = null;
+            dialog = null;
+        }
+        dismissQuietly();
+        mContext = null;
+        adapter = null;
+        dialogInterface = null;
+        moduleList = null;
+        popupBg = null;
+        cancelBg = null;
+        confirmBg = null;
+    }
+
+    // ==================== 内部实现 ====================
+
+    /**
+     * 解析宿主：
+     * 1. 调用方显式设置的 Activity 且有效 → 用它
+     * 2. 从 LcaiActivityManager 取前台可见 Activity 且有效 → 用它
+     * 3. 都无效 → null
+     */
+    @Nullable
+    private Activity resolveHost() {
+        if (mContext instanceof Activity) {
+            Activity a = (Activity) mContext;
+            if (!a.isFinishing() && !a.isDestroyed()) {
+                return a;
+            }
+        }
+        Activity resumed = LcaiActivityManager.getInstance().getResumedActivity();
+        if (resumed != null && !resumed.isFinishing() && !resumed.isDestroyed()) {
+            return resumed;
+        }
+        return null;
+    }
+
+    private void dismissQuietly() {
+        LcaiTipsDialog d = dialog;
+        dialog = null;
+        if (d != null) {
+            try {
+                if (d.isShowing()) {
+                    d.dismiss();
+                }
+            } catch (Throwable t) {
+                // 宿主已销毁时 dismiss 可能抛异常，忽略
+                LcaiLogUtils.d("TipsDialog dismiss failed: " + t.getMessage());
+            }
         }
     }
 
-    public void release() {
-        this.mContext = null;
+    private static boolean isMainThread() {
+        return Looper.myLooper() == Looper.getMainLooper();
     }
-
+    /**
+     * 显示弹窗。
+     *
+     * <p>宿主无效时<b>静默失败</b>并返回 {@code false}，不抛异常，适合生产环境。
+     * <p>可在任意线程调用，内部自动切主线程。
+     *
+     * @return 是否成功显示
+     */
     public void build() {
-        dialog=new LcaiTipsDialog(this);
+        if (!isMainThread()) {
+            mainHandler.post(this::build);
+            return;
+        }
+        dismissQuietly();
+        Activity host = resolveHost();
+        if (host == null) {
+            LcaiLogUtils.d("TipsDialog show skipped: no valid host");
+            return;
+        }
+        // 若已有 dialog 正在显示，先关掉，避免叠弹
+        dismissQuietly();
+        // 把最终宿主回写 mContext，供 LcaiTipsDialog 内部使用
+        this.mContext = host;
+        try {
+            dialog = new LcaiTipsDialog(this);
+            dialog.setOnDismissListener(d -> {
+                release();
+            });
+            dialog.show();
+        } catch (Throwable t) {
+            LcaiLogUtils.d("TipsDialog build failed: " + t.getMessage());
+            dialog = null;
+        }
     }
 
 

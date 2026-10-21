@@ -18,6 +18,7 @@ import android.view.WindowInsets;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.liucai.core.base.LcaiActivityManager;
 import com.liucai.core.util.common.ComponentInterface;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.system.SystemUtils;
@@ -55,42 +56,7 @@ public final class GlobalAppUtil {
         sApplication = application;
         sCacheDir = application.getExternalCacheDir(); // 可能为 null
         LcaiPreferenceUtils.init();
-        registerActivityLifecycleCallback(application);
-    }
-
-    private static void registerActivityLifecycleCallback(@NonNull Application app) {
-        app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-            @Override
-            public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-            }
-
-            @Override
-            public void onActivityStarted(@NonNull Activity activity) {
-            }
-
-            @Override
-            public void onActivityResumed(@NonNull Activity activity) {
-                sCurrentActivityRef = new WeakReference<>(activity);
-            }
-
-            @Override
-            public void onActivityPaused(@NonNull Activity activity) {
-                clearCurrentActivityIfMatch(activity);
-            }
-
-            @Override
-            public void onActivityStopped(@NonNull Activity activity) {
-            }
-
-            @Override
-            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-            }
-
-            @Override
-            public void onActivityDestroyed(@NonNull Activity activity) {
-                clearCurrentActivityIfMatch(activity);
-            }
-        });
+        LcaiActivityManager.getInstance().init(application);
     }
 
     public static void onComponentInterface(ComponentInterface anInterface) {
