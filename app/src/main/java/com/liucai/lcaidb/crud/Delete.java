@@ -1,5 +1,6 @@
 package com.liucai.lcaidb.crud;
 
+import com.liucai.core.util.lcaidb.CamelCaseConverter;
 import com.liucai.core.util.lcaidb.DBUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.lcaidb.base.BaseCRUD;
@@ -11,8 +12,6 @@ import java.util.Map;
 
 /**
  * DELETE 语句生成器。
- *
- * @author liucai
  */
 public class Delete<T extends LcaiTableInfo> extends BaseCRUD<T> {
 
@@ -20,9 +19,6 @@ public class Delete<T extends LcaiTableInfo> extends BaseCRUD<T> {
         super(aClass);
     }
 
-    /**
-     * 按主键集合删除。idList 为空时返回空字符串（调用方应处理）。
-     */
     public String deleteById(Collection<Serializable> idList) {
         if (idList == null || idList.isEmpty()) {
             return "";
@@ -31,12 +27,8 @@ public class Delete<T extends LcaiTableInfo> extends BaseCRUD<T> {
         for (Serializable s : idList) {
             if (s == null) continue;
             if (sb.length() > 0) sb.append(",");
-            // 字符串 id 需要加单引号，数字不需要
-            if (s instanceof Number || s instanceof Boolean) {
-                sb.append(s);
-            } else {
-                sb.append(format(STRING, s));
-            }
+            // 使用 wrap 安全包裹
+            sb.append(wrap(s));
         }
         if (sb.length() == 0) return "";
         return format(DELETE_BYID,
@@ -45,31 +37,24 @@ public class Delete<T extends LcaiTableInfo> extends BaseCRUD<T> {
                 sb.toString());
     }
 
-    /**
-     * 按条件 Map 删除。value 为 null 的项会被跳过。
-     */
     public String deleteByParams(Map<String, Object> condition) {
         StringBuilder builder = new StringBuilder();
         boolean first = true;
         for (Map.Entry<String, Object> entry : condition.entrySet()) {
             Object value = entry.getValue();
             if (value == null) continue;
+            if (value instanceof CharSequence && TextUtils.isEmpty(value.toString())) continue;
 
             if (!first) builder.append(SPACE).append(AND).append(SPACE);
-            builder.append(entry.getKey()).append("=");
-            if (value instanceof String) {
-                builder.append(format(STRING, value));
-            } else {
-                builder.append(value);
-            }
+            // 修复: 增加驼峰转下划线，与 Query/Update 保持一致
+            builder.append(CamelCaseConverter.toUnderscore(entry.getKey())).append("=");
+            builder.append(wrap(value));
             first = false;
         }
+        if (builder.length() == 0) return "";
         return format(DELETE_BY_PARAMS, getTableName(entity.getClass()), builder.toString());
     }
 
-    /**
-     * 按实体非空字段生成删除条件。
-     */
     public String deleteByEntity(T entity) {
         if (entity == null) return "";
         StringBuilder builder = new StringBuilder();
@@ -81,16 +66,11 @@ public class Delete<T extends LcaiTableInfo> extends BaseCRUD<T> {
             if (value instanceof CharSequence && TextUtils.isEmpty(value.toString())) continue;
 
             if (!first) builder.append(SPACE).append(AND).append(SPACE);
-            // 字段名统一转下划线，和表列名对齐
-            builder.append(com.liucai.core.util.lcaidb.CamelCaseConverter
-                    .toUnderscore(entry.getKey())).append("=");
-            if (value instanceof String) {
-                builder.append(format(STRING, value));
-            } else {
-                builder.append(value);
-            }
+            builder.append(CamelCaseConverter.toUnderscore(entry.getKey())).append("=");
+            builder.append(wrap(value));
             first = false;
         }
+        if (builder.length() == 0) return "";
         return format(DELETE_BY_PARAMS, getTableName(entity.getClass()), builder.toString());
     }
 }

@@ -10,12 +10,11 @@ import com.liucai.lcaidb.base.module.LcaiTableInfo;
 import com.liucai.lcaidb.enu.OrderTypeEnum;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 
 /**
  * SELECT 语句生成器 + Cursor 到实体的映射。
- *
- * @author liucai
  */
 public class Query<T extends LcaiTableInfo> extends BaseCRUD<T> {
 
@@ -23,25 +22,19 @@ public class Query<T extends LcaiTableInfo> extends BaseCRUD<T> {
         super(aClass);
     }
 
-    /**
-     * 将 Cursor 当前行映射为实体对象。
-     * 注意：调用方负责 cursor 的生命周期与关闭。
-     */
     @SuppressLint("Range")
     public T getEntity(Cursor cursor, Class<?> aClass) {
         try {
             T instance = (T) aClass.getDeclaredConstructor().newInstance();
             for (Field field : aClass.getDeclaredFields()) {
-                // 跳过 static / transient
                 int modifiers = field.getModifiers();
-                if (java.lang.reflect.Modifier.isStatic(modifiers)
-                        || java.lang.reflect.Modifier.isTransient(modifiers)) {
+                if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)) {
                     continue;
                 }
                 field.setAccessible(true);
                 String column = CamelCaseConverter.toUnderscore(field.getName());
                 int index = cursor.getColumnIndex(column);
-                if (index < 0) continue; // 列不存在跳过
+                if (index < 0) continue;
 
                 Class<?> type = field.getType();
                 Object value = null;
@@ -57,19 +50,19 @@ public class Query<T extends LcaiTableInfo> extends BaseCRUD<T> {
                     value = cursor.getFloat(index);
                 } else if (type.equals(Short.class) || type.equals(short.class)) {
                     value = cursor.getShort(index);
+                } else if (type.equals(Boolean.class) || type.equals(boolean.class)) {
+                    value = cursor.getInt(index) == 1; // 修复: 布尔类型映射
                 } else if (type.equals(byte[].class)) {
                     value = cursor.getBlob(index);
                 }
 
-                // 只处理 null 判断，避免 fileValue+"" == "null" 的误判
                 if (value != null) {
                     field.set(instance, value);
                 }
             }
             return instance;
         } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException(
-                    "Failed to map cursor to " + aClass.getName(), e);
+            throw new IllegalStateException("Failed to map cursor to " + aClass.getName(), e);
         }
     }
 
@@ -77,24 +70,21 @@ public class Query<T extends LcaiTableInfo> extends BaseCRUD<T> {
         return format(QUERYLIST, getTableName(entity.getClass()));
     }
 
-    /**
-     * 按条件查询。Map 的 key 为 Java 字段名（转下划线后作为列名），value 为 null 时跳过。
-     */
     public String queryByParams(Map<String, Object> condition) {
         StringBuilder builder = new StringBuilder();
         boolean first = true;
         for (Map.Entry<String, Object> entry : condition.entrySet()) {
             Object value = entry.getValue();
             if (value == null) continue;
+            if (value instanceof CharSequence && TextUtils.isEmpty(value.toString())) continue;
 
             if (!first) builder.append(SPACE).append(AND).append(SPACE);
             builder.append(CamelCaseConverter.toUnderscore(entry.getKey())).append("=");
-            if (value instanceof String) {
-                builder.append(format(STRING, value));
-            } else {
-                builder.append(value);
-            }
+            builder.append(wrap(value)); // 修复安全包裹
             first = false;
+        }
+        if (builder.length() == 0) {
+            return queryList(); // 如果没有条件，等价于查全部
         }
         return format(TABLE_QUERY, getTableName(entity.getClass()), builder.toString());
     }

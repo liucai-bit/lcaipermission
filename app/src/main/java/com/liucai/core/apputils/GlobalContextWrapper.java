@@ -8,43 +8,46 @@ import android.os.Build;
 import com.liucai.preference.LcaiPreferenceUtils;
 
 /**
+ * 字体缩放 Context 包装器。
+ *
+ * <p>注意：不要修改原始 Resources 的 Configuration，否则会污染全局 Application。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/7/14
  */
 public class GlobalContextWrapper extends ContextWrapper {
 
-    private Context mContext;
+    private final Context mBaseContext;
+
     public GlobalContextWrapper(Context base) {
         super(base);
-        this.mContext = base;
+        this.mBaseContext = base;
     }
 
-    public ContextWrapper wrap() {
-        float fontScale = LcaiPreferenceUtils.getFloat(GlobalModelString.GLOBAL_FONT_SCALE, 1.0f);
-        if (fontScale > 0) {
-            Configuration config = mContext.getResources().getConfiguration();
+    public Context wrap() {
+        float fontScale = LcaiPreferenceUtils.getFloat(
+                GlobalModelString.GLOBAL_FONT_SCALE, 1.0f);
 
-            // 如果当前缩放比例与目标一致，则无需包装
-            if (config.fontScale == fontScale) {
-                return new GlobalContextWrapper(mContext);
-            }
-
-            Configuration newConfig = new Configuration(config);
-            newConfig.fontScale = fontScale;
-
-            // 根据 API 级别更新配置
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                mContext = mContext.createConfigurationContext(newConfig);
-            } else {
-                // 旧版本处理方式（已废弃，但兼容低版本）
-                mContext.getResources().updateConfiguration(newConfig, mContext.getResources().getDisplayMetrics());
-            }
-            return new GlobalContextWrapper(mContext);
+        if (!(fontScale > 0)
+                || Float.isNaN(fontScale)
+                || Float.isInfinite(fontScale)) {
+            return this;
         }
 
-        return new GlobalContextWrapper(mContext);
+        Configuration config = mBaseContext.getResources().getConfiguration();
+        if (Float.compare(config.fontScale, fontScale) == 0) {
+            return this;
+        }
 
+        Configuration newConfig = new Configuration(config);
+        newConfig.fontScale = fontScale;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            Context configContext = mBaseContext.createConfigurationContext(newConfig);
+            return configContext != null ? new GlobalContextWrapper(configContext) : this;
+        }
+
+        // API 17 以下不支持 createConfigurationContext。
+        // 不要调用 updateConfiguration 修改原始 Resources，避免污染全局。
+        return this;
     }
 }

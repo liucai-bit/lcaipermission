@@ -2,15 +2,16 @@ package com.liucai.core.apputils;
 
 /**
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/7/14
  */
-public class GlobalModelString {
-    public static String GLOBAL_PREFERENCE = "__preference";
-    public static String GLOBAL_APPLICATION = "__application";
-    public static String CLIENT_ACTIVITY = "__activity";
-    public static String GLOBAL_FONT_SCALE = "__font_scale";
-    public static String GLOBAL_DEBUG_MODE = "__debug_mode";
-    public static String PERMISSION_APPLIED="__permission_applied";
+public final class GlobalModelString {
+
+    public static final String GLOBAL_PREFERENCE = "__preference";
+    public static final String GLOBAL_APPLICATION = "__application";
+    public static final String CLIENT_ACTIVITY = "__activity";
+    public static final String GLOBAL_FONT_SCALE = "__font_scale";
+    public static final String GLOBAL_DEBUG_MODE = "__debug_mode";
+    public static final String PERMISSION_APPLIED = "__permission_applied";
+
+    private GlobalModelString() {
+    }
 }

@@ -4,7 +4,7 @@ import com.liucai.core.util.lcaidb.LcaiAspect;
 import com.liucai.lcaidb.base.sql.LcaiSql;
 
 /**
- * 所有 CRUD 操作类的基类，持有实体 Class 与实例。
+ * 所有 CRUD 操作类的基类。
  *
  * @author liucai
  */
@@ -25,17 +25,31 @@ public abstract class BaseCRUD<T> implements LcaiSql {
         }
     }
 
-    /**
-     * 获取实体上 @Table 注解指定的表名。
-     */
     public String getTableName(Class<?> aClass) {
         return LcaiAspect.getTableNameValue(aClass);
     }
 
-    /**
-     * 获取实体上 @TableId 注解指定的主键列名。
-     */
     public String getTableId(Class<?> aClass) {
         return LcaiAspect.getTableIdValue(aClass);
+    }
+
+    /**
+     * 【新增】安全包裹 SQL 值。
+     * 自动处理 null、数字、布尔值(转0/1)以及转义字符串单引号，防止 SQL 注入和语法崩溃。
+     */
+    protected String wrap(Object value) {
+        if (value == null) {
+            return "NULL";
+        }
+        if (value instanceof Boolean) {
+            return ((Boolean) value) ? "1" : "0";
+        }
+        if (value instanceof Number) {
+            return value.toString();
+        }
+        // 字符串转义：将单引号替换为两个单引号
+        String str = value.toString();
+        str = str.replace("'", "''");
+        return format(STRING, str);
     }
 }

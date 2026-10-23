@@ -17,20 +17,16 @@ import com.liucai.permission.R;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author liucai
- * @program lcpermission
- * @description 面包屑效果
- * @Date 2026/7/28
- */
 public class HorizonalBreadBar extends BaseLinearLayout {
 
-    public List<String> datas;
+    @NonNull
+    private final List<String> datas = new ArrayList<>();
 
     private int textSize;
     private int textColor;
+    @Nullable
     private Drawable background;
-    private int minWidth = CommonUtils.dip2px(mContext,60);
+    private int minWidth;
 
     public HorizonalBreadBar(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -42,17 +38,18 @@ public class HorizonalBreadBar extends BaseLinearLayout {
         return R.styleable.HorizonalBreadBar;
     }
 
-    public void setDatas(List<String> datas) {
-        this.datas = datas;
-        removeAllViews();
-        initBread();
-        requestLayout();
-        invalidate();
-    }
-
     @Override
     public void init() {
-        datas = new ArrayList<>();
+        // 修复：mContext 在字段初始化时还是 null，必须在 init() 中赋值
+        minWidth = CommonUtils.dip2px(mContext, 60);
+
+        if (mTa == null) {
+            textSize = 12;
+            textColor = Color.parseColor("#1C1C1C");
+            background = mContext.getDrawable(R.mipmap.risk_back);
+            return;
+        }
+
         textSize = mTa.getInt(R.styleable.HorizonalBreadBar_textSize, 12);
         textColor = mTa.getColor(R.styleable.HorizonalBreadBar_textColor, Color.parseColor("#1C1C1C"));
         background = mTa.getDrawable(R.styleable.HorizonalBreadBar_breadBackground);
@@ -68,7 +65,25 @@ public class HorizonalBreadBar extends BaseLinearLayout {
         initBread();
     }
 
-    public void initBread() {
+    /**
+     * 设置数据并刷新 UI
+     */
+    public void setDatas(@Nullable List<String> newDatas) {
+        this.datas.clear();
+        if (newDatas != null) {
+            this.datas.addAll(newDatas);
+        }
+        initBread();
+    }
+
+    @NonNull
+    public List<String> getDatas() {
+        return new ArrayList<>(datas);
+    }
+
+    private void initBread() {
+        removeAllViews();
+        if (datas.isEmpty()) return;
 
         for (String data : datas) {
             TextView textView = new TextView(mContext);
@@ -79,13 +94,16 @@ public class HorizonalBreadBar extends BaseLinearLayout {
             textView.setTextSize(textSize);
             textView.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-            int textContentWidth = textView.getMeasuredWidth()+CommonUtils.dip2px(mContext,10);
-            int textContentHeight = textView.getMeasuredHeight()+CommonUtils.dip2px(mContext,5);
-            LayoutParams params = new LayoutParams(textContentWidth> minWidth ? textContentWidth: WC,textContentHeight);
-            params.setMargins(CommonUtils.dip2px(mContext,5),0,0,0);
+
+            int textContentWidth = textView.getMeasuredWidth() + CommonUtils.dip2px(mContext, 10);
+            int textContentHeight = textView.getMeasuredHeight() + CommonUtils.dip2px(mContext, 5);
+
+            LayoutParams params = new LayoutParams(Math.max(textContentWidth, minWidth), textContentHeight);
+            params.setMargins(CommonUtils.dip2px(mContext, 5), 0, 0, 0);
             textView.setLayoutParams(params);
             textView.setBackground(background);
-            textView.setPadding(CommonUtils.dip2px(mContext,5),CommonUtils.dip2px(mContext,3),CommonUtils.dip2px(mContext,5),CommonUtils.dip2px(mContext,3));
+            textView.setPadding(CommonUtils.dip2px(mContext, 5), CommonUtils.dip2px(mContext, 3),
+                    CommonUtils.dip2px(mContext, 5), CommonUtils.dip2px(mContext, 3));
             addView(textView);
         }
     }

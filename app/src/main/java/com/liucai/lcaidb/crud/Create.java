@@ -6,11 +6,10 @@ import com.liucai.lcaidb.base.BaseCRUD;
 import com.liucai.lcaidb.base.module.LcaiTableInfo;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * CREATE TABLE 语句生成器。
- *
- * @author liucai
  */
 public class Create<T extends LcaiTableInfo> extends BaseCRUD<T> {
 
@@ -20,14 +19,18 @@ public class Create<T extends LcaiTableInfo> extends BaseCRUD<T> {
 
     public String createTable() {
         String tableName = getTableName(entity.getClass());
-        // 注解值统一转为下划线形式后比较，避免注解写 "id" 而字段是 "userId" 等匹配问题
         String idColumn = CamelCaseConverter.toUnderscore(getTableId(entity.getClass()));
 
         Field[] fields = new DBUtils<>().getFields(entity.getClass());
         StringBuilder builder = new StringBuilder();
+        int validCount = 0;
 
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : fields) {
+            // 过滤静态字段和瞬态字段
+            if (Modifier.isStatic(field.getModifiers()) || Modifier.isTransient(field.getModifiers())) {
+                continue;
+            }
+
             Class<?> type = field.getType();
             String column = CamelCaseConverter.toUnderscore(field.getName());
 
@@ -35,16 +38,19 @@ public class Create<T extends LcaiTableInfo> extends BaseCRUD<T> {
 
             if (column.equals(idColumn)) {
                 builder.append(SPACE).append(PRIMARY_KEY);
-                // AUTOINCREMENT 仅对 INTEGER PRIMARY KEY 有效
                 if (type.equals(Integer.class) || type.equals(Long.class)
                         || type.equals(int.class) || type.equals(long.class)) {
                     builder.append(SPACE).append(AUTOINCREMENT);
                 }
             }
 
-            if (i < fields.length - 1) {
-                builder.append(",");
-            }
+            builder.append(",");
+            validCount++;
+        }
+
+        // 移除最后一个多余的逗号
+        if (validCount > 0) {
+            builder.setLength(builder.length() - 1);
         }
 
         return format(TABLE_CREATE, tableName, builder.toString());
@@ -56,7 +62,8 @@ public class Create<T extends LcaiTableInfo> extends BaseCRUD<T> {
         }
         if (type.equals(Integer.class) || type.equals(Long.class)
                 || type.equals(int.class) || type.equals(long.class)
-                || type.equals(Short.class) || type.equals(short.class)) {
+                || type.equals(Short.class) || type.equals(short.class)
+                || type.equals(Boolean.class) || type.equals(boolean.class)) { // 修复: Boolean 映射为 INTEGER
             return INTEGER;
         }
         if (type.equals(Double.class) || type.equals(Float.class)
@@ -66,7 +73,6 @@ public class Create<T extends LcaiTableInfo> extends BaseCRUD<T> {
         if (type.equals(Byte[].class) || type.equals(byte[].class)) {
             return BLOB;
         }
-        // 未知类型默认 TEXT，避免 CREATE TABLE 缺列类型
         return TEXT;
     }
 }

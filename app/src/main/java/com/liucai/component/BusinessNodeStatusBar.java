@@ -3,9 +3,7 @@ package com.liucai.component;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
@@ -26,16 +24,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 业务节点状态展示组件。
+ *
+ * <p>用于展示带图标、文本和角标的网格/列表布局。支持从 XML 配置标题、背景、列数等属性。
+ *
  * @author liucai
- * @program lcpermission
- * @description 业务节点状态展示组件
- * @Date 2026/7/23
  */
 public class BusinessNodeStatusBar extends BaseLinearLayout {
 
     private int columns;
     private Drawable barBackground;
     private String title;
+
     @Nullable
     private TextView mTitle;
     @Nullable
@@ -43,61 +43,70 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
     @Nullable
     private RecyclerView recyclerView;
     @Nullable
-    public ItemClickListener clickListener;
+    private ItemClickListener clickListener;
     @Nullable
     private List<BusinessNodesStatusBean> datas;
+    @NonNull
     private BusinessNodeStatusItemConfig statusItemConfig;
 
+    public BusinessNodeStatusBar(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+        setOrientation(VERTICAL);
+        // 默认 padding 10dp
+        int paddingPx = CommonUtils.dip2px(mContext, 10);
+        setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+    }
+
+    @NonNull
     @Override
     public int[] setAttrs() {
         return R.styleable.BusinessNodeStatusBar;
     }
 
-    public BusinessNodeStatusBar(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        setOrientation(VERTICAL);
-        // 转换dp为px，避免硬编码像素值适配不同屏幕密度
-        int paddingPx = CommonUtils.dip2px(mContext,10);
-        setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
-    }
-
     @Override
     public void init() {
+        statusItemConfig = new BusinessNodeStatusItemConfig();
+
+        // 防御：代码直接 new 时无 AttributeSet
+        if (mTa == null) {
+            columns = 1;
+            title = "";
+            datas = new ArrayList<>();
+            setBackgroundColor(Color.WHITE);
+            return;
+        }
+
         config.titleSize = mTa.getInt(R.styleable.BusinessNodeStatusBar_titleSize, 16);
         config.titleColor = mTa.getColor(R.styleable.BusinessNodeStatusBar_titleColor, mContext.getColor(R.color.text_1c1c1c));
         config.textStyle = mTa.getString(R.styleable.BusinessNodeStatusBar_titleStyle);
         columns = mTa.getInt(R.styleable.BusinessNodeStatusBar_columns, 0);
         title = mTa.getString(R.styleable.BusinessNodeStatusBar_title);
         barBackground = mTa.getDrawable(R.styleable.BusinessNodeStatusBar_barBackground);
-        statusItemConfig = (BusinessNodeStatusItemConfig) new BusinessNodeStatusItemConfig()
+
+        // 修复了原代码 iconHeight 读错属性的 Bug，以及颜色读取使用 getColor 而非 getInt
+        statusItemConfig
                 .setBadgeSize(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeSize, 12))
-                .setEllipsize(mTa.getInt(R.styleable.BusinessNodeStatusBar_ellipsize,1))
-                .setBadgeColor(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeColor, R.color.text_1c1c1c))
+                .setEllipsize(mTa.getInt(R.styleable.BusinessNodeStatusBar_ellipsize, 1))
+                .setBadgeColor(mTa.getColor(R.styleable.BusinessNodeStatusBar_badgeColor, mContext.getColor(R.color.text_1c1c1c)))
                 .setBadgeBackground(mTa.getDrawable(R.styleable.BusinessNodeStatusBar_badgeBackground))
                 .setMaxNumber(mTa.getInt(R.styleable.BusinessNodeStatusBar_maxNumber, 99))
                 .setIsMax(mTa.getBoolean(R.styleable.BusinessNodeStatusBar_isMax, false))
-                .setIconHeight(mTa.getInt(R.styleable.BusinessNodeStatusBar_iconWidth, 25))
                 .setIconWidth(mTa.getInt(R.styleable.BusinessNodeStatusBar_iconWidth, 25))
+                .setIconHeight(mTa.getInt(R.styleable.BusinessNodeStatusBar_iconHeight, 25))
                 .setItemSpace(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemSpace, 0))
                 .setTitleSize(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemTextSize, 12))
-                .setTitleColor(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemTextColor, Color.parseColor("#1C1C1C")));
+                .setTitleColor(mTa.getColor(R.styleable.BusinessNodeStatusBar_itemTextColor, Color.parseColor("#1C1C1C")));
 
         datas = new ArrayList<>();
-        // 边界校验：非法列数自动适配为默认值1，避免GridLayoutManager抛出异常
-        if (columns <= 0) columns = 1;
-        // 版本兼容处理，兼容Android 5.0以下系统背景设置API
+        // 边界校验：非法列数自动适配为默认值1
+        if (columns <= 0) {
+            columns = 1;
+        }
+        // 版本兼容与背景设置处理
         if (barBackground != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                setBackground(barBackground);
-            } else {
-                setBackgroundDrawable(barBackground);
-            }
+            setBackground(barBackground);
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                setBackground(new ColorDrawable(Color.WHITE));
-            } else {
-                setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-            }
+            setBackgroundColor(Color.WHITE);
         }
     }
 
@@ -107,23 +116,22 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         initGrid();
     }
 
-    public void initTitle() {
+    private void initTitle() {
         mTitle = new TextView(mContext);
         LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        int marginBottomPx = CommonUtils.dip2px(mContext,10);
+        int marginBottomPx = CommonUtils.dip2px(mContext, 10);
         params.setMargins(0, 0, 0, marginBottomPx);
         mTitle.setLayoutParams(params);
         mTitle.setTextColor(config.titleColor);
         mTitle.setTextSize(config.titleSize);
         mTitle.setVisibility(GONE);
+
         if (TextUtils.equals(config.textStyle, "1")) {
-            //加粗
             mTitle.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
         } else if (TextUtils.equals(config.textStyle, "2")) {
-            //斜体
             mTitle.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
         }
-        // 空值校验：空标题自动隐藏控件
+
         if (!TextUtils.isEmpty(title)) {
             mTitle.setVisibility(VISIBLE);
             mTitle.setText(title);
@@ -131,7 +139,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         addView(mTitle);
     }
 
-    public void initGrid() {
+    private void initGrid() {
         recyclerView = new RecyclerView(mContext);
         LayoutParams recyclerParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         recyclerView.setLayoutParams(recyclerParams);
@@ -153,29 +161,29 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
      * @param title 标题文本，为空时自动隐藏标题控件
      */
     public void setTitle(@Nullable String title) {
+        this.title = title;
         if (mTitle == null) return;
         if (TextUtils.isEmpty(title)) {
             mTitle.setVisibility(GONE);
-            return;
+        } else {
+            mTitle.setVisibility(VISIBLE);
+            mTitle.setText(title);
         }
-        mTitle.setVisibility(VISIBLE);
-        mTitle.setText(title);
     }
 
-    public void setTitleColor(@NonNull int titleColor) {
-        if (mTitle==null) return;
-        if (titleColor > 0) {
+    public void setTitleColor(int titleColor) {
+        if (mTitle != null && titleColor != 0) {
             mTitle.setTextColor(titleColor);
         }
     }
 
-    public void setTitleSize(@NonNull int titleSize) {
-        if (mTitle==null) return;
-        if (titleSize > 0) {
+    public void setTitleSize(int titleSize) {
+        if (mTitle != null && titleSize > 0) {
             mTitle.setTextSize(titleSize);
         }
     }
 
+    @NonNull
     public BusinessNodeStatusItemConfig getStatusItemConfig() {
         return this.statusItemConfig;
     }
@@ -192,16 +200,20 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
      * @param datas 节点数据
      */
     public void setDatas(@Nullable List<BusinessNodesStatusBean> datas) {
-        this.datas = datas;
+        this.datas = datas != null ? datas : new ArrayList<>();
         if (adapter != null) {
-            adapter.setConfig(statusItemConfig);
-            adapter.setData(datas);
+            adapter.setData(this.datas);
         }
     }
 
-    public void setColumns(@NonNull int columns) {
+    public void setColumns(int columns) {
+        if (columns <= 0) {
+            return;
+        }
         this.columns = columns;
-        recyclerView.setLayoutManager(adapter.getGridManager(columns));
+        if (adapter != null && recyclerView != null) {
+            recyclerView.setLayoutManager(adapter.getGridManager(columns));
+        }
     }
 
     /**
@@ -217,7 +229,6 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
 
     /**
      * 获取当前节点适配器实例，支持外部动态更新单条数据
-     * @return 当前适配器实例
      */
     @Nullable
     public BusinessNodeStatusAdapter getAdapter() {

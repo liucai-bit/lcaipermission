@@ -13,68 +13,78 @@ import com.liucai.component.adapter.HorizontalNavigationAdapter;
 import com.liucai.component.base.BaseLinearLayout;
 import com.liucai.component.base.ItemClickListener;
 import com.liucai.core.util.common.CommonUtils;
-import com.liucai.core.util.log.LcaiLogUtils;
 
 import java.util.List;
 
-/**
- * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/7/27
- */
 public class HorizontalNavigationBar extends BaseLinearLayout {
 
+    @Nullable
     private HorizontalNavigationAdapter adapter;
-    public ItemClickListener clickListener;
-
+    @Nullable
+    private ItemClickListener clickListener;
+    @Nullable
+    private List<String> pendingDatas;
+    @Nullable
+    private View bottomLineView;
 
     public HorizontalNavigationBar(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public void setDatas(List<String> datas) {
-        if (adapter != null) {
-            adapter.setData(datas);
-            LcaiLogUtils.d("数据",datas.size());
-        }
-    }
-
-    public void setClickListener(ItemClickListener clickListener) {
-        this.clickListener = clickListener;
-    }
-
     @Override
     public void init() {
-
     }
 
     @Override
     public void initView() {
         setOrientation(VERTICAL);
-        initComponent();
-    }
 
-    public void initComponent() {
         RecyclerView recyclerView = new RecyclerView(mContext);
-        adapter = new HorizontalNavigationAdapter(mContext);
+        recyclerView.setHorizontalScrollBarEnabled(false);
         RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(MP, WC);
         recyclerView.setLayoutParams(params);
+
+        adapter = new HorizontalNavigationAdapter(mContext);
         recyclerView.setLayoutManager(adapter.getHorManager());
         recyclerView.setAdapter(adapter);
         addView(recyclerView);
 
-        adapter.setClickListener((postion,object)->{
+        // ✅ 修复：必须将监听桥接到 adapter
+        adapter.setClickListener((position, object) -> {
             if (clickListener != null) {
-                clickListener.onItemClickListener(postion, object);
+                clickListener.onItemClickListener(position, object);
             }
         });
 
-        //底部边框线
-        View view = new View(mContext);
-        LayoutParams lineParams = new LayoutParams(MP, CommonUtils.dip2px(mContext,1));
-        view.setLayoutParams(lineParams);
-        view.setBackgroundColor(Color.parseColor("#999999"));
-        addView(view);
+        // 处理早期设置的数据
+        if (pendingDatas != null) {
+            adapter.setData(pendingDatas);
+            pendingDatas = null;
+        }
+
+        // 底部边框线
+        bottomLineView = new View(mContext);
+        LayoutParams lineParams = new LayoutParams(MP, CommonUtils.dip2px(mContext, 1));
+        bottomLineView.setLayoutParams(lineParams);
+        bottomLineView.setBackgroundColor(Color.parseColor("#999999"));
+        addView(bottomLineView);
+    }
+
+    public void setDatas(@Nullable List<String> datas) {
+        if (adapter != null) {
+            adapter.setData(datas);
+        } else {
+            pendingDatas = datas;
+        }
+    }
+
+    public void setClickListener(@Nullable ItemClickListener clickListener) {
+        this.clickListener = clickListener;
+    }
+
+    public void setSelectedPosition(int position) {
+        if (adapter != null) {
+            adapter.setSelectedPosition(position);
+        }
     }
 }
