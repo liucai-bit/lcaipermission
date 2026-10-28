@@ -1,12 +1,12 @@
 package com.liucai.component;
 
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +14,8 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.LayoutRes;
@@ -30,31 +32,19 @@ import com.liucai.permission.R;
 /**
  * 带上下拉状态判定 + 可选下拉刷新 UI 的 RecyclerView。
  *
+ * <p><b>下拉头 UI 行为</b>（默认布局 {@code lcai_adapter_pullrefresh_layout}）：
+ * <ul>
+ *   <li>未达阈值：文字"下拉刷新"，箭头朝下（rotation = 0）</li>
+ *   <li>超过阈值：文字"松开刷新"，箭头旋转 180° 朝上</li>
+ *   <li>刷新中：文字"正在刷新..."，图片切换为 {@code lcai_loading_progress} 并无限旋转</li>
+ *   <li>刷新结束：文字恢复"下拉刷新"，图片恢复箭头，rotation 归 0</li>
+ * </ul>
+ *
  * <p><b>功能与 UI 解耦</b>：
  * <ul>
- *   <li>{@code isPullRefresh} / {@code isLoadMore}：功能开关，决定是否触发 REFRESH / LOADING 回调</li>
- *   <li>{@code showRefreshHeader} / {@code showLoadMoreFooter}：UI 开关，决定是否展示下拉头 / footer 状态</li>
+ *   <li>{@code isPullRefresh} / {@code isLoadMore}：功能开关</li>
+ *   <li>{@code showRefreshHeader} / {@code showLoadMoreFooter}：UI 开关</li>
  * </ul>
- *
- * <p>四种组合：
- * <pre>
- *  功能开 + UI 开：手势下拉→展示 header→触发刷新；滑到底→展示 footer→触发加载
- *  功能开 + UI 关：手势下拉到阈值→触发刷新（无视觉反馈）；滑到底→触发加载（无 footer）
- *  功能关 + UI 开：UI 开关无效（功能不触发）
- *  功能关 + UI 关：全部关闭
- * </pre>
- *
- * <p>默认值（XML 可覆盖）：
- * <ul>
- *   <li>isPullRefresh = true</li>
- *   <li>isLoadMore = true</li>
- *   <li>showRefreshHeader = false</li>
- *   <li>showLoadMoreFooter = false</li>
- * </ul>
- *
- * <p><b>注意：</b>上拉加载 footer 是否占位由 {@link BaseRecycleAdapter#openMultiMode()} 决定。
- * 若 UI 关闭时想彻底移除 footer 占位，请让 Adapter 的 openMultiMode() 返回 false；
- * 此时 {@link #setViewType(int)} 也只更新内部状态，不驱动 Adapter。
  *
  * @author liucai
  */
@@ -64,24 +54,47 @@ public class LcaiRecyclerView extends BaseRecyclerView {
     private static final float PULL_DAMPING = 0.5f;
     private static final float MAX_PULL_RATIO = 1.5f;
     private static final int HIDDEN_PULL_THRESHOLD_MULTIPLIER = 10;
+
+    /** 箭头朝下角度（图片本身箭头朝下，作为"下拉"提示） */
+    private static final float ARROW_DOWN_ROTATION = 0f;
+
+    /** 箭头朝上角度（作为"松开刷新"提示） */
+    private static final float ARROW_UP_ROTATION = 180f;
+
     private boolean isPullRefresh = true;
     private boolean isLoadMore = true;
     private boolean showRefreshHeader = true;
     private boolean showLoadMoreFooter = false;
+
     private int internalViewType = RecycleViewType.DEFAULT;
+
     private float startX;
     private float startY;
     private float lastTouchY;
     private float pullOffset = 0f;
     @Nullable private View refreshHeaderView;
     @Nullable private TextView defaultHeaderTextView;
+    @Nullable private ImageView defaultHeaderImageView;
+    @Nullable private ObjectAnimator loadingAnimator;
+
+    /** 当前箭头旋转角度（目标值，用于避免重复动画） */
+    private float currentArrowRotation = ARROW_DOWN_ROTATION;
+
+    /** 当前下拉头文案（用于避免每帧重复 setText） */
+    private String currentHeaderText = "下拉刷新";
+
     private int headerHeight = 0;
     private boolean isPulling = false;
     private boolean isRefreshing = false;
     @Nullable private ValueAnimator headerAnimator;
-    /** 无 UI 下拉累积距离 */
+
+    /** 用户是否通过公开 API 自定义过 header（决定 setAdapter 时是否自动套用 adapter 的布局） */
+    private boolean headerUserCustomized = false;
+
+    /** 当前使用的默认 header 布局资源 id（用于避免 setAdapter 重复 inflate） */
+    @LayoutRes private int currentHeaderLayoutRes = 0;
+
     private float hiddenPullDistance = 0f;
-    /** 无 UI 下拉阈值缓存 */
     private int hiddenPullThreshold = -1;
 
     private int touchSlop = -1;
@@ -127,22 +140,61 @@ public class LcaiRecyclerView extends BaseRecyclerView {
                 handleScroll(recyclerView, dy);
             }
         });
-        setRefreshHeader(createDefaultHeader());
+        // 默认下拉头：使用 lcai_adapter_pullrefresh_layout
+        applyDefaultHeader(R.layout.lcai_adapter_pullrefresh_layout);
     }
 
-    private View createDefaultHeader() {
-        TextView tv = new TextView(getContext());
-        tv.setText("下拉刷新");
-        tv.setTextColor(Color.parseColor("#666666"));
-        tv.setTextSize(14f);
-        tv.setGravity(Gravity.CENTER);
-        int padding = (int) (getResources().getDisplayMetrics().density * 16 + 0.5f);
-        tv.setPadding(0, padding, 0, padding);
-        tv.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        defaultHeaderTextView = tv;
-        return tv;
+    /**
+     * 重写 setAdapter：若用户未自定义 header，且 adapter 重写了 getPullRefreshLayout()，
+     * 则自动套用 adapter 提供的下拉头布局。
+     */
+    @Override
+    public void setAdapter(@Nullable Adapter adapter) {
+        super.setAdapter(adapter);
+        if (!headerUserCustomized && adapter instanceof BaseRecycleAdapter) {
+            BaseRecycleAdapter<?, ?> ba = (BaseRecycleAdapter<?, ?>) adapter;
+            int layoutRes = ba.getPullRefreshLayout();
+            if (layoutRes != 0 && layoutRes != currentHeaderLayoutRes) {
+                applyDefaultHeader(layoutRes);
+            }
+        }
+    }
+
+    // ==================== 下拉头构造 ====================
+
+    private void applyDefaultHeader(@LayoutRes int layoutRes) {
+        View v = LayoutInflater.from(getContext()).inflate(layoutRes, this, false);
+        bindDefaultHeaderViews(v);
+        this.refreshHeaderView = v;
+        this.currentHeaderLayoutRes = layoutRes;
+        this.headerHeight = 0;
+        requestLayout();
+        invalidate();
+    }
+
+    /**
+     * 尝试从 header 中识别默认控件（箭头 ImageView + 文案 TextView）。
+     * <p>识别不到则对应字段置 null，不控制。
+     */
+    private void bindDefaultHeaderViews(View v) {
+        defaultHeaderImageView = v.findViewById(R.id.lcai_pull_refresh_m1);
+        defaultHeaderTextView = v.findViewById(R.id.lcai_pull_refresh_t1);
+
+        currentArrowRotation = ARROW_DOWN_ROTATION;
+        if (defaultHeaderImageView != null) {
+            defaultHeaderImageView.animate().cancel();
+            defaultHeaderImageView.setRotation(ARROW_DOWN_ROTATION);
+            defaultHeaderImageView.setImageResource(
+                    isRefreshing ? R.drawable.lcai_loading_progress : R.mipmap.lcai_pull_refresh);
+        }
+        if (defaultHeaderTextView != null) {
+            String text = isRefreshing ? "正在刷新..." : "下拉刷新";
+            defaultHeaderTextView.setText(text);
+            currentHeaderText = text;
+        }
+        if (isRefreshing && defaultHeaderImageView != null) {
+            startLoadingAnimation();
+        }
     }
 
     private int getTouchSlop() {
@@ -159,6 +211,8 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         return hiddenPullThreshold;
     }
 
+    // ==================== 测量 / 绘制 ====================
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -168,12 +222,17 @@ public class LcaiRecyclerView extends BaseRecyclerView {
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             headerHeight = refreshHeaderView.getMeasuredHeight();
             refreshHeaderView.layout(0, 0, getMeasuredWidth(), headerHeight);
+
+            // 首次自动刷新时 headerHeight 从 0 变为真实值，需要把 header 展开到正确位置
+            if (isRefreshing && showRefreshHeader && headerHeight > 0 && pullOffset < headerHeight) {
+                pullOffset = headerHeight;
+                invalidate();
+            }
         }
     }
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
-        // 仅当 UI 开启时绘制下拉头效果
         if (showRefreshHeader && pullOffset > 0f && refreshHeaderView != null && headerHeight > 0) {
             int save = canvas.save();
             canvas.translate(0, pullOffset);
@@ -188,6 +247,8 @@ public class LcaiRecyclerView extends BaseRecyclerView {
             super.dispatchDraw(canvas);
         }
     }
+
+    // ==================== 滚动状态判定 ====================
 
     private void handleScroll(@NonNull RecyclerView rv, int dy) {
         RecyclerView.LayoutManager lm = rv.getLayoutManager();
@@ -213,7 +274,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
             return;
         }
 
-        // ---- 上拉加载更多（isLoadMore 关闭则不触发）----
         if (isLoadMore && dy > 0) {
             int lastVisible = llm.findLastVisibleItemPosition();
             boolean reachedEnd = lastVisible >= dataCount - 1 && !rv.canScrollVertically(1);
@@ -232,10 +292,10 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         }
     }
 
+    // ==================== 手势拦截 & 下拉驱动 ====================
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        // 有 UI 且正在刷新：消费所有事件
-        // 无 UI 时刷新不阻断手势（用户没有视觉反馈，阻断手势会很奇怪）
         if (isRefreshing && showRefreshHeader) {
             return true;
         }
@@ -250,7 +310,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
                 return super.dispatchTouchEvent(ev);
 
             case MotionEvent.ACTION_MOVE:
-                // 有 UI 的下拉模式：更新下拉偏移
                 if (isPulling) {
                     updatePullOffset(ev.getY());
                     return true;
@@ -269,15 +328,12 @@ public class LcaiRecyclerView extends BaseRecyclerView {
                     boolean canScrollDown = canScrollVertically(1);
 
                     if (fingerDown && !canScrollUp && isPullRefresh) {
-                        // 已到顶部且继续下拉
                         if (showRefreshHeader && headerHeight > 0) {
-                            // ★ 有 UI：进入下拉模式，跟手 + 展示 header
                             isPulling = true;
                             pullOffset = 0f;
                             lastTouchY = ev.getY();
                             return true;
                         } else if (!isRefreshing) {
-                            // ★ 无 UI：累积下拉距离，超阈值直接触发刷新
                             hiddenPullDistance += (ev.getY() - lastTouchY);
                             lastTouchY = ev.getY();
                             if (hiddenPullDistance >= getHiddenPullThreshold()) {
@@ -285,7 +341,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
                             }
                         }
                     } else {
-                        // 非下拉：重置累积
                         hiddenPullDistance = 0f;
                         lastTouchY = ev.getY();
                     }
@@ -327,24 +382,57 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         lastTouchY = currentY;
         invalidate();
 
-        if (defaultHeaderTextView != null) {
-            defaultHeaderTextView.setText(pullOffset >= headerHeight ? "松开刷新" : "下拉刷新");
+        boolean overThreshold = pullOffset >= headerHeight;
+
+        // 文案 + 箭头方向
+        updateHeaderText(overThreshold ? "松开刷新" : "下拉刷新");
+        if (loadingAnimator == null) {
+            setArrowRotation(overThreshold ? ARROW_UP_ROTATION : ARROW_DOWN_ROTATION);
         }
     }
 
-    /** 有 UI 的下拉刷新：松手超阈值触发 */
+    private void updateHeaderText(String text) {
+        if (defaultHeaderTextView == null) return;
+        if (TextUtils.equals(currentHeaderText, text)) return;
+        currentHeaderText = text;
+        defaultHeaderTextView.setText(text);
+    }
+
+    /**
+     * 箭头旋转到目标角度（150ms 平滑过渡）。
+     * <p>刷新中（loadingAnimator != null）不调用本方法，避免与 loading 旋转冲突。
+     */
+    private void setArrowRotation(float target) {
+        if (defaultHeaderImageView == null) return;
+        if (Math.abs(currentArrowRotation - target) < 1f) return;
+        currentArrowRotation = target;
+        defaultHeaderImageView.animate()
+                .rotation(target)
+                .setDuration(150)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
+    }
+
+    // ==================== 刷新 ====================
+
     private void startRefresh() {
         isRefreshing = true;
-        if (defaultHeaderTextView != null) {
-            defaultHeaderTextView.setText("正在刷新...");
+
+        updateHeaderText("正在刷新...");
+        if (defaultHeaderImageView != null) {
+            // 取消下拉阶段的箭头旋转动画，切换到 loading 旋转
+            defaultHeaderImageView.animate().cancel();
+            defaultHeaderImageView.setRotation(0f);
+            defaultHeaderImageView.setImageResource(R.drawable.lcai_loading_progress);
+            startLoadingAnimation();
         }
+
         animatePullOffset(headerHeight, 200);
         if (typeListener != null) {
             typeListener.onTypeChange(RecycleViewType.REFRESH);
         }
     }
 
-    /** 无 UI 的下拉刷新：下拉距离超阈值直接触发 */
     private void triggerRefreshNoUI() {
         if (isRefreshing) return;
         long now = SystemClock.uptimeMillis();
@@ -356,28 +444,50 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         }
     }
 
+    private void startLoadingAnimation() {
+        if (defaultHeaderImageView == null) return;
+        stopLoadingAnimation();
+        loadingAnimator = ObjectAnimator.ofFloat(defaultHeaderImageView, View.ROTATION, 0f, 360f);
+        loadingAnimator.setDuration(800);
+        loadingAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        loadingAnimator.setInterpolator(new LinearInterpolator());
+        loadingAnimator.start();
+    }
+
+    private void stopLoadingAnimation() {
+        if (loadingAnimator != null) {
+            loadingAnimator.cancel();
+            loadingAnimator = null;
+        }
+    }
+
     /**
-     * 结束下拉刷新，执行回弹动画。
-     * <p>无论 UI 开关状态，刷新完成后必须调用本方法。
+     * 结束下拉刷新，恢复箭头 UI 并回弹。
+     * <p>无论 UI 开关状态，<b>刷新完成后必须调用本方法。
      */
     public void stopRefresh() {
         if (!isRefreshing) {
             return;
         }
         isRefreshing = false;
-        if (defaultHeaderTextView != null) {
-            defaultHeaderTextView.setText("下拉刷新");
+
+        stopLoadingAnimation();
+        if (defaultHeaderImageView != null) {
+            defaultHeaderImageView.animate().cancel();
+            defaultHeaderImageView.setRotation(ARROW_DOWN_ROTATION);
+            defaultHeaderImageView.setImageResource(R.mipmap.lcai_pull_refresh);
         }
+        currentArrowRotation = ARROW_DOWN_ROTATION;
+        updateHeaderText("下拉刷新");
+
         if (showRefreshHeader) {
             animatePullOffset(0f, 250);
         } else {
-            // 无 UI：直接归零，无需动画
             pullOffset = 0f;
             invalidate();
         }
     }
 
-    /** 当前是否处于刷新中。 */
     public boolean isRefreshing() {
         return isRefreshing;
     }
@@ -404,38 +514,50 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         }
     }
 
+    // ==================== 对外 API ====================
+
     public void setTypeListener(@Nullable LcaiRecyclerTypeListener typeListener) {
         this.typeListener = typeListener;
     }
 
+    /**
+     * 设置自定义下拉头 View。
+     * <p>传 null 恢复默认布局 {@code lcai_adapter_pullrefresh_layout}。
+     * <p>自定义 View 若包含 id 为 {@code lcai_pull_refresh_m1}（ImageView）与
+     * {@code lcai_pull_refresh_t1}（TextView）的控件，组件会自动接管文案与箭头旋转；
+     * 否则组件不控制这些 UI，需由调用方自行处理。
+     */
     public void setRefreshHeader(@Nullable View header) {
         if (header == null) {
-            header = createDefaultHeader();
-        } else {
-            if (header.getLayoutParams() == null) {
-                header.setLayoutParams(new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT));
-            }
-            if (header != defaultHeaderTextView) {
-                this.defaultHeaderTextView = null;
-            }
+            headerUserCustomized = false;
+            applyDefaultHeader(R.layout.lcai_adapter_pullrefresh_layout);
+            return;
         }
+        headerUserCustomized = true;
+        if (header.getLayoutParams() == null) {
+            header.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+        bindDefaultHeaderViews(header);
         this.refreshHeaderView = header;
         this.headerHeight = 0;
         requestLayout();
         invalidate();
     }
 
+    /**
+     * 通过布局资源设置自定义下拉头。
+     * <p>布局内若含 {@code lcai_pull_refresh_m1} / {@code lcai_pull_refresh_t1}，
+     * 组件会自动接管文案与箭头旋转。
+     */
     public void setRefreshHeaderLayout(@LayoutRes int layoutRes) {
-        View v = LayoutInflater.from(getContext()).inflate(layoutRes, this, false);
-        setRefreshHeader(v);
+        headerUserCustomized = true;
+        applyDefaultHeader(layoutRes);
     }
 
-    /**
-     * 设置是否启用下拉刷新功能（是否触发 REFRESH 回调）。
-     * <p>关闭时会中止进行中的下拉手势。
-     */
+    // ========== 功能开关 ==========
+
     public void setPullRefresh(boolean enabled) {
         if (this.isPullRefresh == enabled) return;
         this.isPullRefresh = enabled;
@@ -446,9 +568,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         hiddenPullDistance = 0f;
     }
 
-    /**
-     * 设置是否启用上拉加载功能（是否触发 LOADING 回调）。
-     */
     public void setLoadMore(boolean enabled) {
         if (this.isLoadMore == enabled) return;
         this.isLoadMore = enabled;
@@ -462,15 +581,31 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         return isLoadMore;
     }
 
+    // ========== UI 开关 ==========
+
     /**
      * 设置是否展示下拉刷新头 UI。
-     * <p>关闭时仍可触发下拉刷新（通过无 UI 下拉手势），只是没有视觉反馈。
-     * <p>关闭时会中止进行中的下拉手势，并把偏移归零。
+     * <p>关闭时仍可触发下拉刷新（无 UI 下拉手势），只是没有视觉反馈。
+     * <p>关闭时会中止进行中的下拉手势并归零偏移；若正在刷新则暂停 loading 动画。
+     * <p>重新开启时若正在刷新，会恢复"正在刷新..."文案与 loading 旋转。
      */
     public void setShowRefreshHeader(boolean show) {
         if (this.showRefreshHeader == show) return;
         this.showRefreshHeader = show;
-        if (!show) {
+        if (show) {
+            if (isRefreshing) {
+                updateHeaderText("正在刷新...");
+                if (defaultHeaderImageView != null) {
+                    defaultHeaderImageView.setImageResource(R.drawable.lcai_loading_progress);
+                    startLoadingAnimation();
+                }
+                if (headerHeight > 0) {
+                    pullOffset = headerHeight;
+                    invalidate();
+                }
+            }
+        } else {
+            stopLoadingAnimation();
             if (isPulling) {
                 isPulling = false;
             }
@@ -485,19 +620,18 @@ public class LcaiRecyclerView extends BaseRecyclerView {
 
     /**
      * 设置是否展示上拉加载 footer UI。
-     * <p>关闭时仍会触发 LOADING 回调，只是 {@link #setViewType(int)} 不再驱动 Adapter footer。
-     * <p>关闭瞬间会把 Adapter footer 状态重置为 DEFAULT，避免残留"正在加载..."。
-     * <p>注意：footer 占位 item 仍由 Adapter 的 openMultiMode() 决定。
+     * <p>关闭时仍会触发 LOADING 回调，只是 setViewType 不再驱动 Adapter footer。
      */
     public void setShowLoadMoreFooter(boolean show) {
         if (this.showLoadMoreFooter == show) return;
         this.showLoadMoreFooter = show;
         if (show) {
-            // UI 开启时把内部状态刷到 adapter
             syncViewTypeToAdapter(internalViewType);
         } else {
-            // UI 关闭时重置 adapter footer，避免残留 LOADING
             syncViewTypeToAdapter(RecycleViewType.DEFAULT);
+            if (internalViewType == RecycleViewType.LOADING) {
+                internalViewType = RecycleViewType.DEFAULT;
+            }
         }
     }
 
@@ -511,11 +645,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
 
     // ========== 状态同步 ==========
 
-    /**
-     * 更新加载状态。
-     * <p>showLoadMoreFooter=true 时同步给 Adapter footer；
-     * 为 false 时仅记录到内部状态，用于防抖判断，不影响 Adapter。
-     */
     public void setViewType(int viewType) {
         this.internalViewType = viewType;
         if (showLoadMoreFooter) {
@@ -533,10 +662,6 @@ public class LcaiRecyclerView extends BaseRecyclerView {
         }
     }
 
-    /**
-     * 读取当前加载状态。
-     * <p>UI 开启时优先读 Adapter；UI 关闭时读内部记录。
-     */
     public int getViewType() {
         if (showLoadMoreFooter) {
             RecyclerView.Adapter<?> adapter = getAdapter();
@@ -553,6 +678,7 @@ public class LcaiRecyclerView extends BaseRecyclerView {
             headerAnimator.cancel();
             headerAnimator = null;
         }
+        stopLoadingAnimation();
         super.onDetachedFromWindow();
     }
 }

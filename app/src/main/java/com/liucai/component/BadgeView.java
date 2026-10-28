@@ -55,7 +55,7 @@ public class BadgeView extends BaseLinearLayout {
         background = mTa.getDrawable(R.styleable.BadgeView_bBackground);
         textSize = mTa.getInt(R.styleable.BadgeView_bTextSize, 8);
         // 修复颜色使用 getColor 而不是 getInt
-        textColor = mTa.getColor(R.styleable.BadgeView_bTextColor, mContext.getColor(R.color.text_1c1c1c));
+        textColor = mTa.getColor(R.styleable.BadgeView_bTextColor, mContext.getColor(R.color.lcai_1c1c1c));
         maxNumber = mTa.getInt(R.styleable.BadgeView_bMaxNumber, 99);
         isMax = mTa.getBoolean(R.styleable.BadgeView_bIsMax, false);
         eadge = mTa.getInt(R.styleable.BadgeView_bBadge, 0);

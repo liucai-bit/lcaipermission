@@ -50,6 +50,10 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
 
     public int getMultiLayout() { return R.layout.lcai_adapter_multi_layout; }
 
+    public int getPullRefreshLayout(){
+        return R.layout.lcai_adapter_pullrefresh_layout;
+    }
+
     public void setLoadState(int state) {
         this.viewType = state;
         if (openMultiMode()) {

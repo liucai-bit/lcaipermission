@@ -9,7 +9,7 @@
 
     <TextView
         android:id="@+id/navigation_bar_text"
-        android:textColor="@color/text_1c1c1c"
+        android:textColor="@color/lcai_1c1c1c"
         android:textSize="16sp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
@@ -17,7 +17,7 @@
     <View
         android:id="@+id/navigation_bar_line"
         android:layout_marginTop="5dp"
-        android:background="@color/text_999999"
+        android:background="@color/lcai_999999"
         android:layout_width="match_parent"
         android:layout_height="5dp"/>
 

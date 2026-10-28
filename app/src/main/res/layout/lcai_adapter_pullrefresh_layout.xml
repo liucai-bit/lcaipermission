@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:padding="16sp"
+    android:gravity="center"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/lcai_pull_refresh_m1"
+        android:src="@mipmap/lcai_pull_refresh"
+        android:layout_width="20dp"
+        android:layout_height="20dp"/>
+
+    <TextView
+        android:id="@+id/lcai_pull_refresh_t1"
+        android:textSize="14sp"
+        android:layout_marginLeft="10dp"
+        android:textColor="@color/lcai_999999"
+        android:text="下拉刷新"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>
