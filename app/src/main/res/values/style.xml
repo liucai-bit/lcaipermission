@@ -108,6 +108,10 @@
         <attr name="isPullRefresh" format="boolean"/>
         <!--是否开启上拉加载-->
         <attr name="isLoadMore" format="boolean"/>
+        <!--是否展示下拉刷新UI-->
+        <attr name="showRefreshHeader" format="boolean"/>
+        <!--是否展示上拉加载UI-->
+        <attr name="showLoadMoreFooter" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="HorizonalLabelBar">
