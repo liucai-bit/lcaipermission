@@ -4,183 +4,293 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Process;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.liucai.core.util.log.LcaiLogUtils;
 
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
+ * 全局 Activity 生命周期管理器。
+ *
  * @author liucai
- * @program lcpermission
- * @description
- * @Date 2026/6/9
  */
 public class LcaiActivityManager implements Application.ActivityLifecycleCallbacks {
 
-    public static LcaiActivityManager instance;
+    private static final class Holder {
+        static final LcaiActivityManager INSTANCE = new LcaiActivityManager();
+    }
 
-    private static Stack<LcaiBaseActivity> activityStack = new Stack<>();
-
-    private static final class ActivityManager{
-        public static final LcaiActivityManager INSTANCE = new LcaiActivityManager();
+    public static LcaiActivityManager getInstance() {
+        return Holder.INSTANCE;
     }
 
     private LcaiActivityManager() {
     }
 
-    public static LcaiActivityManager getInstance() {
-        return ActivityManager.INSTANCE;
-    }
+    private final CopyOnWriteArrayList<Activity> activityList = new CopyOnWriteArrayList<>();
 
-    public void init(LcaiBaseApplication application) {
-        application.registerActivityLifecycleCallbacks(this);
+    private volatile Activity mResumedActivity;
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    private LoadingAction sPending;
+
+    private ActiveLoading sActive;
+
+    private volatile boolean initialized;
+
+    public void init(@NonNull Application application) {
+        if (initialized) {
+            return;
+        }
+        synchronized (this) {
+            if (initialized) {
+                return;
+            }
+            application.registerActivityLifecycleCallbacks(this);
+            initialized = true;
+        }
     }
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-        activityStack.push((LcaiBaseActivity) activity);
-        LcaiLogUtils.d( activity.getClass().getSimpleName() + ", StackSize: " + activityStack.size());
+        activityList.add(activity);
+        LcaiLogUtils.d(activity.getClass().getSimpleName() + ", StackSize: " + activityList.size());
     }
 
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
-
+        // no-op
     }
 
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
-
+        mResumedActivity = activity;
+        flushPendingLoading();
     }
 
     @Override
     public void onActivityPaused(@NonNull Activity activity) {
-
+        if (mResumedActivity == activity) {
+            mResumedActivity = null;
+        }
     }
 
     @Override
     public void onActivityStopped(@NonNull Activity activity) {
-
+        // no-op
     }
 
     @Override
     public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-
+        // no-op
     }
 
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
-        if (activityStack.contains(activity)) {
-            activityStack.remove(activity);
-            LcaiLogUtils.d(activity.getClass().getSimpleName() + ", StackSize: " + activityStack.size());
+        activityList.remove(activity);
+
+        if (mResumedActivity == activity) {
+            mResumedActivity = null;
         }
+
+        ActiveLoading active = sActive;
+        if (active != null && active.host == activity) {
+            sActive = null;
+            try {
+                active.action.dismiss();
+            } catch (Throwable t) {
+                LcaiLogUtils.d("dismiss loading on destroy failed: " + t.getMessage());
+            }
+        }
+
+        LcaiLogUtils.d(activity.getClass().getSimpleName() + ", StackSize: " + activityList.size());
     }
 
-    /**
-     * 获取当前正在显示的 Activity (栈顶)
-     */
+    // ==================== 栈查询 ====================
+
+    @Nullable
     public Activity currentActivity() {
-        if (activityStack.isEmpty()) {
+        int size = activityList.size();
+        if (size == 0) {
             return null;
         }
-        return activityStack.lastElement();
+        return activityList.get(size - 1);
     }
 
-    /**
-     * 获取栈中所有 Activity (只读副本，防止外部修改导致并发问题)
-     */
-    public Stack<Activity> getAllActivities() {
-        // 返回克隆对象，避免外部直接操作原始栈导致线程安全问题
-        return (Stack<Activity>) activityStack.clone();
+    @NonNull
+    public List<Activity> getAllActivities() {
+        return new ArrayList<>(activityList);
     }
 
-    /**
-     * 关闭指定的 Activity
-     * @param activity 要关闭的 Activity 实例
-     */
-    public void finishActivity(Activity activity) {
-        if (activity != null && !activity.isFinishing()) {
+    public boolean hasActivity() {
+        return !activityList.isEmpty();
+    }
+
+    // ==================== 可见性查询 ====================
+
+    @Nullable
+    public Activity getResumedActivity() {
+        return mResumedActivity;
+    }
+
+    public boolean isResumed(@Nullable Activity activity) {
+        return activity != null
+                && activity == mResumedActivity
+                && isAlive(activity);
+    }
+
+    public boolean isAppForeground() {
+        return isAlive(mResumedActivity);
+    }
+
+    // ==================== Loading 封装 ====================
+
+    public interface LoadingAction {
+        void show(@NonNull Activity host);
+
+        void dismiss();
+    }
+
+    private static final class ActiveLoading {
+        final LoadingAction action;
+        final Activity host;
+
+        ActiveLoading(LoadingAction action, Activity host) {
+            this.action = action;
+            this.host = host;
+        }
+    }
+
+    public void showLoading(@NonNull LoadingAction action) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post(() -> showLoading(action));
+            return;
+        }
+
+        Activity host = mResumedActivity;
+        if (!isAlive(host)) {
+            sPending = action;
+            LcaiLogUtils.d("showLoading: no resumed activity, pending");
+            return;
+        }
+
+        dismissActiveInternal();
+
+        try {
+            action.show(host);
+            sActive = new ActiveLoading(action, host);
+        } catch (Throwable t) {
+            LcaiLogUtils.d("showLoading failed: " + t.getMessage());
+        }
+    }
+
+    public void dismissLoading() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post(this::dismissLoading);
+            return;
+        }
+        sPending = null;
+        dismissActiveInternal();
+    }
+
+    public boolean isLoadingShowing() {
+        return sActive != null;
+    }
+
+    private void dismissActiveInternal() {
+        ActiveLoading active = sActive;
+        sActive = null;
+        if (active != null) {
+            try {
+                active.action.dismiss();
+            } catch (Throwable t) {
+                LcaiLogUtils.d("dismissLoading failed: " + t.getMessage());
+            }
+        }
+    }
+
+    private void flushPendingLoading() {
+        LoadingAction pending = sPending;
+        if (pending == null) {
+            return;
+        }
+
+        sPending = null;
+
+        Activity host = mResumedActivity;
+        if (!isAlive(host)) {
+            return;
+        }
+
+        dismissActiveInternal();
+
+        try {
+            pending.show(host);
+            sActive = new ActiveLoading(pending, host);
+        } catch (Throwable t) {
+            LcaiLogUtils.d("flush pending loading failed: " + t.getMessage());
+        }
+    }
+
+    // ==================== 关闭 Activity / 跳转 ====================
+
+    public void finishFirstActivity(@Nullable Activity activity) {
+        if (isAlive(activity)) {
             activity.finish();
-            // 注意：finish() 是异步的，onActivityDestroyed 会在稍后回调中执行移除操作
-            // 如果需要同步从栈中移除以立即生效，可以手动 remove，但通常建议依赖生命周期回调
         }
     }
 
-    /**
-     * 关闭指定类名的 Activity
-     * @param cls Activity 的 Class
-     */
-    public void finishActivity(Class<?> cls) {
-        for (Activity activity : activityStack) {
-            if (activity.getClass().equals(cls)) {
-                finishActivity(activity);
-                break; // 通常一个类名只有一个实例，如果有多个需遍历全部
+    public void finishAllActivities(@Nullable Class<?> cls) {
+        for (Activity activity : new ArrayList<>(activityList)) {
+            if (cls == null || activity.getClass().equals(cls)) {
+                finishFirstActivity(activity);
             }
         }
     }
 
-    /**
-     * 关闭除了指定类名以外的所有 Activity
-     * @param cls 保留的 Activity 类名
-     */
-    public void finishAllOtherActivities(Class<?> cls) {
-        // 必须使用迭代器或复制列表，因为我们在遍历过程中会修改集合状态(通过finish触发后续移除)
-        // 这里为了安全，先复制一份列表
-        Stack<Activity> copyStack = (Stack<Activity>) activityStack.clone();
-        for (Activity activity : copyStack) {
+    public void finishAllOtherActivities(@NonNull Class<?> cls) {
+        for (Activity activity : new ArrayList<>(activityList)) {
             if (!activity.getClass().equals(cls)) {
-                finishActivity(activity);
+                finishFirstActivity(activity);
             }
         }
     }
 
-    /**
-     * 关闭所有 Activity
-     */
     public void finishAllActivities() {
-        Stack<Activity> copyStack = (Stack<Activity>) activityStack.clone();
-        for (Activity activity : copyStack) {
-            finishActivity(activity);
-        }
+        finishAllActivities(null);
     }
 
-    /**
-     * 退出 App
-     * 1. 关闭所有 Activity
-     * 2. 杀死进程
-     */
     public void exitApp() {
         finishAllActivities();
-
-        // 杀死进程
-        android.os.Process.killProcess(android.os.Process.myPid());
-        // 或者使用 System.exit(0);
-
-        // 注意：在某些高版本 Android 或特定 ROM 上，killProcess 可能不会立即生效，
-        // 也可以结合 moveTaskToBack(true) 使用，但 killProcess 是最彻底的退出方式之一
+        Process.killProcess(Process.myPid());
     }
 
-    /**
-     * 简单的页面跳转封装 (可选)
-     * @param context 上下文
-     * @param targetClass 目标 Activity
-     */
-    public void startActivity(Context context, Class<?> targetClass) {
-        Intent intent = new Intent(context, targetClass);
-        // 如果 context 不是 Activity，需要添加 FLAG_ACTIVITY_NEW_TASK
-        if (!(context instanceof Activity)) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    public void startActivity(@NonNull Context context, @NonNull Class<?> targetClass) {
+        startActivity(context, targetClass, null);
+    }
+
+    public void startActivity(@NonNull Context context,
+                              @NonNull Class<?> targetClass,
+                              @Nullable Bundle bundle) {
+        if (context instanceof Activity) {
+            Activity host = (Activity) context;
+            if (!isAlive(host)) {
+                LcaiLogUtils.d("startActivity: context activity is finishing/destroyed");
+                return;
+            }
         }
-        context.startActivity(intent);
-    }
 
-    /**
-     * 带参数的页面跳转
-     */
-    public void startActivity(Context context, Class<?> targetClass, Bundle bundle) {
         Intent intent = new Intent(context, targetClass);
         if (bundle != null) {
             intent.putExtras(bundle);
@@ -189,5 +299,15 @@ public class LcaiActivityManager implements Application.ActivityLifecycleCallbac
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         context.startActivity(intent);
+    }
+
+    private static boolean isAlive(@Nullable Activity activity) {
+        if (activity == null || activity.isFinishing()) {
+            return false;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            return !activity.isDestroyed();
+        }
+        return true;
     }
 }

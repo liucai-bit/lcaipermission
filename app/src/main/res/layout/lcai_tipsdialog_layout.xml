@@ -18,7 +18,7 @@
             android:text="LcaiTipsDialog"
             android:gravity="center"
             android:textSize="18sp"
-            android:textColor="@color/text_1c1c1c"
+            android:textColor="@color/lcai_1c1c1c"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -26,7 +26,7 @@
             android:id="@+id/lcai_tips_dialog_content"
             android:layout_marginTop="15dp"
             android:text="LcaiTipsDialogContent"
-            android:textColor="@color/text_1c1c1c"
+            android:textColor="@color/lcai_1c1c1c"
             android:textSize="16sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
@@ -42,7 +42,7 @@
                 android:text="取消"
                 android:padding="10dp"
                 android:gravity="center"
-                android:textColor="@color/text_999999"
+                android:textColor="@color/lcai_999999"
                 android:textSize="16sp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
@@ -53,7 +53,7 @@
                 android:text="确定"
                 android:padding="10dp"
                 android:gravity="center"
-                android:textColor="@color/text_409fff"
+                android:textColor="@color/lcai_409fff"
                 android:textSize="16sp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>

@@ -64,7 +64,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
     @Override
     public void init() {
         config.titleSize = mTa.getInt(R.styleable.BusinessNodeStatusBar_titleSize, 16);
-        config.titleColor = mTa.getColor(R.styleable.BusinessNodeStatusBar_titleColor, mContext.getColor(R.color.text_1c1c1c));
+        config.titleColor = mTa.getColor(R.styleable.BusinessNodeStatusBar_titleColor, mContext.getColor(R.color.lcai_1c1c1c));
         config.textStyle = mTa.getString(R.styleable.BusinessNodeStatusBar_titleStyle);
         columns = mTa.getInt(R.styleable.BusinessNodeStatusBar_columns, 0);
         title = mTa.getString(R.styleable.BusinessNodeStatusBar_title);
@@ -72,7 +72,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         statusItemConfig = (BusinessNodeStatusItemConfig) new BusinessNodeStatusItemConfig()
                 .setBadgeSize(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeSize, 12))
                 .setEllipsize(mTa.getInt(R.styleable.BusinessNodeStatusBar_ellipsize,1))
-                .setBadgeColor(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeColor, R.color.text_1c1c1c))
+                .setBadgeColor(mTa.getInt(R.styleable.BusinessNodeStatusBar_badgeColor, R.color.lcai_1c1c1c))
                 .setBadgeBackground(mTa.getDrawable(R.styleable.BusinessNodeStatusBar_badgeBackground))
                 .setMaxNumber(mTa.getInt(R.styleable.BusinessNodeStatusBar_maxNumber, 99))
                 .setIsMax(mTa.getBoolean(R.styleable.BusinessNodeStatusBar_isMax, false))
