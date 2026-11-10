@@ -5,6 +5,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -28,6 +31,8 @@ import com.liucai.core.util.text.TextUtils;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Glide 图片加载工具。
@@ -339,8 +344,11 @@ public final class ImageUtils {
 
     /**
      * 保存到系统相册 (相册中的 LcaiApp 文件夹)
+     * API 29+ 无需权限；API < 29 需要 WRITE_EXTERNAL_STORAGE。
+     * @Params floder 指定文件夹
+     *
      */
-    public static String saveToGallery(Context context, Bitmap bitmap, String fileName) {
+    public static String saveToGallery(Context context, Bitmap bitmap, String fileName,String floder) {
         if (context == null || bitmap == null || TextUtils.isEmpty(fileName)) return null;
         String mimeType = "image/png";
         Bitmap.CompressFormat format = Bitmap.CompressFormat.PNG;
@@ -354,7 +362,7 @@ public final class ImageUtils {
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
             values.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/LcaiApp");
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/"+floder);
 
             Uri uri = null;
             try {
@@ -373,7 +381,7 @@ public final class ImageUtils {
             return null;
         } else {
             File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File appDir = new File(dir, "LcaiApp");
+            File appDir = new File(dir, floder);
             if (!appDir.exists() && !appDir.mkdirs()) return null;
             File file = new File(appDir, fileName);
             try {
@@ -389,10 +397,68 @@ public final class ImageUtils {
         }
     }
 
+    /**
+     * 先裁剪，再对整块正方形应用形状遮罩，最后按 rows × cols 切分。
+     * 每格只保留形状在该位置的部分，拼起来是完整形状。
+     */
+    /**
+     * 先裁剪 → 对整块正方形应用形状遮罩 → 再按 rows×cols 切分。
+     * 用 clipPath 替代 PorterDuff.DST_IN，规避部分机型/位图 alpha 通道导致的失效问题。
+     */
+    public static List<Bitmap> split(Bitmap source, Rect cropRect, int rows, int cols,
+                                     LcaiShape shape) {
+        List<Bitmap> result = new ArrayList<>();
+        if (source == null || source.isRecycled() || cropRect == null
+                || cropRect.width() <= 0 || cropRect.height() <= 0
+                || rows <= 0 || cols <= 0) {
+            return result;
+        }
+
+        // 0. hardware bitmap 会拒绝 createBitmap，先转成软件位图
+        Bitmap safeSource = source;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && source.getConfig() == Bitmap.Config.HARDWARE) {
+            safeSource = source.copy(Bitmap.Config.ARGB_8888, false);
+        }
+
+        // 1. 裁剪
+        Bitmap cropped = Bitmap.createBitmap(safeSource,
+                cropRect.left, cropRect.top, cropRect.width(), cropRect.height());
+
+        // 2. 应用形状遮罩（clipPath 方式）
+        if (shape != null && shape != LcaiShape.NONE) {
+            Bitmap masked = Bitmap.createBitmap(cropped.getWidth(), cropped.getHeight(),
+                    Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(masked);
+
+            Path path = new Path();
+            LcaiShapePathFactory.build(path, shape, 0f, 0f,
+                    (float) cropped.getWidth(), (float) cropped.getHeight());
+            c.clipPath(path);          // 只有形状内的绘制会被保留
+            c.drawBitmap(cropped, 0f, 0f, null);
+
+            if (masked != cropped) cropped.recycle();
+            cropped = masked;
+        }
+
+        // 3. 切块
+        int cellW = cropped.getWidth() / cols;
+        int cellH = cropped.getHeight() / rows;
+        for (int r = 0; r < rows; r++) {
+            for (int col = 0; col < cols; col++) {
+                int x = col * cellW;
+                int y = r * cellH;
+                int w = (col == cols - 1) ? cropped.getWidth() - x : cellW;
+                int h = (r == rows - 1) ? cropped.getHeight() - y : cellH;
+                result.add(Bitmap.createBitmap(cropped, x, y, w, h));
+            }
+        }
+        return result;
+    }
+
     // ==================== 内部实现 ====================
 
-    private static void load(Context context, Object model, ImageView imageView,
-                             @Nullable RequestOptions options) {
+    private static void load(Context context, Object model, ImageView imageView, @Nullable RequestOptions options) {
         if (!checkBaseArgs(context, model, imageView)) {
             return;
         }

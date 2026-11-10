@@ -66,5 +66,5 @@ dependencies {
     implementation "androidx.activity:activity:1.8.0"
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
     compileOnly 'com.alibaba:fastjson:1.2.76'
-    compileOnly 'com.github.bumptech.glide:glide:4.16.0'
+    compileOnly 'com.github.bumptech.glide:glide:5.0.5'
 }
