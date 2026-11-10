@@ -67,8 +67,7 @@ public class LcaiFileUtils {
 
         File tempFile = new File(storageDir, "JPEG" + imageName + ".jpg");
 
-        if (EnvironmentCompat.getStorageState(tempFile)
-                != Environment.MEDIA_MOUNTED) {
+        if (!EnvironmentCompat.getStorageState(tempFile).equals(Environment.MEDIA_MOUNTED)) {
             return null;
         }
 
@@ -272,7 +271,7 @@ public class LcaiFileUtils {
         }
 
         // 如果无权限读取或无法解析绝对路径，拷贝到沙盒目录
-        LcaiLogUtils.i("Uri 直接读取受限，拷贝至应用沙盒: " + uri.toString());
+        LcaiLogUtils.i("Uri 直接读取受限，拷贝至应用沙盒: " + uri);
         File cacheFile = uriToCacheFile(context, uri);
         return cacheFile != null ? cacheFile.getAbsolutePath() : null;
     }
@@ -318,8 +317,7 @@ public class LcaiFileUtils {
      */
     private static String getInternalPath(final Context context, final Uri uri) {
         try {
-            final boolean isKitKat =
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+            final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
             if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
                 if (isExternalStorageDocument(uri)) {
