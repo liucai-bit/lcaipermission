@@ -137,5 +137,9 @@
             <enum name="SPACE_AROUND" value="4"/>
             <enum name="STRETCH" value="5"/>
         </attr>
+        <!--内间距，单个默认四边，双个默认上下，左右 10,20,四个对应四边中间使用“,”隔开-->
+        <attr name="labelPadding" format="string"/>
+        <!--内间距，单个默认四边，双个默认上下，左右 10,20,四个对应四边中间使用“,”隔开-->
+        <attr name="labelMagrin" format="string"/>
     </declare-styleable>
 </resources>

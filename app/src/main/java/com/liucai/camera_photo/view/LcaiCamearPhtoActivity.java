@@ -1,7 +1,10 @@
 package com.liucai.camera_photo.view;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -15,6 +18,7 @@ import com.liucai.core.base.LcaiBasePermissionActivity;
 import com.liucai.core.util.file.LcaiFileInterface;
 import com.liucai.core.util.file.LcaiFileProvider;
 import com.liucai.core.util.file.LcaiFileUtils;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 
 import java.io.File;
@@ -30,13 +34,15 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
     public static final String RESULT_KEY = "RESULT_CAMERA_PHOTO";
     public static final String SAVE_IMAGE_KEY = "SAVE_IMAGE";
     public static final String ADD_HEADER_KEY = "ADD_HEADER";
+
     private String checkType;
     private String resultType;
     private boolean saveImage;
     private boolean addHeader;
     private File imageFile;
+
     private ActivityResultLauncher<Uri> cameraLauncher;
-    private ActivityResultLauncher<String> photoLauncher;
+    private ActivityResultLauncher<Intent> photoLauncher;
     private boolean isLaunched = false;
 
     @Override
@@ -50,11 +56,28 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
             addHeader = bundle.getBoolean(ADD_HEADER_KEY);
         } else {
             sendError("获取参数失败");
+            finish();
             return;
         }
 
         cameraLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), this::cameraResult);
-        photoLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), this::photoResult);
+
+        photoLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                Uri uri = result.getData().getData();
+                if (uri != null) {
+                    photoResult(uri);
+                } else {
+                    sendCancel();
+                    finish();
+                }
+            } else {
+                // 用户取消选择
+                sendCancel();
+                finish();
+            }
+        });
+
         if (savedInstanceState == null) {
             launchPicker();
         }
@@ -62,14 +85,35 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
 
     private void launchPicker() {
         if (isLaunched) return;
+
         if (TextUtils.equals(checkType, LcaiGalleryCheckType.PHOTO.name())) {
             isLaunched = true;
-            photoLauncher.launch("image/*");
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+
+            try {
+                photoLauncher.launch(intent);
+            } catch (Exception e) {
+                LcaiLogUtils.e("启动相册失败: " + e.getMessage());
+                // 兜底策略：如果设备不支持 ACTION_OPEN_DOCUMENT，降级使用 ACTION_GET_CONTENT
+                Intent fallbackIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                fallbackIntent.setType("image/*");
+                try {
+                    photoLauncher.launch(fallbackIntent);
+                } catch (Exception ex) {
+                    LcaiLogUtils.e("降级启动相册依然失败: " + ex.getMessage());
+                    sendError("您的设备不支持选择图片");
+                    finish();
+                }
+            }
+
         } else if (TextUtils.equals(checkType, LcaiGalleryCheckType.CAMERA.name())) {
             isLaunched = true;
             imageFile = LcaiFileUtils.createCameraImageFile(this);
             if (imageFile == null) {
                 sendError("创建图片文件失败");
+                finish();
                 return;
             }
             Uri imageUri = LcaiFileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", imageFile);
@@ -84,32 +128,39 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
             return;
         }
 
-        if (TextUtils.equals(resultType, LcaiGalleryResultType.BASE64.name())) {
-            JSONObject jsonObject = LcaiFileUtils.convertImageToBase64(LcaiCamearPhtoActivity.this, callback, addHeader);
-            sendBase64(jsonObject.toJSONString());
-        } else if (TextUtils.equals(resultType, LcaiGalleryResultType.URL.name())) {
-            String path = LcaiFileUtils.getPath(LcaiCamearPhtoActivity.this, callback);
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("fileType", "image");
-            File file = new File(path);
-            if (file.exists()) {
-                long fileSize = file.length() / 1024;
-                jsonObject.put("fileSize", fileSize);
+        try {
+            if (TextUtils.equals(resultType, LcaiGalleryResultType.BASE64.name())) {
+                JSONObject jsonObject = LcaiFileUtils.convertImageToBase64(LcaiCamearPhtoActivity.this, callback, addHeader);
+                sendBase64(jsonObject.toJSONString());
+            } else if (TextUtils.equals(resultType, LcaiGalleryResultType.URL.name())) {
+                String path = LcaiFileUtils.getPath(LcaiCamearPhtoActivity.this, callback);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("fileType", "image");
+                File file = new File(path);
+                if (file.exists()) {
+                    long fileSize = file.length() / 1024;
+                    jsonObject.put("fileSize", fileSize);
+                }
+                jsonObject.put("content", path);
+                sendUrl(jsonObject.toJSONString());
             }
-            jsonObject.put("content", path);
-            sendUrl(jsonObject.toJSONString());
+        } catch (Exception e) {
+            LcaiLogUtils.e("处理相册图片失败: " + e.getMessage());
+            sendError("处理图片失败");
+        } finally {
+            finish();
         }
-        finish();
     }
 
     public void cameraResult(boolean callback) {
         if (!callback) {
             LcaiFileUtils.clearFile(imageFile);
-            sendCancel(); // 取消拍照
+            sendCancel();
             finish();
             return;
         }
 
+        // ... 保持你原有的拍照逻辑不变 ...
         if (TextUtils.equals(resultType, LcaiGalleryResultType.BASE64.name())) {
             JSONObject jsonObject = LcaiFileUtils.converImagePathToBase64(imageFile.getAbsolutePath(), addHeader);
             sendBase64(jsonObject.toJSONString());
@@ -122,6 +173,7 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
             jsonObject.put("content", imageFile.getAbsolutePath());
             sendUrl(jsonObject.toJSONString());
         }
+
         if (saveImage) {
             LcaiFileUtils.saveImageToGallery(this, imageFile, new LcaiFileInterface() {
                 @Override
@@ -146,21 +198,25 @@ public class LcaiCamearPhtoActivity extends LcaiBasePermissionActivity {
         }
         finish();
     }
+
     private void sendUrl(String url) {
         if (LcaiManager.Internal.getPhotoCameraResult() != null) {
             LcaiManager.Internal.getPhotoCameraResult().onUrl(url);
         }
     }
+
     private void sendBase64(String base64) {
         if (LcaiManager.Internal.getPhotoCameraResult() != null) {
             LcaiManager.Internal.getPhotoCameraResult().onBase64(base64);
         }
     }
+
     private void sendError(String error) {
         if (LcaiManager.Internal.getPhotoCameraResult() != null) {
             LcaiManager.Internal.getPhotoCameraResult().onError(error);
         }
     }
+
     private void sendCancel() {
         if (LcaiManager.Internal.getPhotoCameraResult() != null) {
             LcaiManager.Internal.getPhotoCameraResult().onCancel();

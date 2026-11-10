@@ -1,9 +1,15 @@
 package com.liucai.image;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -19,6 +25,9 @@ import com.bumptech.glide.request.transition.Transition;
 import com.liucai.core.apputils.GlobalAppUtil;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
+
+import java.io.File;
+import java.io.OutputStream;
 
 /**
  * Glide 图片加载工具。
@@ -306,6 +315,77 @@ public final class ImageUtils {
             Glide.with(context).resumeRequests();
         } catch (Throwable t) {
             logError("resumeRequests", t);
+        }
+    }
+
+    /**
+     * 保存到 App 私有目录 (Android/data/包名/files/Pictures)
+     */
+    public static File saveToPrivateDir(Context context, Bitmap bitmap, String fileName) {
+        if (context == null || bitmap == null || TextUtils.isEmpty(fileName)) return null;
+        try {
+            File dir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            if (dir == null) {
+                dir = context.getFilesDir();
+            }
+            File file = new File(dir, fileName);
+            LcaiImageCore.write(bitmap, file);
+            return file;
+        } catch (Throwable t) {
+            logError("saveToPrivateDir", t);
+            return null;
+        }
+    }
+
+    /**
+     * 保存到系统相册 (相册中的 LcaiApp 文件夹)
+     */
+    public static String saveToGallery(Context context, Bitmap bitmap, String fileName) {
+        if (context == null || bitmap == null || TextUtils.isEmpty(fileName)) return null;
+        String mimeType = "image/png";
+        Bitmap.CompressFormat format = Bitmap.CompressFormat.PNG;
+        String lowerName = fileName.toLowerCase();
+        if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+            mimeType = "image/jpeg";
+            format = Bitmap.CompressFormat.JPEG;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/LcaiApp");
+
+            Uri uri = null;
+            try {
+                uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                if (uri != null) {
+                    try (OutputStream os = context.getContentResolver().openOutputStream(uri)) {
+                        if (os != null && bitmap.compress(format, 100, os)) {
+                            return uri.toString();
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logError("saveToGallery_Q", e);
+                if (uri != null) context.getContentResolver().delete(uri, null, null);
+            }
+            return null;
+        } else {
+            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File appDir = new File(dir, "LcaiApp");
+            if (!appDir.exists() && !appDir.mkdirs()) return null;
+            File file = new File(appDir, fileName);
+            try {
+                LcaiImageCore.write(bitmap, file);
+                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                intent.setData(Uri.fromFile(file));
+                context.sendBroadcast(intent);
+                return file.getAbsolutePath();
+            } catch (Exception e) {
+                logError("saveToGallery_Legacy", e);
+                return null;
+            }
         }
     }
 

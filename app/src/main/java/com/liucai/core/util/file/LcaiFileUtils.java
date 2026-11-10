@@ -152,6 +152,10 @@ public class LcaiFileUtils {
         return jsonObject;
     }
 
+    /**
+     * 将 Uri 转换为 Base64。
+     * 【优化点】：摒弃有版本限制的 MediaStore.getBitmap，改用 InputStream 读取，完全避免权限异常。
+     */
     public static JSONObject convertImageToBase64(Context context,
                                                   Uri uri,
                                                   boolean addHeader) {
@@ -161,33 +165,22 @@ public class LcaiFileUtils {
             return jsonObject;
         }
 
-        Cursor cursor = null;
         Bitmap bitmap = null;
+        InputStream in = null;
 
         try {
-            String[] projection = {MediaStore.Images.Media.SIZE};
-            cursor = context.getContentResolver()
-                    .query(uri, projection, null, null, null);
-
-            float sizeInMb = 0f;
-            if (cursor != null && cursor.moveToFirst()) {
-                int sizeIndex = cursor.getColumnIndex(MediaStore.Images.Media.SIZE);
-                if (sizeIndex >= 0) {
-                    long sizeInBytes = cursor.getLong(sizeIndex);
-                    sizeInMb = sizeInBytes / (1024f * 1024f);
-                }
+            // 使用流读取图片，ACTION_OPEN_DOCUMENT 返回的 uri 天然携带读流权限，不会报 EACCES
+            in = context.getContentResolver().openInputStream(uri);
+            if (in == null) {
+                return jsonObject;
             }
+            bitmap = BitmapFactory.decodeStream(in);
 
-            bitmap = MediaStore.Images.Media.getBitmap(
-                    context.getContentResolver(), uri);
             if (bitmap == null) {
                 return jsonObject;
             }
 
-            if (sizeInMb <= 0) {
-                sizeInMb = bitmapByteCount(bitmap) / (1024f * 1024f);
-            }
-
+            float sizeInMb = bitmapByteCount(bitmap) / (1024f * 1024f);
             jsonObject.put("fileSize", sizeInMb);
             jsonObject.put("fileType", "image");
 
@@ -201,7 +194,7 @@ public class LcaiFileUtils {
         } catch (Throwable t) {
             LcaiLogUtils.e("图片转换失败: " + t.getMessage());
         } finally {
-            closeQuietly(cursor);
+            closeQuietly(in);
             if (bitmap != null && !bitmap.isRecycled()) {
                 bitmap.recycle();
             }
@@ -258,11 +251,72 @@ public class LcaiFileUtils {
         }
     }
 
+    /**
+     * 获取文件路径。
+     * 【核心优化】：先尝试获取绝对路径，若返回路径不可读（Android 10+ 常见权限问题），
+     * 自动将内容拷贝至应用沙盒缓存，返回沙盒绝对路径，确保 Glide 或外部工具能正常加载。
+     */
     public static String getPath(final Context context, final Uri uri) {
         if (context == null || uri == null) {
             return null;
         }
 
+        String path = getInternalPath(context, uri);
+
+        // 检查解析出来的绝对路径是否真的能读取（规避路径拿到了但没权限的情况）
+        if (path != null) {
+            File file = new File(path);
+            if (file.exists() && file.canRead()) {
+                return path;
+            }
+        }
+
+        // 如果无权限读取或无法解析绝对路径，拷贝到沙盒目录
+        LcaiLogUtils.i("Uri 直接读取受限，拷贝至应用沙盒: " + uri.toString());
+        File cacheFile = uriToCacheFile(context, uri);
+        return cacheFile != null ? cacheFile.getAbsolutePath() : null;
+    }
+
+    /**
+     * 将 Uri 的流拷贝到私有 cacheDir 中，返回安全的沙盒文件
+     */
+    public static File uriToCacheFile(Context context, Uri uri) {
+        if (context == null || uri == null) return null;
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = context.getContentResolver().openInputStream(uri);
+            if (in == null) return null;
+
+            String suffix = ".jpg";
+            String lastPath = uri.getLastPathSegment();
+            if (lastPath != null && lastPath.contains(".")) {
+                suffix = lastPath.substring(lastPath.lastIndexOf("."));
+            }
+
+            File cacheFile = new File(context.getCacheDir(), "urisafe_" + System.currentTimeMillis() + suffix);
+            out = new FileOutputStream(cacheFile);
+
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int length;
+            while ((length = in.read(buffer)) != -1) {
+                out.write(buffer, 0, length);
+            }
+            out.flush();
+            return cacheFile;
+        } catch (Throwable t) {
+            LcaiLogUtils.e("拷贝 Uri 到沙盒失败: " + t.getMessage());
+            return null;
+        } finally {
+            closeQuietly(in);
+            closeQuietly(out);
+        }
+    }
+
+    /**
+     * 内部尝试解析真实绝对路径的方法（原 getPath 主体逻辑）
+     */
+    private static String getInternalPath(final Context context, final Uri uri) {
         try {
             final boolean isKitKat =
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
