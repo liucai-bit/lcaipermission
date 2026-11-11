@@ -21,7 +21,7 @@ public final class LcaiUncaughtExceptionHandler implements Thread.UncaughtExcept
 
     /** 系统默认处理器，处理完自身逻辑后可委托给它。 */
     @Nullable
-    private Thread.UncaughtExceptionHandler defaultHandler;
+    private final Thread.UncaughtExceptionHandler defaultHandler;
 
     private LcaiUncaughtExceptionHandler() {
         defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
@@ -37,7 +37,7 @@ public final class LcaiUncaughtExceptionHandler implements Thread.UncaughtExcept
             logCrash(t, e);
         } catch (Throwable loggingError) {
             // 绝不能让日志逻辑把异常处理器本身搞崩
-            loggingError.printStackTrace();
+            LcaiLogUtils.e("出现异常",loggingError);
         }
 
         // 交给系统默认处理器，保证系统能正常记录并结束进程
@@ -70,7 +70,7 @@ public final class LcaiUncaughtExceptionHandler implements Thread.UncaughtExcept
     @Nullable
     private StackTraceElement getTopFrame(@NonNull Throwable e) {
         StackTraceElement[] stack = e.getStackTrace();
-        if (stack == null || stack.length == 0) {
+        if (stack.length == 0) {
             return null;
         }
         // 取第一帧（异常真正抛出的位置），而不是 [1]
@@ -85,10 +85,8 @@ public final class LcaiUncaughtExceptionHandler implements Thread.UncaughtExcept
 
     @NonNull
     private String stackTraceToString(@NonNull Throwable e) {
-        StringBuilder sb = new StringBuilder();
         // 包含 cause 链
-        sb.append(Log.getStackTraceString(e));
-        return sb.toString();
+        return Log.getStackTraceString(e);
     }
 
     // 避免直接依赖 android.util.Log 的 import，这里用简单封装

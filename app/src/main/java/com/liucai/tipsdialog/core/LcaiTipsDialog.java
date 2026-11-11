@@ -40,14 +40,9 @@ import java.util.List;
  * @Date 2026/5/27
  */
 public class LcaiTipsDialog extends Dialog {
-    private View mContentView;
-    private LinearLayout defaultRoot,richTextRoot,listRoot;
-    private TextView tvTitle, tvContent, tvCancel, tvConfirm;
-    private ImageView ivImage, ivClose;
-    private TextView tvRichTitle;
-    private LcaiBridgeWebview wbContent;
-    private TextView tvListTitle,tvListCancel, tvListComfirm;
-    private RecyclerView mList;
+    private final View mContentView;
+    private TextView tvContent;
+    private ImageView ivClose;
 
     public LcaiTipsDialogBuilder builder;
 
@@ -108,11 +103,11 @@ public class LcaiTipsDialog extends Dialog {
     }
 
     private void bindDefaultMode() {
-        defaultRoot = findViewById(R.id.lcai_tips_dialog_default_l1);
-        tvTitle = findViewById(R.id.lcai_tips_dialog_default_t1);
+        LinearLayout defaultRoot = findViewById(R.id.lcai_tips_dialog_default_l1);
+        TextView tvTitle = findViewById(R.id.lcai_tips_dialog_default_t1);
         tvContent = findViewById(R.id.lcai_tips_dialog_default_t2);
-        tvCancel = findViewById(R.id.lcai_tips_dialog_default_t3);
-        tvConfirm = findViewById(R.id.lcai_tips_dialog_default_t4);
+        TextView tvCancel = findViewById(R.id.lcai_tips_dialog_default_t3);
+        TextView tvConfirm = findViewById(R.id.lcai_tips_dialog_default_t4);
         if (builder.popupBg != null) defaultRoot.setBackground(builder.popupBg);
         if (!TextUtils.isEmpty(builder.title)) {
             tvTitle.setVisibility(View.VISIBLE);
@@ -140,7 +135,7 @@ public class LcaiTipsDialog extends Dialog {
                 });
     }
     private void bindImageMode() {
-        ivImage = findViewById(R.id.lcai_tips_dialog_image_m1);
+        ImageView ivImage = findViewById(R.id.lcai_tips_dialog_image_m1);
         ivClose = findViewById(R.id.lcai_tips_dialog_image_m2);
         ImageUtils.loadImage(builder.mContext, builder.content, ivImage);
         ivClose.setOnClickListener(v -> {
@@ -149,9 +144,9 @@ public class LcaiTipsDialog extends Dialog {
         });
     }
     private void bindRichTextMode() {
-        richTextRoot = findViewById(R.id.lcai_tips_dialog_richtext_l1);
-        tvRichTitle = findViewById(R.id.lcai_tips_dialog_richtext_t1);
-        wbContent = findViewById(R.id.lcai_tips_dialog_richtext_w1);
+        LinearLayout richTextRoot = findViewById(R.id.lcai_tips_dialog_richtext_l1);
+        TextView tvRichTitle = findViewById(R.id.lcai_tips_dialog_richtext_t1);
+        LcaiBridgeWebview wbContent = findViewById(R.id.lcai_tips_dialog_richtext_w1);
         ivClose = findViewById(R.id.lcai_tips_dialog_richtext_m1);
         if (builder.popupBg != null) richTextRoot.setBackground(builder.popupBg);
         if (!TextUtils.isEmpty(builder.title)) {
@@ -171,11 +166,11 @@ public class LcaiTipsDialog extends Dialog {
         });
     }
     private void bindListMode() {
-        listRoot = findViewById(R.id.lcai_tips_dialog_list_l1);
-        tvListTitle = findViewById(R.id.lcai_tips_dialog_list_t1);
-        tvListCancel = findViewById(R.id.lcai_tips_dialog_list_t2);
-        tvListComfirm = findViewById(R.id.lcai_tips_dialog_list_t3);
-        mList = findViewById(R.id.lcai_tips_dialog_list_r1);
+        LinearLayout listRoot = findViewById(R.id.lcai_tips_dialog_list_l1);
+        TextView tvListTitle = findViewById(R.id.lcai_tips_dialog_list_t1);
+        TextView tvListCancel = findViewById(R.id.lcai_tips_dialog_list_t2);
+        TextView tvListComfirm = findViewById(R.id.lcai_tips_dialog_list_t3);
+        RecyclerView mList = findViewById(R.id.lcai_tips_dialog_list_r1);
         if (builder.popupBg != null) listRoot.setBackground(builder.popupBg);
         if (!TextUtils.isEmpty(builder.title)) {
             tvListTitle.setVisibility(View.VISIBLE);
@@ -189,7 +184,7 @@ public class LcaiTipsDialog extends Dialog {
             if (builder.vertical) {
                 mList.setLayoutManager(builder.adapter.getLineManager());
             } else {
-                mList.setLayoutManager(builder.adapter.getGridManager(builder.listCloumns>0 ? builder.listCloumns : 0));
+                mList.setLayoutManager(builder.adapter.getGridManager(Math.max(builder.listCloumns, 0)));
             }
             mList.setAdapter(builder.adapter);
         }

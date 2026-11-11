@@ -17,6 +17,7 @@ import com.liucai.component.base.ItemClickListener;
 import com.liucai.component.bean.BusinessNodeStatusItemConfig;
 import com.liucai.component.bean.BusinessNodesStatusBean;
 import com.liucai.core.util.common.CommonUtils;
+import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 import com.liucai.permission.R;
 
@@ -30,10 +31,10 @@ import java.util.List;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class BusinessNodeStatusBar extends BaseLinearLayout {
 
     private int columns;
-    private Drawable barBackground;
     private String title;
 
     @Nullable
@@ -46,7 +47,6 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
     private ItemClickListener clickListener;
     @Nullable
     private List<BusinessNodesStatusBean> datas;
-    @NonNull
     private BusinessNodeStatusItemConfig statusItemConfig;
 
     public BusinessNodeStatusBar(Context context, @Nullable AttributeSet attrs) {
@@ -81,7 +81,7 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
         config.textStyle = mTa.getString(R.styleable.BusinessNodeStatusBar_titleStyle);
         columns = mTa.getInt(R.styleable.BusinessNodeStatusBar_columns, 0);
         title = mTa.getString(R.styleable.BusinessNodeStatusBar_title);
-        barBackground = mTa.getDrawable(R.styleable.BusinessNodeStatusBar_barBackground);
+        Drawable barBackground = mTa.getDrawable(R.styleable.BusinessNodeStatusBar_barBackground);
 
         // 修复了原代码 iconHeight 读错属性的 Bug，以及颜色读取使用 getColor 而非 getInt
         statusItemConfig
@@ -146,7 +146,11 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
 
         adapter = new BusinessNodeStatusAdapter(mContext);
         adapter.setConfig(statusItemConfig);
-        adapter.setData(datas);
+        if (datas!=null) {
+            adapter.setData(datas);
+        }else {
+            LcaiLogUtils.i("datas 为空");
+        }
         recyclerView.setLayoutManager(adapter.getGridManager(columns));
         recyclerView.setAdapter(adapter);
 

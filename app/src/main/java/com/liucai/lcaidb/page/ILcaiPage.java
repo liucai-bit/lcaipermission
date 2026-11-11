@@ -7,6 +7,7 @@ import com.liucai.lcaidb.base.module.LcaiTableInfo;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public interface ILcaiPage<T extends LcaiTableInfo> {
 
     /**

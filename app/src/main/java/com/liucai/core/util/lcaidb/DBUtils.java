@@ -1,8 +1,11 @@
 package com.liucai.core.util.lcaidb;
 
+import com.liucai.core.util.log.LcaiLogUtils;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +34,7 @@ public class DBUtils<T> {
             try {
                 map.put(name, field.get(entity));
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                LcaiLogUtils.e("Map put 数据报错",e);
             }
         }
 
@@ -47,9 +50,7 @@ public class DBUtils<T> {
 
         // 向上遍历继承树
         while (current != null && current != Object.class) {
-            for (Field field : current.getDeclaredFields()) {
-                allFields.add(field);
-            }
+            allFields.addAll(Arrays.asList(current.getDeclaredFields()));
             current = current.getSuperclass();
         }
 

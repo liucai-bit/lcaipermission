@@ -1,7 +1,6 @@
 package com.liucai.jsbridge.web;
 
 import android.content.Context;
-import android.os.Build;
 import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
@@ -10,7 +9,6 @@ import androidx.annotation.Nullable;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.core.util.text.TextUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -18,6 +16,7 @@ import java.nio.charset.StandardCharsets;
  * @author liucai
  * @Date 2026/5/28
  */
+@SuppressWarnings("unused")
 public class LcaiBridgeUtil {
 
     private static final String TAG = "LcaiBridgeUtil";
@@ -125,29 +124,20 @@ public class LcaiBridgeUtil {
             LcaiLogUtils.e(TAG, "加载本地 JS 失败: " + path);
             return;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            view.evaluateJavascript(jsContent, value -> {
-                LcaiLogUtils.d(TAG, "本地 JS 注入完成: " + path + ", result=" + value);
-                // 立即检测
-                view.evaluateJavascript("typeof window.WebViewJavascriptBridge",
-                        v -> LcaiLogUtils.d(TAG, "检测 bridge typeof: " + v));
-            });
-        } else {
-            view.loadUrl("javascript:" + jsContent);
-        }
+        view.evaluateJavascript(jsContent, value -> {
+            LcaiLogUtils.d(TAG, "本地 JS 注入完成: " + path + ", result=" + value);
+            // 立即检测
+            view.evaluateJavascript("typeof window.WebViewJavascriptBridge",
+                    v -> LcaiLogUtils.d(TAG, "检测 bridge typeof: " + v));
+        });
     }
 
     public static void evaluateJavascript(@NonNull WebView webView,
                                           @NonNull String script,
                                           @Nullable EvaluateCallback callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            webView.evaluateJavascript(script, value -> {
-                if (callback != null) callback.onResult(value);
-            });
-        } else {
-            webView.loadUrl("javascript:" + script);
-            if (callback != null) callback.onResult(null);
-        }
+        webView.evaluateJavascript(script, value -> {
+            if (callback != null) callback.onResult(value);
+        });
     }
 
     public interface EvaluateCallback {
@@ -158,9 +148,7 @@ public class LcaiBridgeUtil {
      * 读取 assets 文件（字节流一次性读，不丢字符）。
      */
     public static String assetFile2Str(Context c, String urlStr) {
-        InputStream in = null;
-        try {
-            in = c.getAssets().open(urlStr);
+        try (InputStream in = c.getAssets().open(urlStr)) {
             int size = in.available();
             byte[] buffer = new byte[size];
             int total = 0;
@@ -183,10 +171,6 @@ public class LcaiBridgeUtil {
             return content;
         } catch (Exception e) {
             LcaiLogUtils.e(TAG, "读取 asset 失败: " + urlStr + ", " + e.getMessage());
-        } finally {
-            if (in != null) {
-                try { in.close(); } catch (IOException ignored) {}
-            }
         }
         return null;
     }

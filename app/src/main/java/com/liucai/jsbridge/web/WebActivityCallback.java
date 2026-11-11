@@ -13,6 +13,7 @@ import java.util.List;
 /**
  * @author liucai
  */
+@SuppressWarnings("unused")
 public interface WebActivityCallback {
 
     /** 注入到 H5 的 JS 接口对象 */

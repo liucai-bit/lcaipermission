@@ -6,7 +6,7 @@ public class LcaiAspect {
         String mTableName="";
         if (arg1.isAnnotationPresent(TableName.class)) {
             TableName tableName = arg1.getAnnotation(TableName.class);
-            mTableName = tableName.tableName();
+            if (tableName!=null)mTableName = tableName.tableName();
         }
         return mTableName;
     }
@@ -15,7 +15,7 @@ public class LcaiAspect {
         String mTableId="";
         if (arg1.isAnnotationPresent(TableId.class)) {
             TableId tableId = arg1.getAnnotation(TableId.class);
-            mTableId = tableId.tableId();
+            if (tableId!=null)mTableId = tableId.tableId();
         }
         return mTableId;
     }

@@ -6,6 +6,7 @@ package com.liucai.http.exception;
  * @description
  * @Date 2026/11/9
  */
+@SuppressWarnings("unused")
 public class LcaiException extends RuntimeException{
 
     public LcaiException(String message) {

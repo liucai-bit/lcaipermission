@@ -16,6 +16,7 @@ import java.util.Map;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public interface LcaidbService<T extends LcaiTableInfo> {
 
     void createTable(String sql);

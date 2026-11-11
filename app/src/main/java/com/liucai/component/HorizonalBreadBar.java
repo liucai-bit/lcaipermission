@@ -1,5 +1,6 @@
 package com.liucai.component;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -16,7 +17,7 @@ import com.liucai.permission.R;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@SuppressWarnings("unused")
 public class HorizonalBreadBar extends BaseLinearLayout {
 
     @NonNull
@@ -38,6 +39,7 @@ public class HorizonalBreadBar extends BaseLinearLayout {
         return R.styleable.HorizonalBreadBar;
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     public void init() {
         // 修复：mContext 在字段初始化时还是 null，必须在 init() 中赋值

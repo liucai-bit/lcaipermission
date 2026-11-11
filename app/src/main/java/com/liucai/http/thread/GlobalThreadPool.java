@@ -21,10 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public final class GlobalThreadPool {
-
-    private static final String TAG = "GlobalThreadPool";
-
     private static final int CORE_POOL_SIZE = 8;
     private static final int MAXIMUM_POOL_SIZE = 16;
     private static final int KEEP_ALIVE_SECONDS = 30;
@@ -51,8 +49,7 @@ public final class GlobalThreadPool {
         ThreadFactory factory = new DefaultThreadFactory();
 
         // 队列满时不阻塞调用线程（可能是主线程），直接丢弃并记录日志
-        RejectedExecutionHandler handler = (r, executor) ->
-                LcaiLogUtils.e(TAG, "Task rejected: queue full, active=" + executor.getActiveCount());
+        RejectedExecutionHandler handler = (r, executor) -> LcaiLogUtils.e("Task rejected: queue full, active=" + executor.getActiveCount());
 
         ThreadPoolExecutor executor = new ThreadPoolExecutor(
                 CORE_POOL_SIZE,
@@ -70,17 +67,7 @@ public final class GlobalThreadPool {
         try {
             getInstance().execute(task);
         } catch (Exception e) {
-            LcaiLogUtils.e(TAG, "Execute task failed", e);
-        }
-    }
-
-    public static boolean executeBoolean(@NonNull Runnable task){
-        try {
-            getInstance().execute(task);
-            return true;
-        } catch (Exception e) {
-            LcaiLogUtils.e(TAG,"Execute task failed", e);
-            return false;
+            LcaiLogUtils.e("Execute task failed", e);
         }
     }
 
@@ -88,7 +75,7 @@ public final class GlobalThreadPool {
         try {
             return getInstance().submit(task);
         } catch (Exception e) {
-            LcaiLogUtils.e(TAG, "Submit task failed", e);
+            LcaiLogUtils.e("Submit task failed", e);
             return null;
         }
     }

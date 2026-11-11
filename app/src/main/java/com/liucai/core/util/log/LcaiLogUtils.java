@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * 日志工具。
@@ -32,8 +33,13 @@ public final class LcaiLogUtils {
     private static final String LOG_FILE_NAME = "app_log.txt";
 
     private static final Object FILE_LOCK = new Object();
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = new ThreadLocal<>() {
+        @Override
+        protected SimpleDateFormat initialValue() {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
+        }
+    };
 
-    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()));
 
     private LcaiLogUtils() {
     }
@@ -55,7 +61,7 @@ public final class LcaiLogUtils {
     }
 
     public static void e(@NonNull String message, @NonNull Throwable t) {
-        if (!isDebug()) {
+        if (isDebug()) {
             return;
         }
 
@@ -74,7 +80,7 @@ public final class LcaiLogUtils {
     }
 
     private static void log(int priority, @Nullable Object... msg) {
-        if (!isDebug()) {
+        if (isDebug()) {
             return;
         }
 
@@ -182,12 +188,14 @@ public final class LcaiLogUtils {
             if (logFile.exists() && logFile.length() > MAX_LOG_FILE_SIZE) {
                 File bak = new File(logDir, LOG_FILE_NAME + ".bak");
                 if (bak.exists()) {
-                    bak.delete();
+                    boolean delete = bak.delete();
+                   LcaiLogUtils.i("delete:"+delete);
                 }
-                logFile.renameTo(bak);
+                boolean b = logFile.renameTo(bak);
+                LcaiLogUtils.i("renameTo:" + b);
             }
 
-            String time = DATE_FORMAT.get().format(new Date());
+            String time = Objects.requireNonNull(DATE_FORMAT.get()).format(new Date());
             String logContent = time + " [" + level + "] " + tag + ": " + msg + "\n";
 
             try (FileWriter writer = new FileWriter(logFile, true)) {
@@ -200,7 +208,7 @@ public final class LcaiLogUtils {
     }
 
     private static boolean isDebug() {
-        return GlobalAppUtil.isDebug();
+        return !GlobalAppUtil.isDebug();
     }
 
     @NonNull
@@ -208,8 +216,6 @@ public final class LcaiLogUtils {
         switch (priority) {
             case Log.VERBOSE:
                 return "VERBOSE";
-            case Log.DEBUG:
-                return "DEBUG";
             case Log.INFO:
                 return "INFO";
             case Log.WARN:

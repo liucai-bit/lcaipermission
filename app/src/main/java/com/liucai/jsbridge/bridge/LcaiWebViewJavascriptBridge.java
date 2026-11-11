@@ -6,6 +6,7 @@ package com.liucai.jsbridge.bridge;
  * @description
  * @Date 2026/5/28
  */
+@SuppressWarnings("unused")
 public interface LcaiWebViewJavascriptBridge {
     void send(String data);
 

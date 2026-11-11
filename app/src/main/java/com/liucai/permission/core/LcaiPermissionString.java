@@ -8,26 +8,11 @@ import android.Manifest;
  * @description
  * @Date 2026/5/26
  */
+@SuppressWarnings("unused")
 public interface LcaiPermissionString {
     String PERMISSION_KEY = "LCAI_PERMISSION_KEY";
     String HAS_NOTIFICATION = "hasNotification";
     String TO_SYSTEM = "to_system_permission";
-
-    /* ==================== 存储（抽象标识，框架按 SDK_INT 解析） ==================== */
-    /**
-     * 存储权限（旧抽象标识，兼容保留）。
-     *
-     * @deprecated 语义太粗，建议改用细化的 STORAGE_READ_IMAGE / STORAGE_READ_VIDEO /
-     * STORAGE_READ_AUDIO / STORAGE_WRITE，避免 Android 13+ 上一次弹出多个权限框。
-     * 当前等价于同时申请三种读取权限（不含写入）。
-     * <p>
-     * 版本映射：
-     * API >= 33 (Android 13+)：READ_MEDIA_IMAGES + READ_MEDIA_VIDEO + READ_MEDIA_AUDIO
-     * API 29 ~ 32 (Android 10 ~ 12L)：READ_EXTERNAL_STORAGE
-     * API <= 28 (Android 9 及以下)：READ_EXTERNAL_STORAGE
-     */
-    @Deprecated
-    String STORAGE = "DYNAMIC_STORAGE";
 
     /**
      * 读取图片（抽象标识）。
@@ -72,7 +57,7 @@ public interface LcaiPermissionString {
      * 注意：这是运行时权限，新安装应用在 Android 13+ 上默认关闭通知；
      * targetSdk >= 33 时由应用控制弹窗时机，建议在用户触发通知相关功能时再申请。
      */
-    String NOTIFICATIONS_13 = Manifest.permission.POST_NOTIFICATIONS;
+    String NOTIFICATIONS_13 = "android.permission.POST_NOTIFICATIONS";
 
     /**
      * 通知权限标识，Android 13 以下。
@@ -102,7 +87,7 @@ public interface LcaiPermissionString {
      * Google Play 审核严格，普通应用不建议声明；
      * 申请方式不是普通运行时弹窗，需跳转“所有文件访问权限”设置页。
      */
-    String MANAGE_EXTERNAL_STORAGE = Manifest.permission.MANAGE_EXTERNAL_STORAGE;
+    String MANAGE_EXTERNAL_STORAGE = "android.permission.MANAGE_EXTERNAL_STORAGE";
 
     /**
      * 读取图片媒体，Android 13（API 33）及以上。
@@ -110,19 +95,19 @@ public interface LcaiPermissionString {
      * 仅在需要读取其他应用创建的图片时声明，最小权限原则；
      * 如果使用系统照片选择器（Photo Picker），通常不需要此权限。
      */
-    String READ_MEDIA_IMAGES = Manifest.permission.READ_MEDIA_IMAGES;
+    String READ_MEDIA_IMAGES = "android.permission.READ_MEDIA_IMAGES";
 
     /**
      * 读取视频媒体，Android 13（API 33）及以上。
      * 注意：同上，按需声明；仅图片业务不需要 VIDEO。
      */
-    String READ_MEDIA_VIDEO = Manifest.permission.READ_MEDIA_VIDEO;
+    String READ_MEDIA_VIDEO = "android.permission.READ_MEDIA_VIDEO";
 
     /**
      * 读取音频媒体，Android 13（API 33）及以上。
      * 注意：仅音频播放/扫描业务声明；不要为了“通用存储”而全量声明。
      */
-    String READ_MEDIA_AUDIO = Manifest.permission.READ_MEDIA_AUDIO;
+    String READ_MEDIA_AUDIO = "android.permission.READ_MEDIA_AUDIO";
 
     /* ==================== 定位 ==================== */
     /** 粗略定位。 */
@@ -146,7 +131,7 @@ public interface LcaiPermissionString {
      * 再引导用户到设置页选择“始终允许”；
      * 如果不需要后台持续定位，应从清单中移除。
      */
-    String ACCESS_BACKGROUND_LOCATION = Manifest.permission.ACCESS_BACKGROUND_LOCATION;
+    String ACCESS_BACKGROUND_LOCATION = "android.permission.ACCESS_BACKGROUND_LOCATION";
 
     /* 注意：ACCESS_LOCATION_EXTRA_COMMANDS 是普通权限，一般无需运行时申请。 */
     String ACCESS_LOCATION_EXTRA_COMMANDS = Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS;
@@ -206,14 +191,14 @@ public interface LcaiPermissionString {
      * 如果扫描结果不用于推导物理位置，可以设置 android:usesPermissionFlags="neverForLocation"；
      * 否则可能需要同时声明 ACCESS_FINE_LOCATION。
      */
-    String BLUETOOTH_SCAN = Manifest.permission.BLUETOOTH_SCAN;
+    String BLUETOOTH_SCAN = "android.permission.BLUETOOTH_SCAN";
 
     /**
      * 连接已配对蓝牙设备，Android 12（API 31）及以上。
      * 注意：运行时权限；与已配对设备通信时声明；
      * 不要和 BLUETOOTH（旧版）混淆，API 31+ 应使用此权限。
      */
-    String BLUETOOTH_CONNECT = Manifest.permission.BLUETOOTH_CONNECT;
+    String BLUETOOTH_CONNECT = "android.permission.BLUETOOTH_CONNECT";
 
     /**
      * 旧版蓝牙管理权限（发现/配对等）。

@@ -1,5 +1,6 @@
 package com.liucai.component.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -19,6 +20,7 @@ import com.liucai.permission.R;
  * @description 横向导航栏适配器
  * @Date 2026/7/27
  */
+@SuppressWarnings("unused")
 public class HorizontalNavigationAdapter extends BaseRecycleAdapter<BaseViewHolder, String> {
 
     private int selectedPosition = 0;
@@ -28,6 +30,7 @@ public class HorizontalNavigationAdapter extends BaseRecycleAdapter<BaseViewHold
     @Nullable
     private Drawable unCheckDrawable;
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     public HorizontalNavigationAdapter(@NonNull Context mContext) {
         super(mContext, R.layout.horizontal_navigetion_item_layout);
         checkDrawable = mContext.getDrawable(R.drawable.horiaontal_navgation_check);
@@ -66,6 +69,7 @@ public class HorizontalNavigationAdapter extends BaseRecycleAdapter<BaseViewHold
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void setUnCheckDrawable(@Nullable Drawable unCheckDrawable) {
         this.unCheckDrawable = unCheckDrawable;
         // 样式变化需要刷新 UI
@@ -78,9 +82,10 @@ public class HorizontalNavigationAdapter extends BaseRecycleAdapter<BaseViewHold
     public void onBindView(int position, View view, BaseViewHolder holder, String s) {
         TextView textView = holder.getView(R.id.navigation_bar_text);
         View lineView = holder.getView(R.id.navigation_bar_line);
-
+        if (textView == null) {
+            return;
+        }
         textView.setText(s);
-
         if (selectedPosition == position) {
             if (lineView != null) {
                 lineView.setBackground(checkDrawable);

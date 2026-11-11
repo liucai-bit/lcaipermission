@@ -49,7 +49,7 @@ public class LcaiWebCallbackAdapter {
         payload.put("method", method);
         payload.put("data", data);
 
-        boolean autoClose = false;
+        boolean autoClose;
         if (callback != null) {
             autoClose = callback.onMethodBack(jsCallback, payload, activity);
         } else {

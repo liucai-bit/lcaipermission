@@ -3,7 +3,6 @@ package com.liucai.component.base;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,10 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.liucai.component.bean.BaseComponentConfig;
 
 public abstract class BaseRecyclerView extends RecyclerView {
-
-    public static final int MP = ViewGroup.LayoutParams.MATCH_PARENT;
-    public static final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
-
     public abstract void init();
     public abstract void initView();
 
@@ -51,7 +46,7 @@ public abstract class BaseRecyclerView extends RecyclerView {
 
     private void initAttr(@Nullable AttributeSet attr, int defStyleAttr) {
         int[] styleableArr = setAttrs();
-        if (styleableArr != null && styleableArr.length > 0 && attr != null) {
+        if (styleableArr.length > 0 && attr != null) {
             mTa = mContext.obtainStyledAttributes(attr, styleableArr, defStyleAttr, 0);
         }
     }

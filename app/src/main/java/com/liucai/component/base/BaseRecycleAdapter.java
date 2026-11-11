@@ -17,14 +17,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.JSONArray;
 import com.liucai.core.apputils.GlobalAppUtil;
-import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.permission.R;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-
+@SuppressWarnings("unused")
 public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends RecyclerView.Adapter<VH> {
 
     @NonNull
@@ -44,7 +43,7 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
     public ItemClickListener clickListener;
 
     public boolean openMultiMode() { return false; }
-    public boolean loadOver() { return false; }
+    public boolean loadOver() { return true; }
 
     public abstract void onBindView(int position, View mConvertView, VH holder, T object);
 
@@ -72,10 +71,10 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
         this.mContext = mContext;
         this.layoutId = layoutId;
         // ✅ 使用健壮的泛型解析，防止多层继承崩溃
-        this.tActualType = resolveTypeArg(getClass(), 1);
+        this.tActualType = resolveTypeArg(getClass());
     }
 
-    private static Type resolveTypeArg(Class<?> clazz, int index) {
+    private static Type resolveTypeArg(Class<?> clazz) {
         Type superType = clazz.getGenericSuperclass();
         while (superType != null && !(superType instanceof ParameterizedType)) {
             if (!(superType instanceof Class)) {
@@ -84,13 +83,13 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
             superType = ((Class<?>) superType).getGenericSuperclass();
         }
         if (superType instanceof ParameterizedType) {
-            return ((ParameterizedType) superType).getActualTypeArguments()[index];
+            return ((ParameterizedType) superType).getActualTypeArguments()[1];
         }
         throw new IllegalStateException("无法解析泛型: " + clazz.getName());
     }
 
     private final Runnable loadMoreRunnable = () -> {
-        if (clickListener != null && !loadOver() && viewType == RecycleViewType.LOADING) {
+        if (clickListener != null && loadOver() && viewType == RecycleViewType.LOADING) {
             clickListener.loadMore();
         }
     };
@@ -150,11 +149,12 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
         return null;
     }
 
-    public void setClickListener(ItemClickListener clickListener) {
+    public void setClickListener(@Nullable ItemClickListener clickListener) {
         this.clickListener = clickListener;
     }
 
     @NonNull
+    @SuppressWarnings("unchecked")
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
@@ -177,9 +177,9 @@ public abstract class BaseRecycleAdapter<VH extends BaseViewHolder, T> extends R
             TextView tv = holder.getView(R.id.lcai_adapter_multi_t1);
             if (tv != null) tv.setText(loadingTips);
             GlobalAppUtil.removeUiRunnable(loadMoreRunnable);
-            if (!loadOver() && viewType == RecycleViewType.LOADING) {
+            if (loadOver() && viewType == RecycleViewType.LOADING) {
                 holder.itemView.post(() -> {
-                    if (viewType == RecycleViewType.LOADING && !loadOver()) {
+                    if (viewType == RecycleViewType.LOADING && loadOver()) {
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             if (clickListener != null) clickListener.loadMore();
                         }, 100);

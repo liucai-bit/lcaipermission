@@ -5,6 +5,7 @@ package com.liucai.lcaidb.base.sql;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public interface LcaiSql {
     String TABLE_CREATE = "CREATE TABLE %s (%s)";
     String TABLE_QUERY = "SELECT * FROM %s WHERE %s";

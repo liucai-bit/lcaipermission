@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public final class LcaiWebActivityRouter {
 
     public static final String EXTRA_CONFIG = "extra_web_activity_config";

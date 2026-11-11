@@ -1,7 +1,7 @@
 package com.liucai.jsbridge.web;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
@@ -27,6 +27,7 @@ import java.util.Map;
  * @author liucai
  * @Date 2026/5/28
  */
+@SuppressWarnings("unused")
 public class LcaiBridgeWebview extends WebView implements LcaiWebViewJavascriptBridge {
     public static final String toLoadJs = "WebViewJavascriptBridge.js";
 
@@ -71,13 +72,12 @@ public class LcaiBridgeWebview extends WebView implements LcaiWebViewJavascriptB
         return printLog;
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private void init() {
         this.setVerticalScrollBarEnabled(false);
         this.setHorizontalScrollBarEnabled(false);
         this.getSettings().setJavaScriptEnabled(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true);
-        }
+        WebView.setWebContentsDebuggingEnabled(true);
         this.setWebViewClient(generateBridgeWebViewClient());
     }
 
@@ -177,12 +177,8 @@ public class LcaiBridgeWebview extends WebView implements LcaiWebViewJavascriptB
      * 统一的 JS 执行入口。
      */
     private void execJs(String script) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            this.evaluateJavascript(script, value ->
-                    printLog( "execJs result: " + value));
-        } else {
-            this.loadUrl("javascript:" + script);
-        }
+        this.evaluateJavascript(script, value ->
+                printLog("execJs result: " + value));
     }
 
     void handlerReturnData(String url) {
@@ -206,22 +202,12 @@ public class LcaiBridgeWebview extends WebView implements LcaiWebViewJavascriptB
             return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            this.evaluateJavascript("WebViewJavascriptBridge._fetchQueue()", value -> {
-                printLog( "_fetchQueue 返回: " + value);
-                if (value == null || "null".equals(value)) return;
-                String json = unescapeJsString(value);
-                handleQueueData(json);
-            });
-        } else {
-            // 低版本只能走 loadUrl + responseCallbacks
-            loadUrl(LcaiBridgeUtil.JS_FETCH_QUEUE_FROM_JAVA, new LcaiCallbackFunction() {
-                @Override
-                public void onCallback(String data) {
-                    handleQueueData(data);
-                }
-            });
-        }
+        this.evaluateJavascript("WebViewJavascriptBridge._fetchQueue()", value -> {
+            printLog("_fetchQueue 返回: " + value);
+            if (value == null || "null".equals(value)) return;
+            String json = unescapeJsString(value);
+            handleQueueData(json);
+        });
     }
 
     /**
@@ -239,7 +225,7 @@ public class LcaiBridgeWebview extends WebView implements LcaiWebViewJavascriptB
             printLog( "解析消息队列失败: " + e.getMessage());
             return;
         }
-        if (list == null || list.isEmpty()) {
+        if (list.isEmpty()) {
             printLog( "handleQueueData: 队列为空");
             return;
         }
@@ -263,21 +249,15 @@ public class LcaiBridgeWebview extends WebView implements LcaiWebViewJavascriptB
             LcaiCallbackFunction responseFunction;
             final String callbackId = m.getCallbackId();
             if (!TextUtils.isEmpty(callbackId)) {
-                responseFunction = new LcaiCallbackFunction() {
-                    @Override
-                    public void onCallback(String data) {
-                        LcaiMessage responseMsg = new LcaiMessage();
-                        responseMsg.setResponseId(callbackId);
-                        responseMsg.setResponseData(data);
-                        queueMessage(responseMsg);
-                    }
+                responseFunction = data1 -> {
+                    LcaiMessage responseMsg = new LcaiMessage();
+                    responseMsg.setResponseId(callbackId);
+                    responseMsg.setResponseData(data1);
+                    queueMessage(responseMsg);
                 };
             } else {
-                responseFunction = new LcaiCallbackFunction() {
-                    @Override
-                    public void onCallback(String data) {
-                        // 无 callbackId，忽略
-                    }
+                responseFunction = data2 -> {
+                    // 无 callbackId，忽略
                 };
             }
 

@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
  * @description
  * @Date 2026/7/30
  */
+@SuppressWarnings("unused")
 public class BaseComponentConfig {
     public int marginLR;
 

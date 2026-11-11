@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @description
  * @Date 2026/5/26
  */
+@SuppressWarnings("unused")
 public class LcaiPermissionRequest {
 
     public LcaiPermissionRequestBulider builder;
@@ -150,12 +151,7 @@ public class LcaiPermissionRequest {
             if (TextUtils.isEmpty(permission)) {
                 continue;
             }
-            if (TextUtils.equals(permission, LcaiPermissionString.STORAGE)) {
-                // 兼容旧标识：等价于三种读取
-                needReadImage = true;
-                needReadVideo = true;
-                needReadAudio = true;
-            } else if (TextUtils.equals(permission, LcaiPermissionString.STORAGE_READ_IMAGE)) {
+            if (TextUtils.equals(permission, LcaiPermissionString.STORAGE_READ_IMAGE)) {
                 needReadImage = true;
             } else if (TextUtils.equals(permission, LcaiPermissionString.STORAGE_READ_VIDEO)) {
                 needReadVideo = true;

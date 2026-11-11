@@ -1,7 +1,6 @@
 package com.liucai.permission.bulider;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Build;
 
 import com.liucai.permission.core.LcaiPermissionString;
@@ -18,6 +17,7 @@ import java.util.List;
  * @description
  * @Date 2026/5/26
  */
+@SuppressWarnings("unused")
 public class LcaiPermissionRequestBulider {
 
     /**上下文对象*/
@@ -92,7 +92,7 @@ public class LcaiPermissionRequestBulider {
      * 申请权限
      */
     public LcaiPermissionRequestBulider addPermission(String permission) {
-        if (permissions == null || permissions.size() < 1) {
+        if (permissions == null || permissions.isEmpty()) {
             permissions = new ArrayList<>();
         }
         permissions.add(permission);

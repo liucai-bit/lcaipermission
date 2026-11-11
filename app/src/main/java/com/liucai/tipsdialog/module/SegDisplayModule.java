@@ -17,6 +17,7 @@ import com.liucai.core.util.text.TextUtils;
  * @description
  * @Date 2026/5/12
  */
+@SuppressWarnings("unused")
 public class SegDisplayModule {
 
     /**显示字符串*/

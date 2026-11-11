@@ -107,7 +107,7 @@ public class LcaiHttpRequest {
         int code = connection.getResponseCode();
 
         if (code >= 200 && code < 300) {
-            handleSuccess(code);
+            handleSuccess();
         } else {
             handleErrorResponse(code);
         }
@@ -194,9 +194,7 @@ public class LcaiHttpRequest {
         }
         if (builder.mapParams != null && !builder.mapParams.isEmpty()) {
             JSONObject obj = new JSONObject();
-            for (Map.Entry<String, Object> e : builder.mapParams.entrySet()) {
-                obj.put(e.getKey(), e.getValue());
-            }
+            obj.putAll(builder.mapParams);
             return obj.toJSONString();
         }
         return "";
@@ -219,7 +217,7 @@ public class LcaiHttpRequest {
 
     // ==================== 响应处理 ====================
 
-    private void handleSuccess(int code) throws Exception {
+    private void handleSuccess() throws Exception {
         Map<String, List<String>> headerFields = connection.getHeaderFields();
 
         switch (builder.httpCall) {

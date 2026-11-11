@@ -18,6 +18,7 @@ import java.util.Map;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class LcaidbCore<T extends LcaiTableInfo> extends BaseCRUD<T> {
 
     private final LcaidbService<T> service;

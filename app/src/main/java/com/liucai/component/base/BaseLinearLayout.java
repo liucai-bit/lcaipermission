@@ -74,16 +74,6 @@ public abstract class BaseLinearLayout extends LinearLayout {
         initView();
     }
 
-    public BaseLinearLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        this.mContext = context;
-        this.config = new BaseComponentConfig();
-        initAttr(attrs, defStyleAttr);
-        init();
-        autoRecycleTypedArray();
-        initView();
-    }
-
     // ==================== 内部逻辑 ====================
 
     /**
@@ -91,7 +81,7 @@ public abstract class BaseLinearLayout extends LinearLayout {
      */
     private void initAttr(@Nullable AttributeSet attr, int defStyleAttr) {
         int[] styleableArr = setAttrs();
-        if (styleableArr != null && styleableArr.length > 0 && attr != null) {
+        if (styleableArr.length > 0 && attr != null) {
             mTa = mContext.obtainStyledAttributes(attr, styleableArr, defStyleAttr, 0);
         }
     }

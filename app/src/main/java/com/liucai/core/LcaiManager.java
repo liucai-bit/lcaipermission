@@ -2,7 +2,6 @@ package com.liucai.core;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -23,7 +22,7 @@ import com.liucai.tipsdialog.core.OnTipsDialogInterface;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+@SuppressWarnings("unused")
 public class LcaiManager {
 
     private volatile boolean pendingToSystem = false;
@@ -255,9 +254,6 @@ public class LcaiManager {
         if (activity == null || activity.isFinishing()) {
             return false;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            return !activity.isDestroyed();
-        }
-        return true;
+        return !activity.isDestroyed();
     }
 }

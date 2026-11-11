@@ -9,6 +9,7 @@ import android.util.TypedValue;
  * @description
  * @Date 2026/7/30
  */
+@SuppressWarnings("unused")
 public class CommonUtils {
 
     /**

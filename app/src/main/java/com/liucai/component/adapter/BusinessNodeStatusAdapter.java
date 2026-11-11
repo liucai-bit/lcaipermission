@@ -1,7 +1,6 @@
 package com.liucai.component.adapter;
 
-import static android.view.View.GONE;
-
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
@@ -34,6 +33,7 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         super(mContext, R.layout.business_nodes_status_layout);
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void setConfig(BusinessNodeStatusItemConfig config) {
         this.config = config;
         notifyDataSetChanged();
@@ -44,7 +44,7 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
         if (config == null) return; // 增加防御
 
         ConstraintLayout mNodeStatus = holder.getView(R.id.business_nodes_status);
-        mNodeStatus.setPadding(0, CommonUtils.dip2px(mContext, config.itemSpace), 0, CommonUtils.dip2px(mContext, config.itemSpace));
+        if (mNodeStatus!=null) mNodeStatus.setPadding(0, CommonUtils.dip2px(mContext, config.itemSpace), 0, CommonUtils.dip2px(mContext, config.itemSpace));
 
         ImageView imageView = holder.getView(R.id.business_nodes_status_icon);
         if (imageView != null) {

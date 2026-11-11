@@ -49,6 +49,7 @@ import java.util.List;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public final class ImageUtils {
 
     /** 默认圆角半径（dp）。 */
@@ -63,7 +64,7 @@ public final class ImageUtils {
      * 加载图片（支持 String / Uri / File / Integer resId / byte[] 等任意 model）。
      */
     public static void loadImage(Context context, Object model, ImageView imageView) {
-        load(context, model, imageView, (RequestOptions) null);
+        load(context, model, imageView, null);
     }
 
     /**
@@ -135,20 +136,20 @@ public final class ImageUtils {
     // ==================== Gif ====================
 
     public static void loadGif(Context context, Object model, ImageView imageView) {
-        if (!checkBaseArgs(context, model, imageView)) {
-            return;
-        }
-        Context host = resolveContext(context);
-        if (host == null) {
-            return;
-        }
-        runOnMain(() -> {
-            try {
-                Glide.with(host).asGif().load(model).into(imageView);
-            } catch (Throwable t) {
-                logError("loadGif", t);
+        if (checkBaseArgs(context, model, imageView)) {
+            Context host = resolveContext(context);
+            if (host == null) {
+                return;
             }
-        });
+            runOnMain(() -> {
+                try {
+                    Glide.with(host).asGif().load(model).into(imageView);
+                } catch (Throwable t) {
+                    logError("loadGif", t);
+                }
+            });
+        }
+
     }
 
     // ==================== Bitmap 回调 ====================
@@ -165,7 +166,7 @@ public final class ImageUtils {
             return;
         }
         if (model instanceof CharSequence
-                && TextUtils.isEmpty(((CharSequence) model).toString())) {
+                && TextUtils.isEmpty(model.toString())) {
             if (callback != null) {
                 callback.onLoadFailed(null);
             }
@@ -248,9 +249,6 @@ public final class ImageUtils {
         }
     }
 
-    /**
-     * 清空内存缓存（必须在主线程，内部自动切）。
-     */
     /**
      * 清空内存缓存（必须在主线程，内部已自动切主线程）
      */
@@ -345,7 +343,7 @@ public final class ImageUtils {
     /**
      * 保存到系统相册 (相册中的 LcaiApp 文件夹)
      * API 29+ 无需权限；API < 29 需要 WRITE_EXTERNAL_STORAGE。
-     * @Params floder 指定文件夹
+     * @param floder 指定文件夹
      *
      */
     public static String saveToGallery(Context context, Bitmap bitmap, String fileName,String floder) {
@@ -397,10 +395,6 @@ public final class ImageUtils {
         }
     }
 
-    /**
-     * 先裁剪，再对整块正方形应用形状遮罩，最后按 rows × cols 切分。
-     * 每格只保留形状在该位置的部分，拼起来是完整形状。
-     */
     /**
      * 先裁剪 → 对整块正方形应用形状遮罩 → 再按 rows×cols 切分。
      * 用 clipPath 替代 PorterDuff.DST_IN，规避部分机型/位图 alpha 通道导致的失效问题。
@@ -459,24 +453,23 @@ public final class ImageUtils {
     // ==================== 内部实现 ====================
 
     private static void load(Context context, Object model, ImageView imageView, @Nullable RequestOptions options) {
-        if (!checkBaseArgs(context, model, imageView)) {
-            return;
-        }
-        Context host = resolveContext(context);
-        if (host == null) {
-            return;
-        }
-        runOnMain(() -> {
-            try {
-                RequestBuilder<Drawable> builder = Glide.with(host).load(model);
-                if (options != null) {
-                    builder = builder.apply(options);
-                }
-                builder.into(imageView);
-            } catch (Throwable t) {
-                logError("load", t);
+        if (checkBaseArgs(context, model, imageView)) {
+            Context host = resolveContext(context);
+            if (host == null) {
+                return;
             }
-        });
+            runOnMain(() -> {
+                try {
+                    RequestBuilder<Drawable> builder = Glide.with(host).load(model);
+                    if (options != null) {
+                        builder = builder.apply(options);
+                    }
+                    builder.into(imageView);
+                } catch (Throwable t) {
+                    logError("load", t);
+                }
+            });
+        }
     }
 
     private static boolean checkBaseArgs(Context context, Object model, ImageView imageView) {
@@ -490,7 +483,7 @@ public final class ImageUtils {
             return false;
         }
         if (model instanceof CharSequence
-                && TextUtils.isEmpty(((CharSequence) model).toString())) {
+                && TextUtils.isEmpty(model.toString())) {
             if (GlobalAppUtil.isDebug()) {
                 LcaiLogUtils.e("图片加载地址为空: " + model);
             }

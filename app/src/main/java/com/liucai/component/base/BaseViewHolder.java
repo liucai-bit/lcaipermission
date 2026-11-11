@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.RecyclerView;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class BaseViewHolder extends RecyclerView.ViewHolder {
 
     /** int -> View 缓存，SparseArray 避免 Integer 装箱开销 */

@@ -24,6 +24,7 @@ import java.util.List;
  * @author liucai
  * @Date 2026/7/7
  */
+@SuppressWarnings("unused")
 public class WebActivityConfig implements Parcelable {
 
     @Nullable
@@ -175,7 +176,7 @@ public class WebActivityConfig implements Parcelable {
         dest.writeString(errorPageUrl);
     }
 
-    public static final Creator<WebActivityConfig> CREATOR = new Creator<WebActivityConfig>() {
+    public static final Creator<WebActivityConfig> CREATOR = new Creator<>() {
         @Override
         public WebActivityConfig createFromParcel(Parcel in) {
             return new WebActivityConfig(in);

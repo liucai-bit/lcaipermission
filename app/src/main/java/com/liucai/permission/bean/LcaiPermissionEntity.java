@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
  * @description
  * @Date 2026/10/14
  */
+@SuppressWarnings("unused")
 public class LcaiPermissionEntity {
     /** 权限名，如 Manifest.permission.CAMERA */
     public String permission;

@@ -20,6 +20,7 @@ import java.util.Set;
  * <p>写操作统一使用 {@link SharedPreferences.Editor#apply()}（异步提交，避免主线程 ANR），
  * 如需同步落盘请调用 {@link #commit()}。
  */
+@SuppressWarnings("unused")
 public final class LcaiPreferenceUtils {
 
     private static volatile SharedPreferences sPreferences;

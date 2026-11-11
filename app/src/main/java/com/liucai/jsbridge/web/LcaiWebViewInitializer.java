@@ -1,5 +1,6 @@
 package com.liucai.jsbridge.web;
 
+import android.annotation.SuppressLint;
 import android.webkit.WebSettings;
 
 import androidx.annotation.NonNull;
@@ -8,11 +9,13 @@ import androidx.annotation.NonNull;
  * WebView 初始化。
  * @author liucai
  */
+@SuppressWarnings("unused")
 public final class LcaiWebViewInitializer {
 
     private LcaiWebViewInitializer() {
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     public static void applyDefaults(@NonNull LcaiBridgeWebview webView) {
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);

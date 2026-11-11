@@ -42,7 +42,7 @@ public abstract class BaseTextView extends AppCompatTextView {
 
     private void initAttr(@Nullable AttributeSet attr, int defStyleAttr) {
         int[] styleableArr = setAttrs();
-        if (styleableArr != null && styleableArr.length > 0 && attr != null) {
+        if (styleableArr.length > 0 && attr != null) {
             mTa = mContext.obtainStyledAttributes(attr, styleableArr, defStyleAttr, 0);
         }
     }

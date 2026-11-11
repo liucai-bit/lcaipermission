@@ -3,6 +3,7 @@ package com.liucai.core.util.lcaidb;
 /**
  * 命名转换工具。
  */
+@SuppressWarnings("unused")
 public class CamelCaseConverter {
 
     /**

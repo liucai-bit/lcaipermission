@@ -18,8 +18,6 @@ public class TextViewMode {
 
     public static int getTypeface(TextFontStyle style) {
         switch (style) {
-            case DEFALUT:
-                return Typeface.NORMAL;
             case BLOD:
                 return Typeface.BOLD;
             case ITALIC:

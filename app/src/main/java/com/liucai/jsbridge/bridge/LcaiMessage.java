@@ -1,6 +1,8 @@
 package com.liucai.jsbridge.bridge;
 
 
+import com.liucai.core.util.log.LcaiLogUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,10 +16,8 @@ import java.util.List;
  * @description
  * @Date 2026/5/28
  */
+@SuppressWarnings("unused")
 public class LcaiMessage {
-
-
-
     private String callbackId; //callbackId
     private String responseId; //responseId
     private String responseData; //responseData
@@ -71,7 +71,7 @@ public class LcaiMessage {
             jsonObject.put(RESPONSE_ID_STR, getResponseId());
             return jsonObject.toString();
         } catch (JSONException e) {
-            e.printStackTrace();
+            LcaiLogUtils.e("JSON转换错误",e);
         }
         return null;
     }
@@ -87,13 +87,13 @@ public class LcaiMessage {
             m.setData(jsonObject.has(DATA_STR) ? jsonObject.getString(DATA_STR):null);
             return m;
         } catch (JSONException e) {
-            e.printStackTrace();
+            LcaiLogUtils.e("LcaiMessage对象转换错误",e);
         }
         return m;
     }
 
     public static List<LcaiMessage> toArrayList(String jsonStr){
-        List<LcaiMessage> list = new ArrayList<LcaiMessage>();
+        List<LcaiMessage> list = new ArrayList<>();
         try {
             JSONArray jsonArray = new JSONArray(jsonStr);
             for(int i = 0; i < jsonArray.length(); i++){
@@ -107,7 +107,7 @@ public class LcaiMessage {
                 list.add(m);
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            LcaiLogUtils.e("List<LcaiMessage>对象转换错误",e);
         }
         return list;
     }

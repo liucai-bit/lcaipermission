@@ -14,6 +14,7 @@ import com.liucai.core.util.log.LcaiLogUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Bridge WebViewClient。
@@ -22,8 +23,6 @@ import java.net.URLDecoder;
  * @Date 2026/5/28
  */
 public class LcaiBridgeWebViewClient extends WebViewClient {
-
-    private static final String TAG = "LcaiBridgeWebViewClient";
 
     @Nullable
     private String lastInjectedUrl;
@@ -58,10 +57,14 @@ public class LcaiBridgeWebViewClient extends WebViewClient {
     private boolean handleUrl(@Nullable String url) {
         if (url == null) return false;
 
-        try {
-            url = URLDecoder.decode(url, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            printLog( "URL 解码失败: " + e.getMessage());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            url = URLDecoder.decode(url, StandardCharsets.UTF_8);
+        }else {
+            try {
+                url = URLDecoder.decode(url, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+               LcaiLogUtils.e("URL转换失败",e);
+            }
         }
 
         if (url.startsWith(LcaiBridgeUtil.YY_RETURN_DATA)) {
@@ -99,59 +102,42 @@ public class LcaiBridgeWebViewClient extends WebViewClient {
     }
 
     private void detectAndInject(@NonNull final WebView view) {
-        if (LcaiBridgeWebview.toLoadJs == null) {
-            printLog( "toLoadJs 为 null，跳过注入");
-            webView.setBridgeInjected(true);
-            webView.flushStartupMessages();
-            return;
-        }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            view.evaluateJavascript(LcaiBridgeUtil.JS_CHECK_BRIDGE_EXIST, value -> {
-                boolean exists = "true".equals(value);
-                if (exists) {
-                    printLog( "JSBridge 已存在，跳过注入");
-                    webView.setBridgeInjected(true);
-                    webView.flushStartupMessages();
-                } else {
-                    printLog("JSBridge 不存在，开始注入");
-                    injectBridge(view);
-                }
-            });
-        } else {
-            injectBridge(view);
-            webView.setBridgeInjected(true);
-            webView.flushStartupMessages();
-        }
+        view.evaluateJavascript(LcaiBridgeUtil.JS_CHECK_BRIDGE_EXIST, value -> {
+            boolean exists = "true".equals(value);
+            if (exists) {
+                printLog("JSBridge 已存在，跳过注入");
+                webView.setBridgeInjected(true);
+                webView.flushStartupMessages();
+            } else {
+                printLog("JSBridge 不存在，开始注入");
+                injectBridge(view);
+            }
+        });
     }
 
     private void injectBridge(@NonNull final WebView view) {
         LcaiBridgeUtil.webViewLoadLocalJs(view, LcaiBridgeWebview.toLoadJs);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            view.postDelayed(() -> view.evaluateJavascript(
-                    LcaiBridgeUtil.JS_CHECK_BRIDGE_EXIST, value -> {
-                        boolean ok = "true".equals(value);
-                        webView.setBridgeInjected(ok);
-                        printLog("注入校验结果: " + ok);
+        view.postDelayed(() -> view.evaluateJavascript(
+                LcaiBridgeUtil.JS_CHECK_BRIDGE_EXIST, value -> {
+                    boolean ok = "true".equals(value);
+                    webView.setBridgeInjected(ok);
+                    printLog("注入校验结果: " + ok);
 
-                        if (!ok) {
-                            view.evaluateJavascript(
-                                    LcaiBridgeUtil.JS_CHECK_BRIDGE_LOADED_FLAG,
-                                    v1 ->   printLog( "LOADED 标记: " + v1));
-                            view.evaluateJavascript(
-                                    LcaiBridgeUtil.JS_CHECK_BRIDGE_SCRIPT_END,
-                                    v2 ->   printLog( "SCRIPT_END 标记: " + v2));
-                            view.evaluateJavascript("location.href",
-                                    v3 ->   printLog("当前 location.href: " + v3));
-                        }
+                    if (!ok) {
+                        view.evaluateJavascript(
+                                LcaiBridgeUtil.JS_CHECK_BRIDGE_LOADED_FLAG,
+                                v1 -> printLog("LOADED 标记: " + v1));
+                        view.evaluateJavascript(
+                                LcaiBridgeUtil.JS_CHECK_BRIDGE_SCRIPT_END,
+                                v2 -> printLog("SCRIPT_END 标记: " + v2));
+                        view.evaluateJavascript("location.href",
+                                v3 -> printLog("当前 location.href: " + v3));
+                    }
 
-                        webView.flushStartupMessages();
-                    }), 100);
-        } else {
-            webView.setBridgeInjected(true);
-            webView.flushStartupMessages();
-        }
+                    webView.flushStartupMessages();
+                }), 100);
     }
 
     private void printLog(String message) {

@@ -1,7 +1,7 @@
 package com.liucai.component;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -51,6 +51,7 @@ import java.util.List;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class ViewFlipperCarousel extends BaseRelativeLayout {
 
     // ==================== 常量 ====================
@@ -124,6 +125,7 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
 
     // ==================== 基类生命周期 ====================
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     public void init() {
         if (mTa == null) {
@@ -401,7 +403,7 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
             iv.setScaleType(ImageView.ScaleType.FIT_XY);
             ImageUtils.loadImage(mContext, bean.getLabel(), iv);
             iv.setOnClickListener(v -> dispatchClick(index));
-            viewFlipper.addView(iv);
+            if (viewFlipper!=null) viewFlipper.addView(iv);
         }
     }
 
@@ -420,7 +422,7 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
             // 每个 View 独立 LayoutParams，避免共享同一实例
             view.setLayoutParams(new FrameLayout.LayoutParams(MP, WC));
             view.setOnClickListener(v -> dispatchClick(index));
-            viewFlipper.addView(view);
+            if (viewFlipper!=null) viewFlipper.addView(view);
         }
     }
 
@@ -438,10 +440,11 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
             tv.setSingleLine(true);
             tv.setEllipsize(TextUtils.TruncateAt.END);
             tv.setOnClickListener(v -> dispatchClick(index));
-            viewFlipper.addView(tv);
+            if (viewFlipper!=null) viewFlipper.addView(tv);
         }
     }
 
+    @SuppressLint("RtlHardcoded")
     private int resolveTextGravity() {
         switch (centerMode) {
             case 1:  return Gravity.LEFT  | Gravity.CENTER_VERTICAL;
@@ -595,7 +598,7 @@ public class ViewFlipperCarousel extends BaseRelativeLayout {
             return 0;
         }
         int index = viewFlipper.getDisplayedChild();
-        return index < 0 ? 0 : index;
+        return Math.max(index, 0);
     }
 
     private void resetDisplayedChild() {

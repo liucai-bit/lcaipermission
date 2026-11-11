@@ -6,6 +6,7 @@ package com.liucai.component.bean;
  * @description
  * @Date 2026/7/27
  */
+@SuppressWarnings("unused")
 public class ViewFlipperCarouselBean {
     public String label;
 

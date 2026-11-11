@@ -2,6 +2,7 @@ package com.liucai.jsbridge.web;
 
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import androidx.annotation.Nullable;
 
@@ -28,7 +29,7 @@ public final class LcaiWebViewLifecycle {
             webView.stopLoading();
             webView.loadUrl("about:blank");
             webView.setWebChromeClient(null);
-            webView.setWebViewClient(null);
+            webView.setWebViewClient(new WebViewClient());
             if (webView.getParent() instanceof ViewGroup) {
                 ((ViewGroup) webView.getParent()).removeView(webView);
             }

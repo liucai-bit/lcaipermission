@@ -19,7 +19,7 @@ final class Editor {
     Editor(SharedPreferences.Editor editor) {
         this.editor = editor;
     }
-
+    @SuppressWarnings("unchecked")
     Editor put(@NonNull String key, @Nullable Object value) {
         if (value instanceof String) {
             editor.putString(key, (String) value);

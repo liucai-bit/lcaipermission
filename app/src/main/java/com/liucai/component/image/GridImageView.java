@@ -15,6 +15,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 /**
  * 带有网格参考线的 ImageView
  */
+@SuppressWarnings("unused")
 public class GridImageView extends AppCompatImageView {
 
     private final Paint linePaint;
@@ -90,11 +91,9 @@ public class GridImageView extends AppCompatImageView {
         int drawableWidth = getDrawable().getIntrinsicWidth();
         int drawableHeight = getDrawable().getIntrinsicHeight();
 
-        float left = transX;
-        float top = transY;
-        float right = left + drawableWidth * scaleX;
-        float bottom = top + drawableHeight * scaleY;
+        float right = transX + drawableWidth * scaleX;
+        float bottom = transY + drawableHeight * scaleY;
 
-        return new RectF(left, top, right, bottom);
+        return new RectF(transX, transY, right, bottom);
     }
 }

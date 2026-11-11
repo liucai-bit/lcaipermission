@@ -5,6 +5,7 @@ package com.liucai.lcaidb.enu;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public enum OrderTypeEnum {
 
     ASC("ASC"),

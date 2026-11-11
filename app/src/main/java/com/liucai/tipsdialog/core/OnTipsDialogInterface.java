@@ -12,6 +12,7 @@ import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
  * @description
  * @Date 2026/5/27
  */
+@SuppressWarnings("unused")
 public interface OnTipsDialogInterface {
     default void onCancelListener() {
     }

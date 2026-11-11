@@ -12,8 +12,6 @@ import com.google.android.flexbox.FlexboxLayout;
 import com.liucai.component.bean.BaseComponentConfig;
 
 public abstract class BaseFlexboxLayout extends FlexboxLayout {
-
-    public static final int MP = ViewGroup.LayoutParams.MATCH_PARENT;
     public static final int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
 
     public abstract void init();
@@ -51,7 +49,7 @@ public abstract class BaseFlexboxLayout extends FlexboxLayout {
 
     private void initAttr(@Nullable AttributeSet attr, int defStyleAttr) {
         int[] styleableArr = setAttrs();
-        if (styleableArr != null && styleableArr.length > 0 && attr != null) {
+        if (styleableArr.length > 0 && attr != null) {
             mTa = mContext.obtainStyledAttributes(attr, styleableArr, defStyleAttr, 0);
         }
     }

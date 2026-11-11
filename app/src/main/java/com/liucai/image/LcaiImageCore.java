@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public final class LcaiImageCore {
 
     private LcaiImageCore() {
@@ -53,6 +54,17 @@ public final class LcaiImageCore {
     public static void write(Bitmap bitmap, File file) throws IOException {
         Objects.requireNonNull(bitmap, "图片不能为空");
         File parent = file.getParentFile();
+        Bitmap.CompressFormat format = getCompressFormat(file, parent);
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            boolean success = bitmap.compress(format, 100, fos);
+            if (!success) {
+                throw new LcaiException("图片保存失败");
+            }
+        }
+    }
+
+    private static Bitmap.CompressFormat getCompressFormat(File file, File parent) {
         if (parent != null && !parent.exists() && !parent.mkdirs()) {
             throw new LcaiException("无法创建目录: " + parent);
         }
@@ -65,13 +77,7 @@ public final class LcaiImageCore {
         } else {
             format = Bitmap.CompressFormat.PNG;
         }
-
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            boolean success = bitmap.compress(format, 100, fos);
-            if (!success) {
-                throw new LcaiException("图片保存失败");
-            }
-        }
+        return format;
     }
 
     /**

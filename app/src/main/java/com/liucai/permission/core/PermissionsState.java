@@ -6,6 +6,7 @@ package com.liucai.permission.core;
  * @description
  * @Date 2026/10/14
  */
+@SuppressWarnings("unused")
 public enum PermissionsState {
     /** 组内所有权限都从未申请过 */
     NEVER_REQUESTED,

@@ -1,8 +1,5 @@
 package com.liucai.permission.core;
 
-import com.alibaba.fastjson.JSONArray;
-
-import java.util.List;
 import java.util.Map;
 
 /**

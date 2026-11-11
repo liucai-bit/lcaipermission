@@ -15,12 +15,12 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Base64;
 
+import androidx.annotation.Nullable;
 import androidx.core.os.EnvironmentCompat;
 
 import com.alibaba.fastjson.JSONObject;
 import com.liucai.core.util.log.LcaiLogUtils;
 import com.liucai.http.thread.GlobalThreadPool;
-import com.liucai.http.thread.LcaiRunnableUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,6 +37,7 @@ import java.util.Locale;
  * @author liucai
  * @description 文件工具
  */
+@SuppressWarnings("unused")
 public class LcaiFileUtils {
 
     private static final String HEADER = "data:image/%s;base64,";
@@ -317,9 +318,7 @@ public class LcaiFileUtils {
      */
     private static String getInternalPath(final Context context, final Uri uri) {
         try {
-            final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-
-            if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            if (DocumentsContract.isDocumentUri(context, uri)) {
                 if (isExternalStorageDocument(uri)) {
                     final String docId = DocumentsContract.getDocumentId(uri);
                     final String[] split = docId.split(":");
@@ -342,18 +341,9 @@ public class LcaiFileUtils {
                 } else if (isMediaDocument(uri)) {
                     final String docId = DocumentsContract.getDocumentId(uri);
                     final String[] split = docId.split(":");
-                    final String type = split[0];
+                    Uri contentUri = getContentUri(split);
 
-                    Uri contentUri = null;
-                    if ("image".equals(type)) {
-                        contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                    } else if ("video".equals(type)) {
-                        contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                    } else if ("audio".equals(type)) {
-                        contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                    }
-
-                    if (contentUri == null || split.length <= 1) {
+                    if (contentUri == null || split.length == 1) {
                         return null;
                     }
 
@@ -374,6 +364,21 @@ public class LcaiFileUtils {
         }
 
         return null;
+    }
+
+    @Nullable
+    private static Uri getContentUri(String[] split) {
+        final String type = split[0];
+
+        Uri contentUri = null;
+        if ("image".equals(type)) {
+            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        } else if ("video".equals(type)) {
+            contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        } else if ("audio".equals(type)) {
+            contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        }
+        return contentUri;
     }
 
     public static String getDataColumn(Context context,
@@ -419,108 +424,105 @@ public class LcaiFileUtils {
                 ? context.getApplicationContext()
                 : context;
 
-        GlobalThreadPool.execute(new LcaiRunnableUtils() {
-            @Override
-            public void run() {
-                Uri savedUri = null;
-                OutputStream out = null;
-                InputStream in = null;
-                File destFile = null;
+        GlobalThreadPool.execute(()-> {
+            Uri savedUri = null;
+            OutputStream out = null;
+            InputStream in = null;
+            File destFile = null;
 
-                try {
-                    String timeStamp = new SimpleDateFormat(
-                            "yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-                    String imageFileName = "IMG_" + timeStamp + ".jpg";
+            try {
+                String timeStamp = new SimpleDateFormat(
+                        "yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                String imageFileName = "IMG_" + timeStamp + ".jpg";
 
-                    ContentValues values = new ContentValues();
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
-                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName);
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
 
-                    Uri collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                Uri collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        values.put(MediaStore.Images.Media.RELATIVE_PATH,
-                                Environment.DIRECTORY_DCIM + "/Camera");
-                        values.put(MediaStore.Images.Media.IS_PENDING, 1);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    values.put(MediaStore.Images.Media.RELATIVE_PATH,
+                            Environment.DIRECTORY_DCIM + "/Camera");
+                    values.put(MediaStore.Images.Media.IS_PENDING, 1);
 
-                        savedUri = appContext.getContentResolver()
-                                .insert(collection, values);
-                        if (savedUri == null) {
-                            throw new IOException("insert MediaStore failed");
-                        }
-
-                        out = appContext.getContentResolver().openOutputStream(savedUri);
-                        if (out == null) {
-                            throw new IOException("openOutputStream failed");
-                        }
-
-                        in = new FileInputStream(sourceFile);
-                        copy(in, out);
-                        out.flush();
-
-                        values.clear();
-                        values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                        appContext.getContentResolver()
-                                .update(savedUri, values, null, null);
-                    } else {
-                        File dcim = Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DCIM);
-                        File cameraDir = new File(dcim, "Camera");
-                        if (!cameraDir.exists() && !cameraDir.mkdirs()) {
-                            throw new IOException("create camera dir failed");
-                        }
-
-                        destFile = new File(cameraDir, imageFileName);
-
-                        in = new FileInputStream(sourceFile);
-                        out = new FileOutputStream(destFile);
-                        copy(in, out);
-                        out.flush();
-
-                        values.put(MediaStore.Images.Media.DATA,
-                                destFile.getAbsolutePath());
-
-                        savedUri = appContext.getContentResolver()
-                                .insert(collection, values);
-
-                        Uri scanUri = savedUri != null
-                                ? savedUri
-                                : Uri.fromFile(destFile);
-
-                        appContext.sendBroadcast(new Intent(
-                                Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, scanUri));
+                    savedUri = appContext.getContentResolver()
+                            .insert(collection, values);
+                    if (savedUri == null) {
+                        throw new IOException("insert MediaStore failed");
                     }
 
-                    LcaiLogUtils.d("图片插入图库成功！");
-
-                    String path;
-                    if (savedUri != null) {
-                        path = getPath(appContext, savedUri);
-                    } else {
-                        path = destFile != null ? destFile.getAbsolutePath() : null;
+                    out = appContext.getContentResolver().openOutputStream(savedUri);
+                    if (out == null) {
+                        throw new IOException("openOutputStream failed");
                     }
 
-                    if (fileInterface != null) {
-                        fileInterface.onUriPath(path);
+                    in = new FileInputStream(sourceFile);
+                    copy(in, out);
+                    out.flush();
+
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    appContext.getContentResolver()
+                            .update(savedUri, values, null, null);
+                } else {
+                    File dcim = Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DCIM);
+                    File cameraDir = new File(dcim, "Camera");
+                    if (!cameraDir.exists() && !cameraDir.mkdirs()) {
+                        throw new IOException("create camera dir failed");
                     }
-                } catch (Throwable t) {
-                    if (savedUri != null) {
-                        try {
-                            appContext.getContentResolver()
-                                    .delete(savedUri, null, null);
-                        } catch (Throwable ignored) {
-                        }
-                    }
-                    if (destFile != null) {
-                        //noinspection ResultOfMethodCallIgnored
-                        destFile.delete();
-                    }
-                    LcaiLogUtils.d("图片插入图库失败: " + t.getMessage());
-                } finally {
-                    closeQuietly(out);
-                    closeQuietly(in);
-                    clearFile(sourceFile);
+
+                    destFile = new File(cameraDir, imageFileName);
+
+                    in = new FileInputStream(sourceFile);
+                    out = new FileOutputStream(destFile);
+                    copy(in, out);
+                    out.flush();
+
+                    values.put(MediaStore.Images.Media.DATA,
+                            destFile.getAbsolutePath());
+
+                    savedUri = appContext.getContentResolver()
+                            .insert(collection, values);
+
+                    Uri scanUri = savedUri != null
+                            ? savedUri
+                            : Uri.fromFile(destFile);
+
+                    appContext.sendBroadcast(new Intent(
+                            Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, scanUri));
                 }
+
+                LcaiLogUtils.d("图片插入图库成功！");
+
+                String path;
+                if (savedUri != null) {
+                    path = getPath(appContext, savedUri);
+                } else {
+                    path = destFile.getAbsolutePath();
+                }
+
+                if (fileInterface != null) {
+                    fileInterface.onUriPath(path);
+                }
+            } catch (Throwable t) {
+                if (savedUri != null) {
+                    try {
+                        appContext.getContentResolver()
+                                .delete(savedUri, null, null);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (destFile != null) {
+                    //noinspection ResultOfMethodCallIgnored
+                    destFile.delete();
+                }
+                LcaiLogUtils.d("图片插入图库失败: " + t.getMessage());
+            } finally {
+                closeQuietly(out);
+                closeQuietly(in);
+                clearFile(sourceFile);
             }
         });
     }
@@ -553,10 +555,7 @@ public class LcaiFileUtils {
         if (bitmap == null || bitmap.isRecycled()) {
             return 0L;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return bitmap.getAllocationByteCount();
-        }
-        return bitmap.getByteCount();
+        return bitmap.getAllocationByteCount();
     }
 
     private static void copy(InputStream in, OutputStream out) throws IOException {

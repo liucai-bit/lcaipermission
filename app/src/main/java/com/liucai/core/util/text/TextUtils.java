@@ -6,7 +6,8 @@ import java.util.List;
  * @author liucai
  * @description 字符串操作
  */
-public class TextUtils<T> {
+@SuppressWarnings("unused")
+public class TextUtils{
 
     /**
      * 字符串非空判断。

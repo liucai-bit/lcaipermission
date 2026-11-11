@@ -1,5 +1,6 @@
-package com.liucai.imageslice;
+package com.liucai.component.image;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -12,9 +13,12 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 import com.liucai.image.LcaiShape;
 import com.liucai.image.LcaiShapePathFactory;
 
+@SuppressWarnings("unused")
 public class LcaiCropShapeView extends View {
 
     public interface OnCropChangedListener {
@@ -142,7 +146,7 @@ public class LcaiCropShapeView extends View {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         if (bitmap == null) return;
 
         float scale = getWidth() / (float) bitmap.getWidth();
@@ -200,6 +204,7 @@ public class LcaiCropShapeView extends View {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent e) {
         if (bitmap == null) return false;

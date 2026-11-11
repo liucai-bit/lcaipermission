@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
  * 业务/网络异常。
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class LcaiHttpException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;

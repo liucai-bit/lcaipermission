@@ -1,5 +1,6 @@
 package com.liucai.permission.bulider;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 
 import com.liucai.core.LcaiManager;
@@ -23,7 +24,9 @@ import java.util.Map;
  * @description
  * @Date 2026/10/14
  */
+@SuppressWarnings("unused")
 public class LcaiPermissionUtils {
+    @SuppressLint("StaticFieldLeak")
     public static LcaiPermissionUtils instance;
     private Activity mActivity;
     private LcaiPermissionResult result;
@@ -80,7 +83,7 @@ public class LcaiPermissionUtils {
                 new LcaiPermissionRequestBulider()
                         .with(mActivity)
                         .check(true)
-                        .addPermission(permissionList.toArray(new String[permissionList.size()]))
+                        .addPermission(permissionList.toArray(new String[0]))
                         .addResult(new LcaiReqPermissionResult() {
                             @Override
                             public void onReqPermissionPass() {
@@ -127,7 +130,6 @@ public class LcaiPermissionUtils {
                                     if (permanentlyDenied > 0) {
                                         //有些通过，有些永久拒绝
                                         result.onPermissionsState(PermissionsState.PARTIALLY_REQUESTED);
-                                        return;
                                     }
                                 }
                             }
@@ -144,10 +146,8 @@ public class LcaiPermissionUtils {
             return;
         }
 
-        if (permissionList == null || permissionList.size() == 0) {
-            for (LcaiPermissionEntity r : all) {
-                entities.add(r);
-            }
+        if (permissionList == null || permissionList.isEmpty()) {
+            entities.addAll(all);
         } else {
             for (String p : permissionList) {
                 LcaiPermissionEntity r = getRecord(p);

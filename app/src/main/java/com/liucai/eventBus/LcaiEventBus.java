@@ -27,6 +27,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @description 轻量型基于事件ID的事件总线
  * 订阅者使用 WeakReference 持有，避免忘记 unRegister 导致的内存泄漏。
  */
+@SuppressWarnings("unused")
 public class LcaiEventBus {
     private static volatile LcaiEventBus instance;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -56,7 +57,7 @@ public class LcaiEventBus {
      * 支持向上遍历父类查找 @Subscribe 方法
      */
     public void register(@NonNull String eventId, @NonNull Object subscriber) {
-        if (TextUtils.isEmpty(eventId) || subscriber == null) {
+        if (TextUtils.isEmpty(eventId)) {
             throw new IllegalArgumentException("eventId and subscriber can not be empty");
         }
 
@@ -86,9 +87,7 @@ public class LcaiEventBus {
                 }
 
                 Subscription newSubscription = new Subscription(subscriber, method, annotation.mode());
-                if (!subscriptions.contains(newSubscription)) {
-                    subscriptions.add(newSubscription);
-                }
+                subscriptions.add(newSubscription);
             }
         }
 
@@ -121,23 +120,12 @@ public class LcaiEventBus {
      * 取消订阅
      */
     public void unRegister(@NonNull Object subscriber) {
-        if (subscriber == null) return;
 
         synchronized (eventMap) {
             Iterator<Map.Entry<String, CopyOnWriteArraySet<Subscription>>> iterator = eventMap.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<String, CopyOnWriteArraySet<Subscription>> entry = iterator.next();
-                CopyOnWriteArraySet<Subscription> subscriptions = entry.getValue();
-
-                if (subscriptions != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        // 关键改动：WeakReference 版本，需要用 getSubscriber() 判等
-                        subscriptions.removeIf(subscription -> {
-                            Object sub = subscription.getSubscriber();
-                            return sub == null || sub == subscriber;
-                        });
-                    }
-                }
+                CopyOnWriteArraySet<Subscription> subscriptions = getSubscriptions(subscriber, entry);
 
                 if (subscriptions == null || subscriptions.isEmpty()) {
                     iterator.remove();
@@ -146,11 +134,27 @@ public class LcaiEventBus {
         }
     }
 
+    @Nullable
+    private static CopyOnWriteArraySet<Subscription> getSubscriptions(@NonNull Object subscriber, Map.Entry<String, CopyOnWriteArraySet<Subscription>> entry) {
+        CopyOnWriteArraySet<Subscription> subscriptions = entry.getValue();
+
+        if (subscriptions != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                // 关键改动：WeakReference 版本，需要用 getSubscriber() 判等
+                subscriptions.removeIf(subscription -> {
+                    Object sub = subscription.getSubscriber();
+                    return sub == null || sub == subscriber;
+                });
+            }
+        }
+        return subscriptions;
+    }
+
     /**
      * 发送普通事件
      */
     public void post(@NonNull MessageEvent event) {
-        if (event == null || TextUtils.isEmpty(event.msgId)) {
+        if (TextUtils.isEmpty(event.msgId)) {
             throw new IllegalArgumentException("event and msgId can not be empty");
         }
 
@@ -204,7 +208,7 @@ public class LcaiEventBus {
      * 发送粘性事件
      */
     public void postSticky(@NonNull MessageEvent event) {
-        if (event == null || TextUtils.isEmpty(event.msgId)) return;
+        if (TextUtils.isEmpty(event.msgId)) return;
         stickyEventMap.put(event.msgId, event);
         post(event);
     }
@@ -217,13 +221,8 @@ public class LcaiEventBus {
         try {
             method.setAccessible(true);
             method.invoke(subscriber, msgContent);
-        } catch (InvocationTargetException e) {
-            LcaiLogUtils.e("Event dispatch failed in method: " + method.getName());
-            if (e.getCause() != null) {
-                e.getCause().printStackTrace();
-            }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            LcaiLogUtils.e("Event dispatch failed in method: " + method.getName(),e);
         }
     }
 

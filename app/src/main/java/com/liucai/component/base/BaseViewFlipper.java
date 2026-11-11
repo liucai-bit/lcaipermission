@@ -43,6 +43,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class BaseViewFlipper extends ViewFlipper {
 
     // ==================== 方向常量 ====================
@@ -238,7 +239,7 @@ public class BaseViewFlipper extends ViewFlipper {
                 }
                 float dx = ev.getX() - downX;
                 float dy = ev.getY() - downY;
-                if (!tryLockDirection(dx, dy)) {
+                if (tryLockDirection(dx, dy)) {
                     // 方向不对 / 未达阈值 / 父容器还能滚 —— 不拦截
                     return false;
                 }
@@ -287,7 +288,7 @@ public class BaseViewFlipper extends ViewFlipper {
                 float dy = ev.getY() - downY;
 
                 if (!isDragging) {
-                    if (!tryLockDirection(dx, dy)) {
+                    if (tryLockDirection(dx, dy)) {
                         // 已消费 DOWN，但方向不对：继续消费避免父容器"抢走"后状态错乱
                         return true;
                     }
@@ -310,6 +311,7 @@ public class BaseViewFlipper extends ViewFlipper {
     /**
      * 单 item 场景：与普通 View 行为一致，支持点击 / 让父容器滚动。
      */
+    @SuppressWarnings("SameReturnValue")
     private boolean handleSingleItemTouch(MotionEvent ev) {
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
@@ -444,7 +446,7 @@ public class BaseViewFlipper extends ViewFlipper {
         float absDy = Math.abs(dy);
 
         if (absDx < touchSlop && absDy < touchSlop) {
-            return false;
+            return true;
         }
 
         if (lockedDirection == DIRECTION_NONE) {
@@ -453,7 +455,7 @@ public class BaseViewFlipper extends ViewFlipper {
             } else if (absDy > absDx * DOMINANT_RATIO) {
                 lockedDirection = DIRECTION_VERTICAL;
             } else {
-                return false;
+                return true;
             }
         }
 
@@ -461,15 +463,11 @@ public class BaseViewFlipper extends ViewFlipper {
 
         // 手势方向与配置的翻页方向不一致：不接管
         if (lockedDirection != direction) {
-            return false;
+            return true;
         }
 
         // 纵向翻页时，父容器还能继续滚的话优先让父容器处理
-        if (direction == DIRECTION_VERTICAL && canParentScrollFurther(dy)) {
-            return false;
-        }
-
-        return true;
+        return direction == DIRECTION_VERTICAL && canParentScrollFurther(dy);
     }
 
     private void performClickListener(int position) {

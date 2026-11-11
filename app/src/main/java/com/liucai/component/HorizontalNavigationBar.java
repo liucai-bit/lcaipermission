@@ -15,7 +15,7 @@ import com.liucai.component.base.ItemClickListener;
 import com.liucai.core.util.common.CommonUtils;
 
 import java.util.List;
-
+@SuppressWarnings("unused")
 public class HorizontalNavigationBar extends BaseLinearLayout {
 
     @Nullable
@@ -24,8 +24,6 @@ public class HorizontalNavigationBar extends BaseLinearLayout {
     private ItemClickListener clickListener;
     @Nullable
     private List<String> pendingDatas;
-    @Nullable
-    private View bottomLineView;
 
     public HorizontalNavigationBar(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -63,14 +61,14 @@ public class HorizontalNavigationBar extends BaseLinearLayout {
         }
 
         // 底部边框线
-        bottomLineView = new View(mContext);
+        View bottomLineView = new View(mContext);
         LayoutParams lineParams = new LayoutParams(MP, CommonUtils.dip2px(mContext, 1));
         bottomLineView.setLayoutParams(lineParams);
         bottomLineView.setBackgroundColor(Color.parseColor("#999999"));
         addView(bottomLineView);
     }
 
-    public void setDatas(@Nullable List<String> datas) {
+    public void setDatas(@NonNull List<String> datas) {
         if (adapter != null) {
             adapter.setData(datas);
         } else {
@@ -78,7 +76,7 @@ public class HorizontalNavigationBar extends BaseLinearLayout {
         }
     }
 
-    public void setClickListener(@Nullable ItemClickListener clickListener) {
+    public void setClickListener(@NonNull ItemClickListener clickListener) {
         this.clickListener = clickListener;
     }
 

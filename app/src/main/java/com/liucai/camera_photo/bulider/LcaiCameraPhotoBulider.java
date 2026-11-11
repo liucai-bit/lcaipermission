@@ -1,9 +1,7 @@
 package com.liucai.camera_photo.bulider;
 
-import android.content.Context;
-
-import com.liucai.camera_photo.core.LcaiGalleryResult;
 import com.liucai.camera_photo.core.LcaiGalleryCheckType;
+import com.liucai.camera_photo.core.LcaiGalleryResult;
 import com.liucai.camera_photo.core.LcaiGalleryResultType;
 
 /**
@@ -12,6 +10,7 @@ import com.liucai.camera_photo.core.LcaiGalleryResultType;
  * @description
  * @Date 2026/6/4
  */
+@SuppressWarnings("unused")
 public class LcaiCameraPhotoBulider {
 
     public LcaiGalleryCheckType type = LcaiGalleryCheckType.PHOTO;

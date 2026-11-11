@@ -48,6 +48,7 @@ import com.liucai.permission.R;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class LcaiRecyclerView extends BaseRecyclerView {
     private static final long LOAD_MORE_DEBOUNCE_MS = 300L;
     private static final long REFRESH_DEBOUNCE_MS = 500L;
@@ -232,7 +233,7 @@ public class LcaiRecyclerView extends BaseRecyclerView {
     }
 
     @Override
-    protected void dispatchDraw(Canvas canvas) {
+    protected void dispatchDraw(@NonNull Canvas canvas) {
         if (showRefreshHeader && pullOffset > 0f && refreshHeaderView != null && headerHeight > 0) {
             int save = canvas.save();
             canvas.translate(0, pullOffset);
@@ -345,11 +346,7 @@ public class LcaiRecyclerView extends BaseRecyclerView {
                         lastTouchY = ev.getY();
                     }
 
-                    if ((fingerDown && canScrollUp) || (fingerUp && canScrollDown)) {
-                        disallowParentIntercept(true);
-                    } else {
-                        disallowParentIntercept(false);
-                    }
+                    disallowParentIntercept((fingerDown && canScrollUp) || (fingerUp && canScrollDown));
                 } else {
                     hiddenPullDistance = 0f;
                     disallowParentIntercept(false);

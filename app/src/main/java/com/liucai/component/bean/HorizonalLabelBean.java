@@ -10,6 +10,7 @@ import com.liucai.component.mode.TextViewMode;
  * @description
  * @Date 2026/7/28
  */
+@SuppressWarnings("unused")
 public class HorizonalLabelBean {
     public String label;
 

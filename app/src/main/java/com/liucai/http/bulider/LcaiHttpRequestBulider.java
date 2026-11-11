@@ -21,6 +21,7 @@ import java.util.UUID;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public class LcaiHttpRequestBulider {
 
     // ---------------- 请求基本信息 ----------------
@@ -201,16 +202,6 @@ public class LcaiHttpRequestBulider {
 
     public LcaiHttpRequestBulider withHeader() {
         this.withHeader = true;
-        return this;
-    }
-
-    /** @deprecated 由 {@link LcaiHttpCall#DOWNLOAD} 的取消逻辑自动处理。 */
-    @Deprecated
-    public boolean stopDownload;
-
-    @Deprecated
-    public LcaiHttpRequestBulider stopDownload() {
-        this.stopDownload = true;
         return this;
     }
 

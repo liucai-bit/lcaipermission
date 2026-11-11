@@ -6,6 +6,7 @@ package com.liucai.component.base;
  * @description
  * @Date 2026/7/23
  */
+@SuppressWarnings("unused")
 public interface ItemClickListener{
 
     void onItemClickListener(int position, Object entity);

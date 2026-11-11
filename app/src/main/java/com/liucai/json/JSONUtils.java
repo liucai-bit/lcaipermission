@@ -1,6 +1,8 @@
 package com.liucai.json;
 
 
+import androidx.annotation.NonNull;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -17,15 +19,14 @@ import java.util.List;
  * @description
  * @Date 2026/7/23
  */
-public class JSONUtils{
+@SuppressWarnings("unused")
+public class JSONUtils {
 
     /**
      * 将字符串转换成json
-     * @param data
-     * @return
      */
-    public static JSONObject parse(String data) {
-        JSONObject jsonObject = null;
+    public static JSONObject parse(@NonNull String data) {
+        JSONObject jsonObject;
         try {
             if (isJson(data)) {
                 jsonObject = JSONObject.parseObject(data);
@@ -34,18 +35,15 @@ public class JSONUtils{
             }
         } catch (Exception e) {
             jsonObject = new JSONObject();
-            LcaiLogUtils.d("对象转换失败",data);
+            LcaiLogUtils.d("对象转换失败", data);
         }
         return jsonObject;
     }
 
     /**
      * 获取JSONObject 中的JSONArray对象
-     * @param data
-     * @param key
-     * @return
      */
-    public static JSONArray getJSONArray(JSONObject data,String key) {
+    public static JSONArray getJSONArray(JSONObject data, String key) {
         JSONArray array = null;
         try {
             if (data != null) {
@@ -53,17 +51,12 @@ public class JSONUtils{
             }
         } catch (Exception e) {
             LcaiLogUtils.w("数据获取失败");
-        }finally {
-            return array;
         }
+        return array;
     }
 
     /**
      * 获取JSONObject中的JSONObject对象
-     *
-     * @param data
-     * @param key
-     * @return
      */
     public static JSONObject getJSONObject(JSONObject data, String key) {
         JSONObject jsonObject = null;
@@ -73,46 +66,40 @@ public class JSONUtils{
             }
         } catch (Exception e) {
             LcaiLogUtils.w("数据获取失败");
-        }finally {
-            return jsonObject;
         }
+        return jsonObject;
     }
 
     /**
      * 获取JSONArray中的JSONObject
-     * @param data
-     * @param index
-     * @return
      */
     public static JSONObject getJSONObject(JSONArray data, int index) {
         JSONObject jsonObject = null;
         try {
-            if (data != null && data.size() > 0) {
+            if (data != null && !data.isEmpty()) {
                 jsonObject = data.getJSONObject(index);
             }
         } catch (Exception e) {
             LcaiLogUtils.w("数据获取失败");
-        } finally {
-            return jsonObject;
         }
+        return jsonObject;
+
     }
 
     /**
      * 将字符串转换成array
-     * @param data
-     * @return
      */
     public static JSONArray parsrArray(String data) {
-        JSONArray jsonArray = null;
+        JSONArray jsonArray;
         try {
             if (isJson(data)) {
                 jsonArray = JSON.parseArray(data);
-            }else{
+            } else {
                 jsonArray = new JSONArray();
             }
         } catch (Exception e) {
             jsonArray = new JSONArray();
-            LcaiLogUtils.d("对象转换失败",data);
+            LcaiLogUtils.d("对象转换失败", data);
         }
         return jsonArray;
     }
@@ -129,7 +116,7 @@ public class JSONUtils{
         return tList;
     }
 
-    public static int getInt(JSONObject jsonObject,String key, int defaultValue) {
+    public static int getInt(JSONObject jsonObject, String key, int defaultValue) {
         try {
             if (jsonObject == null || TextUtils.isEmpty(key)) {
                 return defaultValue;
@@ -173,8 +160,6 @@ public class JSONUtils{
 
     /**
      * 判断字符串是否是json字符串
-     * @param arg
-     * @return
      */
     public static boolean isJson(String arg) {
         if (TextUtils.isEmpty(arg)) {

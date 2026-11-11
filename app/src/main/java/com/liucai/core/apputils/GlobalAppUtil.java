@@ -1,5 +1,6 @@
 package com.liucai.core.apputils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
@@ -18,7 +19,6 @@ import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Build;
@@ -58,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author liucai
  */
+@SuppressWarnings("unused")
 public final class GlobalAppUtil {
 
     private static volatile Application sApplication;
@@ -142,10 +143,7 @@ public final class GlobalAppUtil {
         if (activity == null || activity.isFinishing()) {
             return false;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            return !activity.isDestroyed();
-        }
-        return true;
+        return !activity.isDestroyed();
     }
 
     /**
@@ -366,12 +364,10 @@ public final class GlobalAppUtil {
 
     @Nullable
     private static WindowInsets getRootWindowInsetsCompat(@NonNull View decor) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                return decor.getRootWindowInsets();
-            } catch (Throwable t) {
-                LcaiLogUtils.i("读取 WindowInsets 失败: " + t.getMessage());
-            }
+        try {
+            return decor.getRootWindowInsets();
+        } catch (Throwable t) {
+            LcaiLogUtils.i("读取 WindowInsets 失败: " + t.getMessage());
         }
         return null;
     }
@@ -408,10 +404,8 @@ public final class GlobalAppUtil {
                 safeCallback(callback, insets.getInsets(WindowInsets.Type.statusBars()).top);
                 return true;
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-                safeCallback(callback, insets.getSystemWindowInsetTop());
-                return true;
-            }
+            safeCallback(callback, insets.getSystemWindowInsetTop());
+            return true;
         } catch (Throwable t) {
             LcaiLogUtils.i("读取状态栏高度失败: " + t.getMessage());
         }
@@ -448,16 +442,15 @@ public final class GlobalAppUtil {
                 safeCallback(callback, insets.getInsets(WindowInsets.Type.navigationBars()).bottom);
                 return true;
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-                safeCallback(callback, insets.getSystemWindowInsetBottom());
-                return true;
-            }
+            safeCallback(callback, insets.getSystemWindowInsetBottom());
+            return true;
         } catch (Throwable t) {
             LcaiLogUtils.i("读取导航栏高度失败: " + t.getMessage());
         }
         return false;
     }
 
+    @SuppressLint("DiscouragedApi")
     private static int getSystemDimenByRes(@NonNull String resName) {
         try {
             Resources res = getApplicationContext().getResources();
@@ -506,10 +499,9 @@ public final class GlobalAppUtil {
         if (TextUtils.isEmpty(message)) {
             return;
         }
-        CharSequence msg = message;
         runOnUiThread(() -> {
             try {
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             } catch (Throwable t) {
                 LcaiLogUtils.i("Toast 失败: " + t.getMessage());
             }
@@ -566,7 +558,7 @@ public final class GlobalAppUtil {
         }
     }
 
-    public static String resolveString(@NonNull Context mContext,@StringRes int resId) {
+    public static String resolveString(Context mContext,@StringRes int resId) {
         Context ctx = mContext != null ? mContext : GlobalAppUtil.getApplication();
         try {
             return ctx.getString(resId);
@@ -576,7 +568,7 @@ public final class GlobalAppUtil {
         }
     }
 
-    public static int resolveColor(@NonNull Context mContext,@ColorRes int resId) {
+    public static int resolveColor(Context mContext,@ColorRes int resId) {
         Context ctx = mContext != null ? mContext : GlobalAppUtil.getApplication();
         try {
             return ContextCompat.getColor(ctx, resId);
@@ -586,7 +578,7 @@ public final class GlobalAppUtil {
         }
     }
 
-    public static Drawable resolveDrawable(@NonNull Context mContext, @DrawableRes int resId){
+    public static Drawable resolveDrawable(Context mContext, @DrawableRes int resId){
         Context ctx = mContext != null ? mContext : GlobalAppUtil.getApplication();
         try {
             return ContextCompat.getDrawable(ctx, resId);
@@ -637,7 +629,7 @@ public final class GlobalAppUtil {
         try {
             CharSequence name = ctx.getApplicationInfo()
                     .loadLabel(ctx.getPackageManager());
-            return name == null ? "" : name.toString();
+            return name.toString();
         } catch (Throwable t) {
             return "";
         }
@@ -741,7 +733,7 @@ public final class GlobalAppUtil {
             }
         }
         try {
-            Method m = Class.forName("android.app.ActivityThread")
+            @SuppressLint({"DiscouragedPrivateApi", "PrivateApi"}) Method m = Class.forName("android.app.ActivityThread")
                     .getDeclaredMethod("currentProcessName");
             m.setAccessible(true);
             Object result = m.invoke(null);
@@ -814,6 +806,7 @@ public final class GlobalAppUtil {
     /**
      * @deprecated Android 10+ 已不可用，始终返回 "unknown"。
      */
+    @SuppressLint("HardwareIds")
     @Deprecated
     public static String getDeviceSerial() {
         return Build.SERIAL;
@@ -848,17 +841,13 @@ public final class GlobalAppUtil {
             return false;
         }
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                Network network = cm.getActiveNetwork();
-                if (network == null) {
-                    return false;
-                }
-                NetworkCapabilities caps = cm.getNetworkCapabilities(network);
-                return caps != null
-                        && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+            Network network = cm.getActiveNetwork();
+            if (network == null) {
+                return false;
             }
-            NetworkInfo info = cm.getActiveNetworkInfo();
-            return info != null && info.isConnectedOrConnecting();
+            NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+            return caps != null
+                    && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
         } catch (Throwable t) {
             return false;
         }
@@ -880,7 +869,7 @@ public final class GlobalAppUtil {
 
     private static boolean hasTransport(int transport) {
         ConnectivityManager cm = getConnectivityManager();
-        if (cm == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        if (cm == null) {
             return false;
         }
         try {

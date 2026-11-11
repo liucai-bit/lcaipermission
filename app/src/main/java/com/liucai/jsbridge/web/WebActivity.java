@@ -4,13 +4,11 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.annotation.SuppressLint;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
-import android.webkit.WebViewClient;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -39,6 +37,7 @@ import java.util.List;
  * @author liucai
  * @Date 2026/7/7
  */
+@SuppressWarnings("unused")
 public class WebActivity extends LcaiBaseActivity {
 
     protected static final String TAG = "WebActivity";
@@ -112,12 +111,13 @@ public class WebActivity extends LcaiBaseActivity {
         setupBackButton();
 
         // 4. 加载 URL
-        String url = onBeforeLoadUrl(config.getUrl());
-        LcaiLogUtils.d(TAG, "WebView 初始化完成，开始加载:", url);
-        if (!TextUtils.isEmpty(url)) {
-            webView.loadUrl(url);
+        if (!TextUtils.isEmpty(config.getUrl())) {
+            String url = onBeforeLoadUrl(config.getUrl());
+            LcaiLogUtils.d(TAG, "WebView 初始化完成，开始加载:", url);
+            if (!TextUtils.isEmpty(url)) {
+                webView.loadUrl(url);
+            }
         }
-
         // 5. WebView 就绪钩子
         onWebViewReady(webView);
     }
@@ -186,7 +186,7 @@ public class WebActivity extends LcaiBaseActivity {
         final WebActivityCallback finalCb = config.getCallback();
         if (finalCb != null) {
             callbackAdapter = new LcaiWebCallbackAdapter(
-                    (cb, payload, activity) -> finalCb.onMethodBack(cb, payload, activity));
+                    finalCb::onMethodBack);
         } else {
             callbackAdapter = new LcaiWebCallbackAdapter(null);
         }
@@ -197,7 +197,7 @@ public class WebActivity extends LcaiBaseActivity {
      */
     protected void setupJsBridge() {
         dispatcher = new LcaiJsBridgeDispatcher(webView,
-                (cb, method, data) -> verifyMethod(cb, method, data));
+                this::verifyMethod);
         dispatcher.register(config.getMethodArrays());
     }
 

@@ -10,6 +10,7 @@ import java.util.List;
  * @description
  * @Date 2026/10/14
  */
+@SuppressWarnings("unused")
 public interface LcaiPermissionResult {
     default void onPermissionsState(PermissionsState state) {
 

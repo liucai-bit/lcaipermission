@@ -1,5 +1,6 @@
 package com.liucai.component;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
@@ -26,11 +27,9 @@ import java.util.List;
  * @description
  * @Date 2026/7/28
  */
+@SuppressWarnings("unused")
 public class HorizonalLabelBar extends BaseFlexboxLayout {
 
-    private int labelWrap;
-    private int labelDirection;
-    private int labelAlign;
     private String labelPadding;
     private String labelMargin;
 
@@ -61,14 +60,17 @@ public class HorizonalLabelBar extends BaseFlexboxLayout {
 
     @Override
     public void init() {
-        labelWrap = mTa.getInt(R.styleable.HorizonalLabelBar_labelWrap, 0);
-        labelDirection = mTa.getInt(R.styleable.HorizonalLabelBar_labelDirection, 0);
-        labelAlign = mTa.getInt(R.styleable.HorizonalLabelBar_labelAlign, 0);
-        labelPadding = mTa.getString(R.styleable.HorizonalLabelBar_labelPadding);
-        labelMargin = mTa.getString(R.styleable.HorizonalLabelBar_labelMagrin);
-        setFlexWrap(labelWrap);
-        setFlexDirection(labelDirection);
-        setAlignContent(labelAlign);
+        if (mTa!=null){
+            int labelWrap = mTa.getInt(R.styleable.HorizonalLabelBar_labelWrap, 0);
+            int labelDirection = mTa.getInt(R.styleable.HorizonalLabelBar_labelDirection, 0);
+            int labelAlign = mTa.getInt(R.styleable.HorizonalLabelBar_labelAlign, 0);
+            labelPadding = mTa.getString(R.styleable.HorizonalLabelBar_labelPadding);
+            labelMargin = mTa.getString(R.styleable.HorizonalLabelBar_labelMagrin);
+            setFlexWrap(labelWrap);
+            setFlexDirection(labelDirection);
+            setAlignContent(labelAlign);
+        }
+
     }
 
     public void setLabelWrap(int labelWrap) {
@@ -163,6 +165,7 @@ public class HorizonalLabelBar extends BaseFlexboxLayout {
         initLable();
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     public void initLable() {
         for (HorizonalLabelBean data : datas) {
             TextView textView = new TextView(mContext);
