@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/lcai_loading_bg"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/lcai_15dp"
+        android:paddingBottom="@dimen/lcai_15dp"
+        android:paddingRight="@dimen/lcai_30dp"
+        android:paddingLeft="@dimen/lcai_30dp">
+        <!-- 自定义菊花形状进度条 -->
+        <ProgressBar
+            android:id="@+id/loadingView"
+            android:layout_width="@dimen/lcai_40dp"
+            android:layout_height="@dimen/lcai_40dp"
+            android:layout_marginBottom="3dp"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/lcai_loading_progress" />
+
+        <TextView
+            android:id="@+id/lcai_tips_dialog_loading_t1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/lcai_5dp"
+            android:paddingLeft="@dimen/lcai_5dp"
+            android:paddingRight="@dimen/lcai_5dp"
+            android:text="加载中..."
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</RelativeLayout>

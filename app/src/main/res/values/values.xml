@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="lcai_5dp">5dp</dimen>
+    <dimen name="lcai_10dp">10dp</dimen>
+    <dimen name="lcai_15dp">15dp</dimen>
+    <dimen name="lcai_20dp">20dp</dimen>
+    <dimen name="lcai_25dp">25dp</dimen>
+    <dimen name="lcai_30dp">30dp</dimen>
+    <dimen name="lcai_35dp">35dp</dimen>
+    <dimen name="lcai_40dp">40dp</dimen>
+    <dimen name="lcai_45dp">45dp</dimen>
+    <dimen name="lcai_50dp">50dp</dimen>
+    <dimen name="lcai_55dp">55dp</dimen>
+    <dimen name="lcai_60dp">60dp</dimen>
+    <dimen name="lcai_65dp">65dp</dimen>
+    <dimen name="lcai_70dp">70dp</dimen>
+    <dimen name="lcai_75dp">75dp</dimen>
+    <dimen name="lcai_80dp">80dp</dimen>
+    <dimen name="lcai_85dp">85dp</dimen>
+    <dimen name="lcai_90dp">90dp</dimen>
+    <dimen name="lcai_95dp">95dp</dimen>
+    <dimen name="lcai_100dp">100dp</dimen>
+    <dimen name="lcai_200dp">200dp</dimen>
+    <dimen name="lcai_300dp">300dp</dimen>
+    <dimen name="lcai_400dp">400dp</dimen>
+    <dimen name="lcai_500dp">500dp</dimen>
+</resources>

@@ -79,6 +79,8 @@ public class LcaiTipsDialog extends Dialog {
             return R.layout.lcai_tips_dialg_richtext_layout;
         } else if (builder.mode == LcaiTipsMode.LIST_MODE) {
             return R.layout.lcai_tips_dialg_list_layout;
+        }else if(builder.mode==LcaiTipsMode.LOADING){
+            return R.layout.lcai_tips_dialog_loading_layout;
         } else if (builder.mode == LcaiTipsMode.CUSTOM_MODE) {
             return builder.customLayout;
         }
@@ -94,6 +96,8 @@ public class LcaiTipsDialog extends Dialog {
             bindRichTextMode();
         } else if (builder.mode == LcaiTipsMode.LIST_MODE) {
             bindListMode();
+        }else if(builder.mode==LcaiTipsMode.LOADING){
+            bindLoadingMode();
         } else if (builder.mode == LcaiTipsMode.CUSTOM_MODE) {
             if (builder.dialogInterface == null) {
                 throw new LcaiHttpException("使用LcaiTipsMode.CUSTOM_MODE模式，需要先实现OnTipsDialogInterface.onBindView");
@@ -134,7 +138,6 @@ public class LcaiTipsDialog extends Dialog {
                     dismiss();
                 });
     }
-
     private void bindImageMode() {
         ivImage = findViewById(R.id.lcai_tips_dialog_image_m1);
         ivClose = findViewById(R.id.lcai_tips_dialog_image_m2);
@@ -144,7 +147,6 @@ public class LcaiTipsDialog extends Dialog {
             dismiss();
         });
     }
-
     private void bindRichTextMode() {
         richTextRoot = findViewById(R.id.lcai_tips_dialog_richtext_l1);
         tvRichTitle = findViewById(R.id.lcai_tips_dialog_richtext_t1);
@@ -167,7 +169,6 @@ public class LcaiTipsDialog extends Dialog {
             dismiss();
         });
     }
-
     private void bindListMode() {
         listRoot = findViewById(R.id.lcai_tips_dialog_list_l1);
         tvListTitle = findViewById(R.id.lcai_tips_dialog_list_t1);
@@ -204,7 +205,15 @@ public class LcaiTipsDialog extends Dialog {
                     dismiss();
                 });
     }
-
+    private void bindLoadingMode(){
+        tvContent = findViewById(R.id.lcai_tips_dialog_loading_t1);
+        if (TextUtils.isEmpty(builder.content)) {
+            tvContent.setVisibility(View.GONE);
+        }else {
+            tvContent.setVisibility(View.VISIBLE);
+            tvContent.setText(builder.content);
+        }
+    }
     private void handleSimpleContent() {
         if (!TextUtils.isEmpty(builder.content)) {
             tvContent.setVisibility(View.VISIBLE);
