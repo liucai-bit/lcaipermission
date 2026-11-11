@@ -6,7 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
-import com.liucai.camera_photo.bulider.LcaiCameraPhotoBulider;
+import com.liucai.camera_photo.bulider.LcaiCameraPhotoBuilder;
 import com.liucai.camera_photo.core.LcaiCameraPhoto;
 import com.liucai.camera_photo.core.LcaiGalleryResult;
 import com.liucai.core.util.log.LcaiLogUtils;
@@ -28,7 +28,7 @@ public class LcaiManager {
     private volatile boolean pendingToSystem = false;
 
     private LcaiPermissionRequestBulider currentPermissionBuilder;
-    private LcaiCameraPhotoBulider currentPhotoBuilder;
+    private LcaiCameraPhotoBuilder currentPhotoBuilder;
 
     private LcaiManager() {
     }
@@ -135,7 +135,7 @@ public class LcaiManager {
             new LcaiGalleryResult() {
                 @Override
                 public void onUrl(String url) {
-                    LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+                    LcaiCameraPhotoBuilder builder = currentPhotoBuilder;
                     clearPhotoReferences();
 
                     if (builder != null && builder.result != null) {
@@ -145,7 +145,7 @@ public class LcaiManager {
 
                 @Override
                 public void onBase64(String base64) {
-                    LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+                    LcaiCameraPhotoBuilder builder = currentPhotoBuilder;
                     clearPhotoReferences();
 
                     if (builder != null && builder.result != null) {
@@ -155,7 +155,7 @@ public class LcaiManager {
 
                 @Override
                 public void onCancel() {
-                    LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+                    LcaiCameraPhotoBuilder builder = currentPhotoBuilder;
                     clearPhotoReferences();
 
                     if (builder != null && builder.result != null) {
@@ -165,7 +165,7 @@ public class LcaiManager {
 
                 @Override
                 public void onError(String error) {
-                    LcaiCameraPhotoBulider builder = currentPhotoBuilder;
+                    LcaiCameraPhotoBuilder builder = currentPhotoBuilder;
                     clearPhotoReferences();
 
                     if (builder != null && builder.result != null) {
@@ -236,7 +236,7 @@ public class LcaiManager {
         new LcaiPermissionRequest(builder);
     }
 
-    public void openPhotoOrCamera(@NonNull LcaiCameraPhotoBulider builder) {
+    public void openPhotoOrCamera(@NonNull LcaiCameraPhotoBuilder builder) {
         clearPhotoReferences();
         currentPhotoBuilder = builder;
         new LcaiCameraPhoto(builder).start();

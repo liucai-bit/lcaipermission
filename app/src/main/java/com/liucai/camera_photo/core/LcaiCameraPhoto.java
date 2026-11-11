@@ -3,7 +3,7 @@ package com.liucai.camera_photo.core;
 import android.app.Activity;
 import android.content.Intent;
 
-import com.liucai.camera_photo.bulider.LcaiCameraPhotoBulider;
+import com.liucai.camera_photo.bulider.LcaiCameraPhotoBuilder;
 import com.liucai.camera_photo.view.LcaiCamearPhtoActivity;
 import com.liucai.core.base.LcaiActivityManager;
 import com.liucai.core.util.log.LcaiLogUtils;
@@ -16,9 +16,9 @@ import com.liucai.core.util.log.LcaiLogUtils;
  */
 public class LcaiCameraPhoto {
 
-    public LcaiCameraPhotoBulider builder;
+    public LcaiCameraPhotoBuilder builder;
 
-    public LcaiCameraPhoto(LcaiCameraPhotoBulider builder) {
+    public LcaiCameraPhoto(LcaiCameraPhotoBuilder builder) {
         this.builder = builder;
     }
 

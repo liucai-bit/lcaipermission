@@ -11,50 +11,50 @@ import com.liucai.camera_photo.core.LcaiGalleryResultType;
  * @Date 2026/6/4
  */
 @SuppressWarnings("unused")
-public class LcaiCameraPhotoBulider {
+public class LcaiCameraPhotoBuilder {
 
     public LcaiGalleryCheckType type = LcaiGalleryCheckType.PHOTO;
 
-    public LcaiCameraPhotoBulider addCheck(LcaiGalleryCheckType type) {
+    public LcaiCameraPhotoBuilder addCheck(LcaiGalleryCheckType type) {
         this.type = type;
         return this;
     }
 
     public LcaiGalleryResultType resultTyp = LcaiGalleryResultType.URL;
 
-    public LcaiCameraPhotoBulider addResult(LcaiGalleryResultType resultTyp) {
+    public LcaiCameraPhotoBuilder addResult(LcaiGalleryResultType resultTyp) {
         this.resultTyp = resultTyp;
         return this;
     }
 
     public boolean addHeader;
 
-    public LcaiCameraPhotoBulider setAddHeader(boolean addHeader) {
+    public LcaiCameraPhotoBuilder setAddHeader(boolean addHeader) {
         this.addHeader = addHeader;
         return this;
     }
 
     // 保留原来的写法，兼容老代码
-    public LcaiCameraPhotoBulider addHeader() {
+    public LcaiCameraPhotoBuilder addHeader() {
         this.addHeader = true;
         return this;
     }
 
     public boolean save;
 
-    public LcaiCameraPhotoBulider setSave(boolean save) {
+    public LcaiCameraPhotoBuilder setSave(boolean save) {
         this.save = save;
         return this;
     }
 
-    public LcaiCameraPhotoBulider save() {
+    public LcaiCameraPhotoBuilder save() {
         this.save = true;
         return this;
     }
 
     public LcaiGalleryResult result;
 
-    public LcaiCameraPhotoBulider setResult(LcaiGalleryResult result) {
+    public LcaiCameraPhotoBuilder setResult(LcaiGalleryResult result) {
         this.result = result;
         return this;
     }
