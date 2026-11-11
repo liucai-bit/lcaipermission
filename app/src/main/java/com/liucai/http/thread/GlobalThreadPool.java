@@ -74,6 +74,16 @@ public final class GlobalThreadPool {
         }
     }
 
+    public static boolean executeBoolean(@NonNull Runnable task){
+        try {
+            getInstance().execute(task);
+            return true;
+        } catch (Exception e) {
+            LcaiLogUtils.e(TAG,"Execute task failed", e);
+            return false;
+        }
+    }
+
     public static Future<?> submit(@NonNull Runnable task) {
         try {
             return getInstance().submit(task);

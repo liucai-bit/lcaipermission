@@ -29,6 +29,7 @@ import com.liucai.permission.R;
 import com.liucai.tipsdialog.bulider.LcaiTipsDialogBuilder;
 import com.liucai.tipsdialog.module.SegDisplayModule;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -227,14 +228,20 @@ public class LcaiTipsDialog extends Dialog {
         List<SegDisplayModule> list = builder.moduleList;
         if (list != null && !list.isEmpty()) {
             tvContent.setVisibility(View.VISIBLE);
+            final List<String> texts = new ArrayList<>(list.size());
             StringBuilder sb = new StringBuilder();
-            for (SegDisplayModule m : list) sb.append(m.text);
+            for (SegDisplayModule m : list){
+                String t = m.resolveString(builder.mContext);
+                texts.add(t);
+                sb.append(t);
+            }
 
             SpannableString spanStr = new SpannableString(sb.toString());
             int startIndex = 0;
-
+            int index = 0;
             for (SegDisplayModule module : list) {
-                int endIndex = startIndex + module.text.length();
+                final int color = module.resolveColor(builder.mContext);
+                int endIndex = startIndex + texts.get(index).length();
                 if (module.clickEnabel) {
                     spanStr.setSpan(new ClickableSpan() {
                         @Override
@@ -248,12 +255,13 @@ public class LcaiTipsDialog extends Dialog {
 
                         @Override
                         public void updateDrawState(@NonNull TextPaint ds) {
-                            ds.setColor(Color.parseColor(module.textColor));
+                            ds.setColor(color);
                             ds.setUnderlineText(false);
                         }
                     }, startIndex, endIndex, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
                 startIndex = endIndex;
+                index++;
             }
             tvContent.setText(spanStr);
             tvContent.setMovementMethod(LinkMovementMethod.getInstance());

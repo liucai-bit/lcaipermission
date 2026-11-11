@@ -12,7 +12,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -32,8 +34,12 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.core.content.ContextCompat;
 
 import com.liucai.core.base.LcaiActivityManager;
 import com.liucai.core.util.common.ComponentInterface;
@@ -557,6 +563,36 @@ public final class GlobalAppUtil {
             }
         } catch (Throwable t) {
             LcaiLogUtils.i("显示键盘失败: " + t.getMessage());
+        }
+    }
+
+    public static String resolveString(@NonNull Context mContext,@StringRes int resId) {
+        Context ctx = mContext != null ? mContext : GlobalAppUtil.getApplication();
+        try {
+            return ctx.getString(resId);
+        } catch (Throwable t) {
+            LcaiLogUtils.e("resolveString failed: " + resId, t);
+            return null;
+        }
+    }
+
+    public static int resolveColor(@NonNull Context mContext,@ColorRes int resId) {
+        Context ctx = mContext != null ? mContext : GlobalAppUtil.getApplication();
+        try {
+            return ContextCompat.getColor(ctx, resId);
+        } catch (Throwable t) {
+            LcaiLogUtils.e("resolveString failed: " + resId, t);
+            return Color.BLACK;
+        }
+    }
+
+    public static Drawable resolveDrawable(@NonNull Context mContext, @DrawableRes int resId){
+        Context ctx = mContext != null ? mContext : GlobalAppUtil.getApplication();
+        try {
+            return ContextCompat.getDrawable(ctx, resId);
+        } catch (Throwable t) {
+            LcaiLogUtils.e("resolveString failed: " + resId, t);
+            return null;
         }
     }
 

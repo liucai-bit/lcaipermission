@@ -6,15 +6,21 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 
 import com.liucai.component.base.BaseRecycleAdapter;
 import com.liucai.core.apputils.GlobalAppUtil;
 import com.liucai.core.base.LcaiActivityManager;
 import com.liucai.core.util.log.LcaiLogUtils;
+import com.liucai.http.thread.GlobalThreadPool;
+import com.liucai.http.thread.LcaiRunnableUtils;
 import com.liucai.tipsdialog.core.LcaiTipsDialog;
 import com.liucai.tipsdialog.core.LcaiTipsMode;
 import com.liucai.tipsdialog.core.OnTipsDialogInterface;
@@ -22,6 +28,8 @@ import com.liucai.tipsdialog.module.SegDisplayModule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author liucai
@@ -118,6 +126,11 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         return this;
     }
 
+    public LcaiTipsDialogBuilder setPopupBgRes(@DrawableRes int resId) {
+        this.popupBg = GlobalAppUtil.resolveDrawable(mContext, resId);
+        return this;
+    }
+
     /**
      * 设置标题文字
      */
@@ -126,11 +139,21 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         return this;
     }
 
+    public LcaiTipsDialogBuilder setTitleRes(@StringRes int resId) {
+        this.title = GlobalAppUtil.resolveString(mContext, resId);
+        return this;
+    }
+
     /**
-     * 设置标题文字颜色 (@ColorInt)
+     * 设置标题文字颜色
      */
     public LcaiTipsDialogBuilder setTitleColor(int titleColor) {
         this.titleColor = titleColor;
+        return this;
+    }
+
+    public LcaiTipsDialogBuilder setTitleColorRes(@ColorRes int resId) {
+        this.titleColor = GlobalAppUtil.resolveColor(mContext, resId);
         return this;
     }
 
@@ -180,11 +203,21 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         return this;
     }
 
+    public LcaiTipsDialogBuilder setContentRes(@StringRes int resId) {
+        this.content = GlobalAppUtil.resolveString(mContext, resId);
+        return this;
+    }
+
     /**
      * 设置内容文字颜色 (@ColorInt)
      */
     public LcaiTipsDialogBuilder setContentColor(int contentColor) {
         this.contentColor = contentColor;
+        return this;
+    }
+
+    public LcaiTipsDialogBuilder setContentColorRes(@ColorRes int resId) {
+        this.contentColor = GlobalAppUtil.resolveColor(mContext, resId);
         return this;
     }
 
@@ -247,11 +280,21 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         return this;
     }
 
+    public LcaiTipsDialogBuilder setCancelTextRes(@StringRes int resId) {
+        this.cancelText = GlobalAppUtil.resolveString(mContext, resId);
+        return this;
+    }
+
     /**
      * 设置取消按钮文字颜色 (@ColorInt)
      */
     public LcaiTipsDialogBuilder setCancelColor(int cancelColor) {
         this.cancelColor = cancelColor;
+        return this;
+    }
+
+    public LcaiTipsDialogBuilder setCancelColorRes(@ColorRes int resId) {
+        this.cancelColor = GlobalAppUtil.resolveColor(mContext, resId);
         return this;
     }
 
@@ -271,6 +314,11 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         return this;
     }
 
+    public LcaiTipsDialogBuilder setCancelBgRes(@DrawableRes int resId) {
+        this.cancelBg = GlobalAppUtil.resolveDrawable(mContext, resId);
+        return this;
+    }
+
     /**
      * 设置确认按钮文字
      */
@@ -279,11 +327,21 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
         return this;
     }
 
+    public LcaiTipsDialogBuilder setConfirmTextRes(@StringRes int resId) {
+        this.confirmText = GlobalAppUtil.resolveString(mContext, resId);
+        return this;
+    }
+
     /**
-     * 设置确认按钮文字颜色 (@ColorInt)
+     * 设置确认按钮文字颜色
      */
     public LcaiTipsDialogBuilder setConfirmColor(int confirmColor) {
         this.confirmColor = confirmColor;
+        return this;
+    }
+
+    public LcaiTipsDialogBuilder setConfirmColorRes(@ColorRes int resId) {
+        this.confirmColor = GlobalAppUtil.resolveColor(mContext, resId);
         return this;
     }
 
@@ -300,6 +358,11 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
      */
     public LcaiTipsDialogBuilder setConfirmBg(Drawable confirmBg) {
         this.confirmBg = confirmBg;
+        return this;
+    }
+
+    public LcaiTipsDialogBuilder setConfirmBgRes(@DrawableRes int resId) {
+        this.confirmBg = GlobalAppUtil.resolveDrawable(mContext, resId);
         return this;
     }
 
@@ -466,6 +529,68 @@ public class LcaiTipsDialogBuilder<T extends BaseRecycleAdapter>{
             LcaiLogUtils.d("TipsDialog build failed: " + t.getMessage());
             dialog = null;
         }
+    }
+
+    /**
+     * LOADING 场景推荐入口。
+     *
+     * <p>自动完成：显示 loading → 等一帧 → 子线程执行 task →
+     * 回主线程关闭 dialog → 回调 onBuildAsync。
+     *
+     * <p>全程主线程不阻塞，loading 动画可持续旋转。
+     *
+     * <p>task 内部抛出的异常会通过 {@link OnTipsDialogInterface#onBuildAsync}
+     * 的 error 参数回传（{@code null} 表示成功）。
+     */
+    public void buildAsync(@NonNull Runnable task) {
+        if (!isMainThread()) {
+            mainHandler.post(() -> buildAsync(task));
+            return;
+        }
+
+        // 1) 显示 loading（内部会 dismiss 旧的 + 校验宿主）
+        build();
+
+        // 2) 宿主无效：任务照跑（不丢数据），但没 loading 可关
+        if (!isShowing()) {
+            LcaiLogUtils.d("TipsDialog buildAsync: no valid host, run task directly");
+            mainHandler.postDelayed(() -> startAsyncTask(task), 0);
+            return;
+        }
+
+        // 3) 宿主有效：等 loading 至少绘制一帧后再启动任务，
+        //    避免主线程同步阻塞导致 loading 动画冻结
+        View decor = dialog.getWindow() != null ? dialog.getWindow().getDecorView() : null;
+        if (decor == null) {
+            mainHandler.postDelayed(() -> startAsyncTask(task), 100);   // 降级路径
+        } else {
+            decor.postOnAnimation(() ->
+                    decor.postOnAnimation(() ->
+                            mainHandler.post(() -> startAsyncTask(task))));
+        }
+    }
+
+    /** 子线程执行 + 主线程关闭 + 回调 */
+    private void startAsyncTask(@NonNull Runnable task) {
+        GlobalThreadPool.execute(() -> {
+            Throwable error = null;
+            try {
+                task.run();
+            } catch (Throwable t) {
+                error = t;
+                LcaiLogUtils.e("TipsDialog async task failed", t);
+            }
+            final Throwable fe = error;
+
+            // ★ 回主线程：先回调、再 dismiss，保证回调能拿到 dialogInterface
+            mainHandler.post(() -> {
+                if (dialogInterface != null) {
+                    dialogInterface.onBuildAsync(this, fe);
+                }
+                // ★ 框架统一负责关闭 loading，用户无需手动 dismiss
+                dismissQuietly();
+            });
+        });
     }
 
 
