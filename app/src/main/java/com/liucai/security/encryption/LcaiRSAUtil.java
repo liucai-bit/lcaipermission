@@ -28,6 +28,7 @@ import javax.crypto.spec.PSource;
  * 公钥可完整导出并分发。加解密统一 OAEP-SHA256 + MGF1-SHA1，保证与 Keystore 私钥配对。
  * @Date 2026/11/12
  */
+@SuppressWarnings("unused")
 public final class LcaiRSAUtil {
 
     private static final String DEFAULT_ALIAS = "lcai_rsa_master_v1";

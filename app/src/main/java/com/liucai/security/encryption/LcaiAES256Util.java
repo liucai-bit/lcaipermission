@@ -20,6 +20,7 @@ import javax.crypto.spec.GCMParameterSpec;
  * 兼容 Base64 密钥方式（安全性较低，仅用于旧逻辑迁移）。
  * @Date 2026/11/12
  */
+@SuppressWarnings("unused")
 public final class LcaiAES256Util {
     private static final String DEFAULT_ALIAS = "lcai_aes_master_v1";
     private static final String ANDROID_KEYSTORE = "AndroidKeyStore";

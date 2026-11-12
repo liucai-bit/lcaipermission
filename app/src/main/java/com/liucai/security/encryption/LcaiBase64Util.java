@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
  * @description Base64 编码/解码工具。BASE64 不是加密，不能用于保护敏感数据。
  * @Date 2026/11/12
  */
+@SuppressWarnings("unused")
 public final class LcaiBase64Util {
 
     private LcaiBase64Util() {

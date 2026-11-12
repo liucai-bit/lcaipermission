@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
  * @description MD5 摘要工具。MD5 不安全，仅建议用于文件校验、兼容旧协议等非安全场景。
  * @Date 2026/11/12
  */
+@SuppressWarnings("unused")
 public final class LcaiMD5Util {
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();

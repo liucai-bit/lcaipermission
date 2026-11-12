@@ -19,6 +19,7 @@ import javax.crypto.SecretKey;
  * @description 统一加密门面。AES 密钥与 RSA 私钥均由 AndroidKeyStore 托管，不可导出。
  * @Date 2026/11/12
  */
+@SuppressWarnings("unused")
 public final class LcaiEncryptionCore {
 
     private LcaiEncryptionCore() {
