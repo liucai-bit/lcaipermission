@@ -50,7 +50,7 @@ public class BusinessNodeStatusAdapter extends BaseRecycleAdapter<BaseViewHolder
     @Override
     public void onBindView(int position, View mConvertView, BaseViewHolder holder, BusinessNodesStatusBean bean) {
         ConstraintLayout mNodeStatus = holder.getView(R.id.business_nodes_status);
-        mNodeStatus.setPadding(0, CommonUtils.dip2px(mContext, config.itemSpace), 0, CommonUtils.dip2px(mContext, config.itemSpace));
+        mNodeStatus.setPadding(0, CommonUtils.dip2px(mContext, config.itemTopSpace), 0, CommonUtils.dip2px(mContext, config.itemBottomSpace));
         ImageView imageView = holder.getView(R.id.business_nodes_status_icon);
 
         ViewGroup.LayoutParams existingParams = imageView.getLayoutParams();

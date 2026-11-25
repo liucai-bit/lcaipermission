@@ -24,8 +24,10 @@
         <attr name="iconWidth" format="integer"/>
         <!--图标高度-->
         <attr name="iconHeight" format="integer"/>
-        <!--图标上下间距-->
-        <attr name="itemSpace" format="integer"/>
+        <!--图标上间距-->
+        <attr name="itemTopSpace" format="integer"/>
+        <!--图标下间距-->
+        <attr name="itemBottomSpace" format="integer"/>
         <!--item文字大小-->
         <attr name="itemTextSize" format="integer"/>
         <!--item文字颜色-->

@@ -78,7 +78,8 @@ public class BusinessNodeStatusBar extends BaseLinearLayout {
                 .setIsMax(mTa.getBoolean(R.styleable.BusinessNodeStatusBar_isMax, false))
                 .setIconHeight(mTa.getInt(R.styleable.BusinessNodeStatusBar_iconWidth, 25))
                 .setIconWidth(mTa.getInt(R.styleable.BusinessNodeStatusBar_iconWidth, 25))
-                .setItemSpace(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemSpace, 0))
+                .setItemTopSpace(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemTopSpace, 0))
+                .setItemBottomSpace(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemBottomSpace, 0))
                 .setTitleSize(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemTextSize, 12))
                 .setTitleColor(mTa.getInt(R.styleable.BusinessNodeStatusBar_itemTextColor, Color.parseColor("#1C1C1C")));
 

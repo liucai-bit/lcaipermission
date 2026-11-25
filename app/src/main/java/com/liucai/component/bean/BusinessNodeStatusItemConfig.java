@@ -13,7 +13,8 @@ public class BusinessNodeStatusItemConfig extends BaseComponentConfig{
 
     public int iconHeight=25;
 
-    public int itemSpace=10;
+    public int itemTopSpace=10;
+    public int itemBottomSpace = 10;
 
     public int badgeSize;
     public int badgeColor;
@@ -32,8 +33,13 @@ public class BusinessNodeStatusItemConfig extends BaseComponentConfig{
         return this;
     }
 
-    public BusinessNodeStatusItemConfig setItemSpace(int itemSpace) {
-        this.itemSpace = itemSpace;
+    public BusinessNodeStatusItemConfig setItemTopSpace(int itemTopSpace) {
+        this.itemTopSpace = itemTopSpace;
+        return this;
+    }
+
+    public BusinessNodeStatusItemConfig setItemBottomSpace(int itemBottomSpace) {
+        this.itemBottomSpace = itemBottomSpace;
         return this;
     }
 
